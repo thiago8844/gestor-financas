@@ -1,10 +1,10 @@
-@extends('layouts.main')
+@extends('layouts.centered')
 
 @push('styles')
 
   <style>
     .login {
-      max-width: 500px;
+      min-width: 700px;
     }
   </style>
 
@@ -12,9 +12,9 @@
 
 @section('content')
 
-<main class="login mx-auto vh-100">
+<main class="login mx-auto bg-white p-5 rounded shadow">
   
-  <h1 class="text-center mt-5">Cadastrar</h1>
+  <h1 class="text-center ">Cadastrar</h1>
   
   @if($errors->any()) 
     <div class="alert alert-danger">

@@ -1,3 +1,5 @@
+import Cleave from 'cleave.js';
+
 window.createMoneyMask = function (el) {
 
   const cleave = new Cleave(el, {

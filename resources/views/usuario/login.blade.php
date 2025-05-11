@@ -1,10 +1,10 @@
-@extends('layouts.main')
+@extends('layouts.centered')
 
 @push('styles')
 
   <style>
     .login {
-      max-width: 500px;
+      min-width: 500px;
     }
   </style>
 
@@ -12,13 +12,13 @@
 
 @section('content')
 
-<main class="login mx-auto vh-100">
+<main class="login mx-auto bg-white p-5 rounded shadow" style="height:  fit-content;">
 
-  <h1 class="text-center mt-5 mb-4">Login</h1>
+  <h1 class="text-center mb-4">Login</h1>
   
   <x-errors/>
 
-  <form action="/login" method="POST">
+  <form action="/login" method="POST" >
     @csrf
     <div class="form-group mb-3">
       <label for="credencial">Nome de Usuario ou E-mail:</label>
