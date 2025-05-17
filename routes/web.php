@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/despesas/cadastrar', [DespesaController::class, 'create'])->name('despesas.create');
     Route::get('/despesas/editar/{id}', [DespesaController::class, 'edit'])->name('despesas.edit');
     Route::post('/despesas/cadastrar', [DespesaController::class, 'store'])->name('despesas.store');
+    Route::put('/despesas/editar/{id}', [DespesaController::class, 'update'])->name('despesas.update');
     Route::delete('/despesas/deletar/{id}', [DespesaController::class, 'destroy'])->name('despesas.destroy');
 
 

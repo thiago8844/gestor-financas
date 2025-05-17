@@ -24,7 +24,7 @@ class DespesaRequest extends FormRequest
         return [
             'descricao' => 'required|string|max:255',
             'valor' => 'required|numeric|gt:0',
-            'data' => 'required|date',
+            'data' => 'required|string',
             'conta' => 'required|exists:conta,id',
             'categoria' => 'nullable|exists:categorias,id',
             'orcamento' => 'nullable|exists:orcamentos,id',

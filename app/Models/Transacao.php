@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,5 +37,19 @@ class Transacao extends Model
         return $value ? 'Sim' : 'Não';
     }
 
+    public function getDataBrAttribute($value)
+    {
+        return Carbon::parse($value)->format('d/m/Y');
+    }
+
+    public function getDataTimeBrAttribute($value)
+    {
+        return Carbon::parse($value)->format('d/m/Y H:i');
+    }
+
+    public function getDateTimeBrAttribute()
+    {
+        return \Carbon\Carbon::parse($this->data)->format('d/m/Y H:i');
+    }
 
 }

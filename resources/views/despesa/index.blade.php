@@ -64,7 +64,7 @@
                 @if($despesa->paga)
                   <span class="badge bg-success">Paga</span>
                 @else
-                  <span class="badge bg-warning text-dark">Pendente</span>
+                  <span class="badge bg-warning text-dark">Aberta</span>
                 @endif
               </td>
               <td class="text-center">
@@ -79,12 +79,12 @@
               <td class="text-center">
                 <div class="btn-group btn-group-sm" role="group">
                   <a href="{{ route('despesas.edit', $despesa->id) }}" class="btn btn-outline-primary">
-                    <i class="bi bi-pencil"></i>
+              <i class="fa-solid fa-pen"></i>
                   </a>
                   <button type="button" class="btn btn-outline-danger" 
                           data-bs-toggle="modal" 
                           data-bs-target="#deleteModal{{ $despesa->id }}">
-                    <i class="bi bi-trash"></i>
+                   <i class="fa-solid fa-trash"></i>
                   </button>
                 </div>
                 
