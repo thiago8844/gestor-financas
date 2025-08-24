@@ -1,0 +1,12 @@
+// Import font
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/600.css";
+
+// Typography
+$font-family-sans-serif: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+  sans-serif;
+$font-family-base: $font-family-sans-serif;
+
+// Theme colors
+$primary: #111827;
+$secondary: #9ca3af; 
