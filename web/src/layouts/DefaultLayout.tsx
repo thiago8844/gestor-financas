@@ -3,6 +3,8 @@ import { useAuthStore } from "../stores/auth";
 import { Navigate, Outlet } from "react-router-dom";
 import { Overlay } from "../components/Overlay";
 import { useOverlayStore } from "../stores/overlay";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 
 export function DefaultLayout() {
   const { token, user, fetchUser, logout } = useAuthStore();
@@ -31,7 +33,8 @@ export function DefaultLayout() {
   return (
     <div>
       <Overlay />
-      <button onClick={logout}>Logout</button>
+      <Header/>
+
       {/*  Só mostra a página se tiver o user e o token*/}
       {user && token && <Outlet />}
     </div>
