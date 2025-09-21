@@ -19,9 +19,15 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        $token = $request->user()->createToken('auth_token')->plainTextToken;
+        $user = $request->user();
+        
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['token' => $token, 'user' => $request->user()], 200);
+        return response()->json(['token' => $token, 'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ]], 200);
     }
 
     /**
@@ -29,8 +35,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): JsonResponse
     {
-       $request->user()->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()->delete();
 
-       return response()->json(['message' => 'Logged out'], 200);
+        return response()->json(['message' => 'Logged out'], 200);
     }
 }

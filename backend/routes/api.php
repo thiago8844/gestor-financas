@@ -6,12 +6,18 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    
+
     Route::post('/logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        //sleep(2);
+        $user = $request->user();
+        return response()->json(['user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ]], 200);
     });
 });
 
