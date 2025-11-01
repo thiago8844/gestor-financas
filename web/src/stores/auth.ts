@@ -16,7 +16,7 @@ type AuthState = {
 };
 
 //Closure com o estado e as ações
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: localStorage.getItem(ACCESS_TOKEN_KEY) || null,
   loading: true,
@@ -35,18 +35,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   setToken: (token: string) => {
     //Adicionar lógica de validação do token
 
-    localStorage.setItem("ACCESS_TOKEN", token);
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
     set({ token });
   },
 
   setUser: (user: User | null) => set({ user }),
 
   logout: () => {
-    api.post("/logout").catch((error) => {
-      console.warn("Failed to revoke token in backend:", error);
-    });
-    
-    localStorage.removeItem("ACCESS_TOKEN");
-    set({ user: null, token: null });
+    const token = get().token; // 👈 pega o token do estado
+
+    if (token) {
+      api
+        .post("/logout")
+        .then(() => {
+          set({ user: null, token: null });
+        })
+        .catch((error) => {
+          console.warn("Failed to revoke token in backend:", error);
+          set({ user: null, token: null });
+        });
+    }
+
+    localStorage.removeItem(ACCESS_TOKEN_KEY); // 👈 usa a mesma constante
   },
 }));

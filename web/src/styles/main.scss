@@ -6,6 +6,38 @@
 
 
 .app-max-width {
-  max-width: 1600px;
-
+  max-width: 1260px;
+  margin: 0 auto;
 }
+
+.main-content {
+  padding: 20px;
+}
+
+.hover-link {
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+//TODO: MOVER PRA UTILS
+.cursor-pointer {
+  cursor: pointer;
+}
+
+//TODO: MOVER PRO ARQUIVO DA CONTAS
+.selected-conta {
+  cursor: pointer;
+}
+
+.selected-conta:hover {
+  border-bottom: 2px solid rgb(240, 240, 240);
+}
+
+.selected-conta.active {
+  border-bottom: 2px solid;
+  font-weight: bold;
+  // box-shadow: 0 0 1px 0;
+}
+

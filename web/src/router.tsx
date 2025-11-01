@@ -5,6 +5,18 @@ import { GuestLayout } from "./layouts/GuestLayout";
 import { Login } from "./pages/Login";
 import { Cadastro } from "./pages/Cadastro";
 import Page404 from "./pages/Page404";
+import { ContaRoutes } from "./pages/Contas/ContaRoutes";
+
+import Cadastrar from "./pages/Contas/Cadastrar";
+import Editar from "./pages/Contas/Editar";
+
+import { EditarDespesa } from "./pages/Despesa/EditarDespesa";
+import { DespesaRoute } from "./pages/Despesa/DespesaRoute";
+import { ListagemDespesa } from "./pages/Despesa/ListagemDespesa";
+import { CadastrarDespesa } from "./pages/Despesa/CadastrarDespesa";
+import { TesteCategoria } from "./pages/Contas/components/CategoriaAutocomplete";
+import TesteTabela from "./pages/TesteTabela";
+import { ListagemContas } from "./pages/Contas/ListagemContas";
 
 export const router = createBrowserRouter([
   {
@@ -15,24 +27,50 @@ export const router = createBrowserRouter([
         path: "/",
         element: <Dashboard />,
       },
+      {
+        path: "contas",
+        element: <ContaRoutes />,
+        children: [
+          { path: "", element: <ListagemContas /> },
+          { path: "cadastrar", element: <Cadastrar /> },
+          { path: "editar/:id", element: <Editar /> },
+        ],
+      },
+      {
+        path: "despesas",
+        element: <DespesaRoute />,
+        children: [
+          { path: "", element: <ListagemDespesa /> },
+          { path: "cadastrar", element: <CadastrarDespesa /> },
+          { path: "editar/:id", element: <EditarDespesa /> },
+        ],
+      },
+      {
+        path: "/teste-categoria",
+        element: <TesteCategoria />,
+      },
+      {
+        path: "/teste-tabela",
+        element: <TesteTabela />,
+      },
     ],
   },
   {
-    path: '/',
+    path: "/",
     element: <GuestLayout />,
     children: [
       {
-        path: '/login',
+        path: "/login",
         element: <Login />,
       },
       {
-        path: '/cadastro',
+        path: "/cadastro",
         element: <Cadastro />,
       },
     ],
   },
   {
-    path: '*',
+    path: "*",
     element: <Page404 />,
-  }
+  },
 ]);

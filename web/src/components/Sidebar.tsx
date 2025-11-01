@@ -23,7 +23,7 @@ export default function Sidebar({
           <NavLink
             to="/"
             end
-            className={(isActive) =>
+            className={({isActive}) =>
               `nav-link rounded ${isActive ? "active" : ""}`
             }
           >
@@ -39,12 +39,21 @@ export default function Sidebar({
           </NavLink>
 
           <NavLink
-            to="/transacoes"
+            to="/despesas"
             className={({ isActive }) =>
               `nav-link rounded ${isActive ? "active" : ""}`
             }
           >
-            <i className="bi bi-cash-coin"></i> Transações
+            <i className="bi bi-arrow-down-circle"></i> Despesas
+          </NavLink>
+
+          <NavLink
+            to="/receitas"
+            className={({ isActive }) =>
+              `nav-link rounded ${isActive ? "active" : ""}`
+            }
+          >
+            <i className="bi bi-arrow-up-circle"></i> Receitas
           </NavLink>
 
           <NavLink

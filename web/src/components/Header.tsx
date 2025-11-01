@@ -1,8 +1,10 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
+import { useAuthStore } from "../stores/auth";
 
 export default function Header() {
   const [show, setShow] = useState(false);
+  const { logout } = useAuthStore();
 
   const handleClose = () => setShow(false);
 
@@ -19,10 +21,13 @@ export default function Header() {
               style={{ fontWeight: 900 }}
             ></i>
           </button>
+          <div>
+            <button className="btn d-flex align-items-center justify-content-center p-2">
+              <i className="bi bi-person-circle fs-3"></i>
+            </button>
 
-          <button className="btn d-flex align-items-center justify-content-center p-2">
-            <i className="bi bi-person-circle fs-3"></i>
-          </button>
+            <button onClick={logout}>Log Out</button>
+          </div>
         </div>
       </header>
 

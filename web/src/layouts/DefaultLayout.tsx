@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useAuthStore } from "../stores/auth";
 import { Navigate, Outlet } from "react-router-dom";
-import { Overlay } from "../components/Overlay";
 import { useOverlayStore } from "../stores/overlay";
 import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
+import { GlobalComponents } from "./GlobalComponents";
 
 export function DefaultLayout() {
-  const { token, user, fetchUser, logout } = useAuthStore();
+  const { token, user, fetchUser } = useAuthStore();
   const { open, close } = useOverlayStore();
 
   useEffect(() => {
@@ -22,8 +21,7 @@ export function DefaultLayout() {
     if (!user && token) {
       startUserFetch();
     }
-  }, []);
-
+  }, [token]);
 
   if (!token) {
     return <Navigate to="/login" replace />; //Esse mano causa flash da página de login
@@ -32,11 +30,15 @@ export function DefaultLayout() {
 
   return (
     <div>
-      <Overlay />
-      <Header/>
+
+      <Header />
+
+      <GlobalComponents/>
 
       {/*  Só mostra a página se tiver o user e o token*/}
-      {user && token && <Outlet />}
+      <main className="main-content app-max-width mx-auto">
+        {user && token && <Outlet />}
+      </main>
     </div>
   );
 }
