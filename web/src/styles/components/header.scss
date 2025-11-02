@@ -1,0 +1,70 @@
+.header-custom {
+  background-color: #fff;
+  border-bottom: 1px solid #dee2e6;
+}
+
+// ✅ LOGO
+.header-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+// ✅ TÍTULO
+.header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #212529;
+  white-space: nowrap;
+}
+
+// ✅ BOTÃO HAMBÚRGUER
+.btn-hamburger {
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f8f9fa !important;
+    border-radius: 8px;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  i {
+    font-weight: 700;
+  }
+}
+
+// ✅ BOTÃO USUÁRIO
+.btn-user {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none !important;
+  box-shadow: none !important;
+
+  &:hover {
+    background-color: #f8f9fa !important;
+    border-radius: 50%;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &::after {
+    // Remove a setinha do dropdown
+  }
+}
+
+// ✅ RESPONSIVIDADE
+@media (max-width: 768px) {
+  .header-logo {
+    height: 32px;
+  }
+
+  .header-title {
+    font-size: 1rem;
+  }
+}
