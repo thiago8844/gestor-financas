@@ -1,7 +1,6 @@
 import PageLayout from "../../layouts/PageLayout";
 import { useForm, Controller } from "react-hook-form";
 import InputMoeda from "../../components/InputMoeda";
-import { DespesaFormSchema, type DespesaForm } from "../../schemas/despesa";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldError } from "../../components/FieldError";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -10,14 +9,15 @@ import type { AxiosError } from "axios";
 
 import { CategoriaAutocomplete } from "../Contas/components/CategoriaAutocomplete";
 import type { Conta } from "../../types/conta";
-import { getDespesa, updateDespesa } from "../../api/transacoes";
+import { getTransacao, updateTransacao } from "../../api/transacoes";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { useEffect } from "react";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
+import { ReceitaFormSchema, type ReceitaForm } from "../../schemas/receita";
 
-export function EditarDespesa() {
+export function EditarReceita() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const {
@@ -27,14 +27,14 @@ export function EditarDespesa() {
   } = useFormularioTransacao();
   const { invalidateFormularios } = useCacheUtils();
 
-  // ✅ BUSCA DADOS DA DESPESA PARA EDITAR
+  // ✅ BUSCA DADOS DA RECEITA PARA EDITAR
   const {
-    data: despesa,
-    isLoading: isLoadingDespesa,
-    isError: isErrorDespesa,
+    data: receita,
+    isLoading: isLoadingReceita,
+    isError: isErrorReceita,
   } = useQuery({
-    queryKey: ["despesa", id],
-    queryFn: () => getDespesa(Number(id)),
+    queryKey: ["receita", id],
+    queryFn: () => getTransacao(Number(id)),
     enabled: !!id,
     select: (response) => response.data,
   });
@@ -45,12 +45,11 @@ export function EditarDespesa() {
     setError,
     control,
     setValue,
-    watch,
     reset,
     formState: { errors },
-  } = useForm<DespesaForm>({
+  } = useForm<ReceitaForm>({
     // @ts-expect-error TS não entende Zod transform string->number
-    resolver: zodResolver(DespesaFormSchema),
+    resolver: zodResolver(ReceitaFormSchema),
     defaultValues: {
       description: "",
       account_id: "",
@@ -58,86 +57,82 @@ export function EditarDespesa() {
       category_name: "",
       category_id: null,
       budget_id: "",
+      type: "INCOME",
+      status: 'PAID'
     },
   });
 
-  // ✅ PREENCHE FORMULÁRIO QUANDO CARREGA DESPESA - USANDO RESET
+  // ✅ PREENCHE FORMULÁRIO QUANDO CARREGA RECEITA - USANDO RESET
   useEffect(() => {
-    if (despesa) {
-      console.log("🔍 Dados da despesa:", despesa);
-      console.log("🔍 CATEGORIA DA DESPESA:", despesa.categoria);
+    if (receita) {
+      console.log("🔍 Dados da receita:", receita);
+      console.log("🔍 CATEGORIA DA RECEITA:", receita.categoria);
 
       // ✅ FORMATAÇÃO SIMPLES DA DATA USANDO date_raw
-      const dataFormatada = despesa.date_raw
-        ? despesa.date_raw.slice(0, 16)
-        : "";
-
-      const dataVencimentoFormatada = despesa.due_date_raw
-        ? despesa.due_date_raw.slice(0, 16)
+      const dataFormatada = receita.date_raw
+        ? receita.date_raw.slice(0, 16)
         : "";
 
       // ✅ RESET COMPLETO DO FORMULÁRIO COM TODOS OS DADOS (exceto amount)
       const dadosParaReset = {
-        description: despesa.description || "",
-        account_id: despesa.account_id?.toString() || "",
+        description: receita.description || "",
+        account_id: receita.account_id?.toString() || "",
         date: dataFormatada,
-        category_name: despesa.categoria?.name || "",
-        category_id: despesa.categoria?.id?.toString() || null,
-        budget_id: despesa.budget_id?.toString() || "",
-        status: despesa.status,
-        due_date: dataVencimentoFormatada,
+        category_name: receita.categoria?.name || "",
+        category_id: receita.categoria?.id?.toString() || null,
+        budget_id: receita.budget_id?.toString() || "",
       };
 
       reset(dadosParaReset);
 
       // ✅ FORÇA CATEGORIA NO RHF (setTimeout garante que reset aconteceu primeiro)
       setTimeout(() => {
-        if (despesa.categoria?.name) {
-          setValue("category_name", despesa.categoria.name, {
+        if (receita.categoria?.name) {
+          setValue("category_name", receita.categoria.name, {
             shouldValidate: true,
           });
-          setValue("category_id", despesa.categoria.id.toString(), {
+          setValue("category_id", receita.categoria.id.toString(), {
             shouldValidate: true,
           });
           console.log(
             "🏷️ FORÇOU CATEGORIA VIA setValue:",
-            despesa.categoria.name
+            receita.categoria.name
           );
         }
 
         // 🚨 FORÇA AMOUNT NO RHF TAMBÉM - CONVERTENDO NUMBER PARA STRING
-        if (despesa.amount) {
-          const valorFormatado = convertNumberToCurrencyMask(despesa.amount);
+        if (receita.amount) {
+          const valorFormatado = convertNumberToCurrencyMask(receita.amount);
           // @ts-expect-error - RHF espera number mas InputMoeda trabalha com string
           setValue("amount", valorFormatado);
           console.log("💰 FORÇOU AMOUNT VIA setValue:", valorFormatado);
         }
       }, 100);
     }
-  }, [despesa, reset, setValue]);
+  }, [receita, reset, setValue]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (data: DespesaForm) => updateDespesa(Number(id), data),
+    mutationFn: (data: ReceitaForm) => updateTransacao(Number(id), data),
     onSuccess: () => {
       invalidateFormularios(); // ✅ Atualiza cache
-      alert("Despesa atualizada com sucesso!");
-      navigate("/despesas");
+      alert("Receita atualizada com sucesso!");
+      navigate("/receitas");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
   });
 
   const onSubmit = (data: unknown) => {
-    console.log("📋 Editando despesa:", data);
-    mutate(data as DespesaForm);
+    console.log("📋 Editando receita:", data);
+    mutate(data as ReceitaForm);
   };
 
   // ✅ LOADING E ERROR STATES
-  const isLoading = isLoadingForm || isLoadingDespesa;
-  const isError = isErrorForm || isErrorDespesa;
+  const isLoading = isLoadingForm || isLoadingReceita;
+  const isError = isErrorForm || isErrorReceita;
 
   if (isError) {
     return (
-      <PageLayout title="Editar Despesa" backTo="/despesas">
+      <PageLayout title="Editar Receita" backTo="/receitas">
         <div className="alert alert-danger">
           Erro ao carregar dados necessários.
         </div>
@@ -145,14 +140,13 @@ export function EditarDespesa() {
     );
   }
 
-  const status = watch("status");
-  const isPago = status === "PAID";
+  console.log(errors);
 
   return (
     <PageLayout
       loading={isLoading}
-      title={`Editar Despesa ${despesa?.description ? `- ${despesa.id}` : ""}`}
-      backTo="/despesas"
+      title={`Editar Receita ${receita?.description ? `- ${receita.id}` : ""}`}
+      backTo="/receitas"
     >
       <div className="container-fluid">
         <form onSubmit={handleSubmit(onSubmit)} className="container mt-4">
@@ -206,7 +200,7 @@ export function EditarDespesa() {
                 <Controller
                   name="amount"
                   control={control}
-                  key={`amount-${despesa?.id || "loading"}`} // 🚨 FORÇA RE-RENDER
+                  key={`amount-${receita?.id || "loading"}`}
                   render={({ field }) => (
                     <InputMoeda {...field} placeholder="0,00" />
                   )}
@@ -214,60 +208,18 @@ export function EditarDespesa() {
                 <FieldError>{errors.amount?.message}</FieldError>
               </div>
 
-              {/* Pago */}
-              <div className="mb-3">
-                <div className="form-check form-switch">
-                  <input
-                    id="paid"
-                    type="checkbox"
-                    role="switch"
-                    className="form-check-input"
-                    checked={isPago} // ✅ CONTROLADO PELO STATUS
-                    onChange={(e) => {
-                      const newStatus = e.target.checked ? "PAID" : "PENDING";
-                      setValue("status", newStatus); // ✅ USA setValue AO INVÉS DE register().onChange
-
-                      // ✅ LIMPA O CAMPO QUE NÃO ESTÁ SENDO USADO
-                      if (!e.target.checked) {
-                        // Se marcou como PAGO, limpa vencimento
-                        setValue("date", "");
-                      }
-                    }}
-                  />
-                  <label htmlFor="paid" className="form-check-label">
-                    Pago ?
-                  </label>
-                </div>
-              </div>
-
-              {/* Data da transação - SÓ SE PAGO */}
+              {/* Data da Receita */}
               <div className="mb-3">
                 <label htmlFor="date" className="form-label">
-                  Data da Transação <span className="text-danger">*</span>
+                  Data da Receita <span className="text-danger">*</span>
                 </label>
                 <input
-                  disabled={!isPago}
                   type="datetime-local"
                   id="date"
                   className="form-control"
                   {...register("date")}
                 />
                 <FieldError>{errors.date?.message}</FieldError>
-              </div>
-
-              {/* Data de Vencimento - SÓ SE NÃO PAGO */}
-
-              <div className="mb-3">
-                <label htmlFor="due_date" className="form-label">
-                  Data de Vencimento <span className="text-danger"></span>
-                </label>
-                <input
-                  type="datetime-local"
-                  id="due_date"
-                  className="form-control"
-                  {...register("due_date")}
-                />
-                <FieldError>{errors.due_date?.message}</FieldError>
               </div>
             </div>
 
@@ -283,12 +235,12 @@ export function EditarDespesa() {
                   render={({ field }) => {
                     console.log("🏷️ CATEGORIA FIELD VALUE:", field.value);
                     console.log(
-                      "🏷️ DESPESA CATEGORIA:",
-                      despesa?.categoria?.name
+                      "🏷️ RECEITA CATEGORIA:",
+                      receita?.categoria?.name
                     );
                     return (
                       <CategoriaAutocomplete
-                        value={field.value || despesa?.categoria?.name || ""}
+                        value={field.value || receita?.categoria?.name || ""}
                         onChange={(categoryName, categoryId) => {
                           field.onChange(categoryName);
                           if (categoryId) {
@@ -322,19 +274,19 @@ export function EditarDespesa() {
               </div>
 
               {/* Informações adicionais */}
-              <div className="alert alert-warning">
+              <div className="alert alert-success">
                 <h6 className="alert-heading">
                   <i className="bi bi-info-circle me-2"></i>
-                  Editando Despesa
+                  Editando Receita
                 </h6>
                 <ul className="mb-0 small">
                   <li>
-                    <strong>ID:</strong> {despesa?.id}
+                    <strong>ID:</strong> {receita?.id}
                   </li>
                   <li>
                     <strong>Criada em:</strong>{" "}
-                    {despesa?.created_at
-                      ? new Date(despesa.created_at).toLocaleDateString("pt-BR")
+                    {receita?.created_at
+                      ? new Date(receita.created_at).toLocaleDateString("pt-BR")
                       : ""}
                   </li>
                   <li>Alterações serão salvas permanentemente</li>
@@ -350,7 +302,7 @@ export function EditarDespesa() {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => navigate("/despesas")}
+                  onClick={() => navigate("/receitas")}
                   disabled={isPending}
                 >
                   <i className="bi bi-x-circle me-2"></i>

@@ -1,19 +1,20 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { deletarDespesa, getTransacoes } from "../../api/transacoes";
+import {  deletarTransacao, getTransacoes } from "../../api/transacoes";
 import PageLayout from "../../layouts/PageLayout";
 import { Link } from "react-router-dom";
 import { useConfirmModalStore } from "../../stores/confirmModal";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { Paginator } from "../../components/Listagens/Paginator";
 import { useState } from "react";
-
 import { getCategorias } from "../../api/categoria";
 import { getContas } from "../../api/conta";
 import type { Conta } from "../../types";
 import { Listagem } from "../../components/Listagens/Listagem";
 
+// TODO: COLOCAR O STATUS PENDENTE EM RECEITAS DEPOIS
+
 const filtrosOriginais = {
-  type: "EXPENSE" as const,
+  type: "INCOME" as const,
   page: 1,
   limit: 25,
   // Outros filtros que você quiser adicionar
@@ -26,15 +27,15 @@ const filtrosOriginais = {
   conta_id: undefined as number | undefined,
 };
 
-export function ListagemDespesa() {
+export function ListagemReceita() {
   //Filtros despesa
   const [filtros, setFiltros] = useState(filtrosOriginais);
   const [filtrosModificados, setFiltrosModificados] =
     useState(filtrosOriginais);
 
-  //Query despesaS
-  const { data, isLoading, isError, refetch, isFetching} = useQuery({
-    queryKey: ["despesas", filtros],
+  //Query Receitas
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ["receitas", filtros],
     queryFn: () => getTransacoes(filtros),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -48,12 +49,12 @@ export function ListagemDespesa() {
 
   const { data: contas, refetch: refetchContas } = useQuery({
     queryKey: ["contas"],
-    queryFn: () => getContas({active: true, tipo: 'INCOME'}),
+    queryFn: () => getContas({ active: true, tipo: "INCOME" }),
   });
 
-  //Deletar despesa
+  //Deletar Receita
   const { mutate } = useMutation({
-    mutationFn: (id: number) => deletarDespesa(id),
+    mutationFn: (id: number) => deletarTransacao(id),
     onSuccess: () => {
       refetch(); // Refaz a consulta para atualizar a lista de despesas
     },
@@ -81,7 +82,7 @@ export function ListagemDespesa() {
   if (isError) {
     return (
       <div>
-        <p>Erro ao buscar despesas</p>
+        <p>Erro ao buscar receitas</p>
         <button className="btn btn-primary" onClick={() => refetch()}>
           Tentar Novamente
         </button>
@@ -89,20 +90,20 @@ export function ListagemDespesa() {
     );
   }
 
-  const despesas = data?.data || [];
+  const receitas = data?.data || [];
   const meta = data?.meta;
   //Após criar a tabela, verificar como componentizar ela
 
   // TODO: VER COMO ABSTRAIR ESSA LISTAGEM PARA OUTROS RECURSOS FICAREM MAIS SIMPLES DE FAZER
 
   return (
-    <PageLayout title="Despesas" backTo="/">
+    <PageLayout title="Receitas" backTo="/">
       <Listagem>
         <Listagem.Header>
           <Listagem.Acoes>
-            <Link to="/despesas/cadastrar" className="btn btn-success">
+            <Link to="/receitas/cadastrar" className="btn btn-success">
               <i className="bi bi-plus-circle me-2"></i>
-              Nova Despesa
+              Nova Receita
             </Link>
           </Listagem.Acoes>
 
@@ -186,37 +187,37 @@ export function ListagemDespesa() {
                   <option value="mes">Este mês</option>
                   <option value="custom">Personalizado</option>
                 </select>
-
-                {filtrosModificados.periodo === "custom" && (
-                  <div className="mt-2">
-                    <label className="form-label small">Data Inicial:</label>
-                    <input
-                      type="date"
-                      className="form-control form-control-sm mb-2"
-                      value={filtrosModificados.data_inicial}
-                      onChange={(e) =>
-                        setFiltrosModificados({
-                          ...filtrosModificados,
-                          data_inicial: e.target.value,
-                        })
-                      }
-                    />
-
-                    <label className="form-label small">Data Final:</label>
-                    <input
-                      type="date"
-                      className="form-control form-control-sm"
-                      value={filtrosModificados.data_final}
-                      onChange={(e) =>
-                        setFiltrosModificados({
-                          ...filtrosModificados,
-                          data_final: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                )}
               </div>
+
+              {filtrosModificados.periodo === "custom" && (
+                <div className="mt-2">
+                  <label className="form-label small">Data Inicial:</label>
+                  <input
+                    type="date"
+                    className="form-control form-control-sm mb-2"
+                    value={filtrosModificados.data_inicial}
+                    onChange={(e) =>
+                      setFiltrosModificados({
+                        ...filtrosModificados,
+                        data_inicial: e.target.value,
+                      })
+                    }
+                  />
+
+                  <label className="form-label small">Data Final:</label>
+                  <input
+                    type="date"
+                    className="form-control form-control-sm"
+                    value={filtrosModificados.data_final}
+                    onChange={(e) =>
+                      setFiltrosModificados({
+                        ...filtrosModificados,
+                        data_final: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              )}
             </Listagem.FiltrosDropdown>
 
             {/* DROPDOWN DE ORDENAR */}
@@ -311,43 +312,41 @@ export function ListagemDespesa() {
             "Data Transação",
             "Conta",
             "Categoria",
-            "Data Vencimento",
-            "Status",
             "Ações",
           ]}
           loading={isLoading || isFetching}
-          emptyMessage="Nenhuma despesa encontrada"
+          emptyMessage="Nenhuma receita encontrada"
         >
-          {despesas.map((despesa) => (
-            <tr key={despesa.id}>
-              <td>{despesa.id}</td>
-              <td>{despesa.description}</td>
-              <td className="text-danger fw-bold">
-                R$ {convertNumberToCurrencyMask(despesa.amount)}
+          {receitas.map((receita) => (
+            <tr key={receita.id}>
+              <td>{receita.id}</td>
+              <td>{receita.description}</td>
+              <td className="text-success fw-bold">
+                R$ {convertNumberToCurrencyMask(receita.amount)}
               </td>
-              <td>{despesa.date ?? '-'}</td>
-              <td>{despesa.conta?.name || "-"}</td>
+              <td>{receita.date ?? "-"}</td>
+              <td>{receita.conta?.name || "-"}</td>
               <td>
-                {despesa.categoria ? (
+                {receita.categoria ? (
                   <span className="badge text-bg-secondary">
-                    {despesa.categoria.name}
+                    {receita.categoria.name}
                   </span>
                 ) : (
                   "-"
                 )}
               </td>
-              <td>{despesa.due_date ?? "-"}</td>
-              <td>
+
+              {/* <td>
                 {despesa.status === "PAID" ? (
                   <span className="badge text-bg-success">PAGO</span>
                 ) : (
                   <span className="badge text-bg-secondary">PENDENTE</span>
                 )}
-              </td>
+              </td> */}
 
               <td>
                 <Link
-                  to={`/despesas/editar/${despesa.id}`}
+                  to={`/receitas/editar/${receita.id}`}
                   className="btn btn-sm btn-secondary"
                 >
                   <i className="bi bi-pencil"></i>
@@ -355,7 +354,7 @@ export function ListagemDespesa() {
                 <button
                   onClick={() =>
                     openModal({
-                      callback: () => mutate(despesa.id),
+                      callback: () => mutate(receita.id),
                       title: "Confirmar Exclusão",
                       message: "Tem certeza que deseja excluir esta despesa?",
                       autoClose: true,

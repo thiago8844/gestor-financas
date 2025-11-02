@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Queries\SaldoContaQuery;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,9 +15,26 @@ class Conta extends Model
 
     protected $table = 'accounts';
     protected $guarded = ['id'];
+    protected $appends = ['saldo'];
 
-    public function user(): BelongsTo {
-        return $this->belongsTo(User::class);
+    public function getSaldoAttribute(): float
+    {
+        return SaldoContaQuery::calcularSaldo($this->id);
     }
 
+    public function getSaldoInicialTransactionAttribute(): Transacao
+    {
+        return Transacao::where('account_id', $this->id)
+            ->where('is_initial_balance', true)
+            ->first();
+    }
+
+    public function getSaldoInicialAttribute(): float {
+        return $this->saldo_inicial_transaction->amount ?? '';
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

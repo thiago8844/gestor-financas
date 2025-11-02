@@ -74,7 +74,7 @@ export function Paginator({
               onClick={() => onPageChange(current_page - 1)}
               disabled={current_page === 1 || isLoading}
             >
-              <i className="bi bi-chevron-left"></i> Anterior
+              <i className="bi bi-chevron-left"></i> 
             </button>
           </li>
 
@@ -115,7 +115,7 @@ export function Paginator({
               onClick={() => onPageChange(current_page + 1)}
               disabled={current_page === last_page || isLoading}
             >
-              Próxima <i className="bi bi-chevron-right"></i>
+               <i className="bi bi-chevron-right"></i>
             </button>
           </li>
         </ul>

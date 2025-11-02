@@ -20,8 +20,8 @@ return new class extends Migration
 
             $table->string('name', 100);
             
-            $table->string('color', 7)->nullable();       // hex (#RRGGBB)
-            $table->string('icon', 50)->nullable();       // nome do ícone
+          //  $table->string('color', 15)->nullable();       // hex (#RRGGBB)
+          // $table->string('icon', 50)->nullable();       // nome do ícone
 
             $table->timestamps();
         });

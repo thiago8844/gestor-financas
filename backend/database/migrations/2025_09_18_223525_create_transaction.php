@@ -23,26 +23,28 @@ return new class extends Migration
             $table->foreignId('account_id')
                 ->constrained('accounts')
                 ->onDelete('cascade');
+            $table->boolean('is_initial_balance')->default(false);
 
             // FK opcional para categoria
             // TODO: DESCOMENTAR QUANDO FOR IMPLEMENTAR AS CATEGORIAS
-            // $table->foreignId('category_id')
-            //     ->nullable()
-            //     ->constrained('categories')
-            //     ->nullOnDelete();
+            $table->foreignId('category_id')
+                ->nullable()
+                ->constrained('categories')
+                ->nullOnDelete();
 
             $table->decimal('amount', 12, 2); // valor positivo sempre
             $table->enum('type', ['INCOME', 'EXPENSE']); // tipo da transação
             $table->string('description', 255)->nullable();
             $table->enum('status', ['PENDING', 'PAID'])->default('PENDING');
-            $table->date('date'); // data do movimento
+            $table->date('date')->nullable()->comment('Data exata da movimentação financeira'); // data do movimento
+            $table->date('due_date')->nullable(); //Data de vencimento prazo máximo de pagamento
 
+            
+            
             // -=-=- Parcelas -=-=-
             $table->integer('installment_number')->nullable(); 
             $table->integer('installment_total')->nullable();
             $table->uuid('installment_group')->nullable();  
-            $table->date('due_date')->nullable();
-            $table->date('paid_date')->nullable();
 
             // -=-=- Transferências -=-=-
             //TODO: DESCOMENTAR QUANDO FOR IMPLEMENTAR AS TRANSFERÊNCIAS

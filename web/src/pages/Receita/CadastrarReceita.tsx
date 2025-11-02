@@ -1,7 +1,6 @@
 import PageLayout from "../../layouts/PageLayout";
 import { useForm, Controller } from "react-hook-form";
 import InputMoeda from "../../components/InputMoeda";
-import { DespesaFormSchema, type DespesaForm } from "../../schemas/despesa";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldError } from "../../components/FieldError";
 import { useMutation } from "@tanstack/react-query";
@@ -9,13 +8,14 @@ import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import type { AxiosError } from "axios";
 
 import type { Conta } from "../../types/conta";
-import { criarDespesa } from "../../api/transacoes";
+import { criarTransacao } from "../../api/transacoes";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { CategoriaAutocomplete } from "../Contas/components/CategoriaAutocomplete";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
+import { ReceitaFormSchema, type ReceitaForm } from "../../schemas/receita";
 
-export function CadastrarDespesa() {
+export function CadastrarReceita() {
   const { contas, isLoading, isError } = useFormularioTransacao();
   const [actionType, setActionType] = useState<"save" | "saveAndNew" | null>(
     null
@@ -31,25 +31,25 @@ export function CadastrarDespesa() {
     control,
     setValue,
     reset,
-    watch,
     unregister, // ✅ ADICIONA UNREGISTER
     formState: { errors },
-  } = useForm<DespesaForm>({
+  } = useForm<ReceitaForm>({
     // @ts-expect-error TS não entende Zod transform string->number
-    resolver: zodResolver(DespesaFormSchema),
+    resolver: zodResolver(ReceitaFormSchema),
     defaultValues: {
       date: new Date().toISOString().slice(0, 16),
-      status: "PAID",
+      status: 'PAID',
+      type: 'INCOME'
     },
   });
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (data: DespesaForm) => criarDespesa(data),
+    mutationFn: (data: ReceitaForm) => criarTransacao(data),
     onSuccess: () => {
       if (actionType === "save") {
-        // Salvar e voltar para despesas
-        alert("Despesa criada com sucesso!");
-        navigate("/despesas");
+        // Salvar e voltar para receitas
+        alert("Receita criada com sucesso!");
+        navigate("/receitas");
       } else if (actionType === "saveAndNew") {
         // Salvar e criar outra
         const keepFormChecked = (
@@ -76,7 +76,6 @@ export function CadastrarDespesa() {
           unregister("amount");
           unregister("category_name");
           unregister("category_id");
-          unregister("status");
 
           // 🔥 STEP 2: FORÇA RE-RENDER
           setFormKey((prev) => prev + 1);
@@ -88,7 +87,6 @@ export function CadastrarDespesa() {
               account_id: "",
               description: "",
               budget_id: "",
-              status: 'PAID'
             });
           }, 100);
         }
@@ -110,7 +108,7 @@ export function CadastrarDespesa() {
       console.log("🎯 Ação:", action);
 
       setActionType(action); // ✅ DEFINE QUAL AÇÃO EXECUTAR
-      mutate(data as unknown as DespesaForm);
+      mutate(data as unknown as ReceitaForm);
     });
   };
 
@@ -126,14 +124,12 @@ export function CadastrarDespesa() {
 
   console.log(errors);
 
-  const status = watch("status");
-  const isPago = status === "PAID";
   console.log(status);
   return (
     <PageLayout
       loading={isLoading}
-      title="Cadastrar Despesa"
-      backTo="/despesas"
+      title="Cadastrar Receita"
+      backTo="/receitas"
     >
       <div className="container-fluid">
         <form key={formKey} className="container mt-4">
@@ -196,37 +192,8 @@ export function CadastrarDespesa() {
                 <FieldError>{errors.amount?.message}</FieldError>
               </div>
 
-              {/* Pago */}
-              <div className="mb-3">
-                <div className="form-check form-switch">
-                  <input
-                    id="paid"
-                    type="checkbox"
-                    role="switch"
-                    className="form-check-input"
-                    checked={isPago} // ✅ CONTROLADO PELO STATUS
-                    onChange={(e) => {
-                      const newStatus = e.target.checked ? "PAID" : "PENDING";
-                      setValue("status", newStatus); // ✅ USA setValue AO INVÉS DE register().onChange
-
-                      // ✅ LIMPA O CAMPO QUE NÃO ESTÁ SENDO USADO
-                      if (e.target.checked) {
-                        // Se marcou como PAGO, limpa vencimento
-                        setValue("due_date", "");
-                      } else {
-                        // Se desmarcou (PENDENTE), limpa data transação
-                        setValue("date", "");
-                      }
-                    }}
-                  />
-                  <label htmlFor="paid" className="form-check-label">
-                    Pago?
-                  </label>
-                </div>
-              </div>
-
               {/* Data da transação - SÓ SE PAGO */}
-              {isPago && (
+              {
                 <div className="mb-3">
                   <label htmlFor="date" className="form-label">
                     Data da Transação <span className="text-danger">*</span>
@@ -239,23 +206,7 @@ export function CadastrarDespesa() {
                   />
                   <FieldError>{errors.date?.message}</FieldError>
                 </div>
-              )}
-
-              {/* Data de Vencimento - SÓ SE NÃO PAGO */}
-              {!isPago && (
-                <div className="mb-3">
-                  <label htmlFor="due_date" className="form-label">
-                    Data de Vencimento <span className="text-danger"></span>
-                  </label>
-                  <input
-                    type="datetime-local"
-                    id="due_date"
-                    className="form-control"
-                    {...register("due_date")}
-                  />
-                  <FieldError>{errors.due_date?.message}</FieldError>
-                </div>
-              )}
+              }
             </div>
             <div className="col-lg-6">
               {/* Categoria */}
@@ -338,7 +289,7 @@ export function CadastrarDespesa() {
                     className="form-check-input"
                   />
                   <label htmlFor="keepForm" className="form-check-label">
-                    Manter dados da despesa antiga preenchidos ao criar uma nova
+                    Manter dados da receita antiga preenchidos ao criar uma nova
                   </label>
                 </div>
               </div>
@@ -390,7 +341,7 @@ export function CadastrarDespesa() {
                   ) : (
                     <>
                       <i className="bi bi-check-circle me-2"></i>
-                      Salvar Despesa
+                      Salvar Receita
                     </>
                   )}
                 </button>

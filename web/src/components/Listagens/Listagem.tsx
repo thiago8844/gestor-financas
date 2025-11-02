@@ -136,9 +136,7 @@ Listagem.OrdenarDropdown = function OrdenarDropdown({
 
       <Dropdown.Menu style={{ minWidth: "250px" }}>
         <Dropdown.Header>Ordenar por:</Dropdown.Header>
-        <div className="px-3 py-2">
-          {children}
-        </div>
+        <div className="px-3 py-2">{children}</div>
       </Dropdown.Menu>
     </Dropdown>
   );
@@ -159,21 +157,37 @@ Listagem.Tabela = function Tabela({
   emptyMessage = "Nenhum registro encontrado",
 }: TabelaProps) {
   return (
-    <div className="table-responsive">
-      <table className="table table-bordered">
-        <thead>
+    <div className="table-responsive shadow-sm rounded">
+      <table className="table table-hover align-middle mb-0">
+        <thead className="table-light">
           <tr>
             {headers.map((header) => (
-              <th key={header}>{header}</th>
+              <th
+                key={header}
+                className="text-uppercase fw-semibold text-muted small py-3 px-2"
+
+                style={{
+                  borderBottom: "2px solid #dee2e6",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {header}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={headers.length} className="text-center py-5">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Carregando...</span>
+              <td
+                colSpan={headers.length}
+                className="text-center py-5 bg-light"
+              >
+                <div className="d-flex flex-column align-items-center gap-3">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Carregando...</span>
+                  </div>
+                  <p className="text-muted mb-0 small">Carregando dados...</p>
                 </div>
               </td>
             </tr>
@@ -183,7 +197,10 @@ Listagem.Tabela = function Tabela({
         </tbody>
       </table>
       {!loading && !children && (
-        <p className="text-muted text-center py-4">{emptyMessage}</p>
+        <div className="text-center py-5 bg-light">
+          <i className="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+          <p className="text-muted mb-0">{emptyMessage}</p>
+        </div>
       )}
     </div>
   );

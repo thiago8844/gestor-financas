@@ -17,6 +17,10 @@ import { CadastrarDespesa } from "./pages/Despesa/CadastrarDespesa";
 import { TesteCategoria } from "./pages/Contas/components/CategoriaAutocomplete";
 import TesteTabela from "./pages/TesteTabela";
 import { ListagemContas } from "./pages/Contas/ListagemContas";
+import { ReceitaRoute } from "./pages/Receita/ReceitaRoute";
+import { ListagemReceita } from "./pages/Receita/ListagemReceita";
+import { CadastrarReceita } from "./pages/Receita/CadastrarReceita";
+import { EditarReceita } from "./pages/Receita/EditarReceita";
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +47,15 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemDespesa /> },
           { path: "cadastrar", element: <CadastrarDespesa /> },
           { path: "editar/:id", element: <EditarDespesa /> },
+        ],
+      },
+      {
+        path: "receitas",
+        element: <ReceitaRoute />,
+        children: [
+          { path: "", element: <ListagemReceita /> },
+          { path: "cadastrar", element: <CadastrarReceita /> },
+          { path: "editar/:id", element: <EditarReceita /> },
         ],
       },
       {

@@ -19,7 +19,8 @@ class Transacao extends Model
     protected $casts = [
         "type" => TransactionType::class,
         "status" => TransactionStatus::class,
-        "date" => 'datetime'
+        "date" => 'datetime',
+        "due_date" => 'datetime'
     ];
 
     public function user(): BelongsTo
@@ -30,6 +31,11 @@ class Transacao extends Model
     public function conta(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'account_id');
+    }
+
+    public function categoria(): BelongsTo
+    {
+        return $this->belongsTo(Categoria::class, 'category_id');
     }
 
     // -=-=-=- PARCELAMENTO -=-=-=-

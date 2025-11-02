@@ -15,9 +15,9 @@ return new class extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
-            $table->string('name');
+            $table->string('name')->unique();
             $table->enum('type', ['EXPENSE', 'INCOME']);
-            $table->string('role')->comment('Tipo da conta, dinheiro, banco, cartão de crédito , conta corrente, etc...');
+            $table->string('role')->nullable()->comment('Tipo da conta, dinheiro, banco, cartão de crédito , conta corrente, etc...');
             $table->boolean('active')->default(true);
             $table->boolean('include_in_networth')->default(true);
             $table->string('currency');

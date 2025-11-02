@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getContas } from "../api/conta";
 import { getCategorias } from "../api/categoria";
 
-export function useFormularioDespesa() {
+export function useFormularioTransacao() {
   //Contas
   const {
     data: contas,
