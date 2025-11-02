@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('123'),
         ]);
 
+        //Conta padrão
         $conta = Conta::create([
             'user_id' => $user->id,
             'name' => 'Conta Padrão',
@@ -53,6 +54,8 @@ class DatabaseSeeder extends Seeder
         //TODO: CRIAR CONTA SEEDER
         $this->call([
             CategoriaSeeder::class,
+            JonilsonSeeder::class,
+            CltSeeder::class,
         ], false, ['userId' => $user->id]);
     }
 }

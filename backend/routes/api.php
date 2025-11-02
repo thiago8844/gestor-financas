@@ -22,6 +22,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ]], 200);
     });
 
+    //DASHBOARD
+    Route::get('/dashboard-data', [\App\Http\Controllers\DashboardController::class, 'index']);
+
     //CONTAS
     Route::get('/contas', [ContaController::class, 'index']);
     Route::get('/contas/{conta}', [ContaController::class, 'show']);
