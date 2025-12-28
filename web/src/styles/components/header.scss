@@ -3,14 +3,12 @@
   border-bottom: 1px solid #dee2e6;
 }
 
-// ✅ LOGO
 .header-logo {
   height: 40px;
   width: auto;
   object-fit: contain;
 }
 
-// ✅ TÍTULO
 .header-title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -18,7 +16,6 @@
   white-space: nowrap;
 }
 
-// ✅ BOTÃO HAMBÚRGUER
 .btn-hamburger {
   cursor: pointer;
   transition: all 0.2s ease;
@@ -45,8 +42,8 @@
   box-shadow: none !important;
 
   &:hover {
-    background-color: #f8f9fa !important;
-    border-radius: 50%;
+    background-color: #e7e7e7 !important;
+    border-radius: 10%;
   }
 
   &:active {
@@ -58,7 +55,6 @@
   }
 }
 
-// ✅ RESPONSIVIDADE
 @media (max-width: 768px) {
   .header-logo {
     height: 32px;
