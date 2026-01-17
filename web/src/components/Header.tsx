@@ -7,6 +7,8 @@ export default function Header() {
   const [show, setShow] = useState(false);
   const { logout } = useAuthStore();
 
+  const { user } = useAuthStore();
+
   const handleClose = () => setShow(false);
 
   return (
@@ -42,12 +44,14 @@ export default function Header() {
               className="btn-user d-flex align-items-center justify-content-center p-2 text-decoration-none"
               id="dropdown-user"
             >
-              <i className="bi bi-person-circle fs-2 text-dark"></i>
+              
+              <i className="bi bi-person-circle fs-2 text-dark d-block"></i>
+              <span className="d-none d-md-inline-block ms-2 text-dark">{user?.name}</span>
             </Dropdown.Toggle>
 
             <Dropdown.Menu>
               <Dropdown.Header>
-                <i className="bi bi-person-circle me-2"></i>
+              
                 Minha Conta
               </Dropdown.Header>
               <Dropdown.Divider />

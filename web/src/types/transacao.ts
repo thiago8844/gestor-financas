@@ -35,6 +35,7 @@ export type TransacaoResponse = {
   data: Transacao[];
   meta: PaginationMeta;
   links: PaginationLinks;
+  total: number;
 };
 
 export type TransacaoFilters = {

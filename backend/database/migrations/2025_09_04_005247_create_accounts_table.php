@@ -21,6 +21,7 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->boolean('include_in_networth')->default(true);
             $table->string('currency');
+            $table->boolean('is_default')->default(false); 
             $table->string('instituicao')->nullable();
             $table->timestamps();
         });

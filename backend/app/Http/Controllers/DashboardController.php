@@ -17,7 +17,7 @@ class DashboardController extends Controller
 
         $inicioMes = now()->startOfMonth()->toDateString();
         $fimMes = now()->endOfMonth()->toDateString();
-
+        //TODO: MOVER ISSO PRA /QUERIES
         $totais = DB::table('transactions')
             ->where('user_id', $user->id)
             ->whereBetween('date', [$inicioMes, $fimMes])
@@ -31,13 +31,13 @@ class DashboardController extends Controller
                     ELSE 0 
                 END
             ) AS net_total
-            ")
-            ->first();
+            ")->first();
+        
         $totais = collect($totais);
 
-        $entrada  = $totais->get('total_in');
-        $saida = $totais->get('total_out');
-        $entradaMenosSaida = $totais->get('net_total');
+        $entrada  = $totais->get('total_in') ?? 0;
+        $saida = $totais->get('total_out') ?? 0;
+        $entradaMenosSaida = $totais->get('net_total') ?? 0;
 
         $patrimonioLiquido = 0;
         $contas = Conta::where('user_id', $user->id)->get();

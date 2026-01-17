@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {  deletarTransacao, getTransacoes } from "../../api/transacoes";
+import { deletarTransacao, getTransacoes } from "../../api/transacoes";
 import PageLayout from "../../layouts/PageLayout";
 import { Link } from "react-router-dom";
 import { useConfirmModalStore } from "../../stores/confirmModal";
@@ -314,6 +314,17 @@ export function ListagemReceita() {
             "Categoria",
             "Ações",
           ]}
+          footer={
+            <div className="d-flex justify-content-between align-items-center bg-light px-4 py-3 border-top">
+              <span className="text-muted fw-semibold">
+                <i className="bi bi-calculator me-2"></i>
+                Total de Receitas
+              </span>
+              <span className="fs-5 fw-bold text-success">
+                R$ {convertNumberToCurrencyMask(data?.total || 0)}
+              </span>
+            </div>
+          }
           loading={isLoading || isFetching}
           emptyMessage="Nenhuma receita encontrada"
         >

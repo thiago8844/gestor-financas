@@ -7,7 +7,7 @@ export default function PageLayout({
   backTo,
   loading,
 }: {
-  title: string;
+  title?: string;
   children: React.ReactNode;
   backTo?: string;
   loading?: boolean;
@@ -24,15 +24,17 @@ export default function PageLayout({
 
   return (
     <div>
-      <div
-        onClick={handleBack}
-        className="text-muted hover-link d-inline-block pe-4 pt-3 mb-4"
-      >
-        <i className="bi bi-arrow-left me-1"></i>
-        Voltar
-      </div>
+      {backTo && (
+        <div
+          onClick={handleBack}
+          className="text-muted hover-link d-inline-block pe-4 pt-3 mb-4"
+        >
+          <i className="bi bi-arrow-left me-1"></i>
+          Voltar
+        </div>
+      )}
 
-      <h2 className="d-flex align-items-center mb-5">{title}</h2>
+      {title && <h2 className="d-flex align-items-center mb-5 mt-4">{title}</h2>}
       {loading && (
         <div className="mx-auto my-5" style={{ width: "3rem", height: "3rem" }}>
           <div className="spinner-border text-primary" role="status">

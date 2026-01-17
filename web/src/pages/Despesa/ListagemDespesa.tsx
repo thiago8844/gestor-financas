@@ -33,7 +33,7 @@ export function ListagemDespesa() {
     useState(filtrosOriginais);
 
   //Query despesaS
-  const { data, isLoading, isError, refetch, isFetching} = useQuery({
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["despesas", filtros],
     queryFn: () => getTransacoes(filtros),
     refetchOnMount: true,
@@ -48,7 +48,7 @@ export function ListagemDespesa() {
 
   const { data: contas, refetch: refetchContas } = useQuery({
     queryKey: ["contas"],
-    queryFn: () => getContas({active: true, tipo: 'INCOME'}),
+    queryFn: () => getContas({ active: true, tipo: "INCOME" }),
   });
 
   //Deletar despesa
@@ -91,6 +91,7 @@ export function ListagemDespesa() {
 
   const despesas = data?.data || [];
   const meta = data?.meta;
+  const total = data?.total;
   //Após criar a tabela, verificar como componentizar ela
 
   // TODO: VER COMO ABSTRAIR ESSA LISTAGEM PARA OUTROS RECURSOS FICAREM MAIS SIMPLES DE FAZER
@@ -106,15 +107,12 @@ export function ListagemDespesa() {
             </Link>
           </Listagem.Acoes>
 
-          {/* ✅ CONTROLES À DIREITA */}
           <Listagem.Controles>
-            {/* SELECT DE LIMITE */}
             <Listagem.LimiteSelector
               value={filtros.limit}
               onChange={(limit) => setFiltros((prev) => ({ ...prev, limit }))}
             />
 
-            {/* DROPDOWN DE FILTROS */}
             <Listagem.FiltrosDropdown
               onAplicar={aplicarFiltros}
               onLimpar={resetarFiltros}
@@ -219,7 +217,6 @@ export function ListagemDespesa() {
               </div>
             </Listagem.FiltrosDropdown>
 
-            {/* DROPDOWN DE ORDENAR */}
             <Listagem.OrdenarDropdown>
               {/* ✅ SEUS RADIOS CUSTOMIZADOS */}
               <div className="form-check">
@@ -302,7 +299,7 @@ export function ListagemDespesa() {
           </Listagem.Controles>
         </Listagem.Header>
 
-        {/* ✅ TABELA */}
+      
         <Listagem.Tabela
           headers={[
             "ID",
@@ -315,6 +312,17 @@ export function ListagemDespesa() {
             "Status",
             "Ações",
           ]}
+          footer={
+            <div className="d-flex justify-content-between align-items-center bg-light px-4 py-3 border-top">
+              <span className="text-muted fw-semibold">
+                <i className="bi bi-calculator me-2"></i>
+                Total de Despesas
+              </span>
+              <span className="fs-5 fw-bold text-danger">
+                R$ {convertNumberToCurrencyMask(total || 0)}
+              </span>
+            </div>
+          }
           loading={isLoading || isFetching}
           emptyMessage="Nenhuma despesa encontrada"
         >
@@ -325,7 +333,7 @@ export function ListagemDespesa() {
               <td className="text-danger fw-bold">
                 R$ {convertNumberToCurrencyMask(despesa.amount)}
               </td>
-              <td>{despesa.date ?? '-'}</td>
+              <td>{despesa.date ?? "-"}</td>
               <td>{despesa.conta?.name || "-"}</td>
               <td>
                 {despesa.categoria ? (

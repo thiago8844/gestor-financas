@@ -15,7 +15,7 @@ export default function Sidebar({
   return (
     <Offcanvas show={show} onHide={handleClose} id="main-sidebar">
       <Offcanvas.Header closeButton>
-        <Offcanvas.Title>Gestor Finanças</Offcanvas.Title>
+        <Offcanvas.Title><span className="fw-bold">Gestor Finanças</span> </Offcanvas.Title>
       </Offcanvas.Header>
 
       <Offcanvas.Body>
@@ -54,6 +54,14 @@ export default function Sidebar({
             }
           >
             <i className="bi bi-arrow-up-circle"></i> Receitas
+          </NavLink>
+          <NavLink
+            to="/consultor"
+            className={({ isActive }) =>
+              `nav-link rounded ${isActive ? "active" : ""}`
+            }
+          >
+            <i className="bi bi-chat-text"></i> Consultor IA
           </NavLink>
 
           <NavLink

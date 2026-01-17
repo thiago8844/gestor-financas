@@ -25,6 +25,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //DASHBOARD
     Route::get('/dashboard-data', [\App\Http\Controllers\DashboardController::class, 'index']);
 
+    Route::get('prompt', \App\Http\Controllers\PromptController::class);
+
     //CONTAS
     Route::get('/contas', [ContaController::class, 'index']);
     Route::get('/contas/{conta}', [ContaController::class, 'show']);
@@ -47,6 +49,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //CATEGORIAS
     Route::get('/categorias', [\App\Http\Controllers\CategoriaController::class, 'index']);
     Route::post('/categorias/criar', [\App\Http\Controllers\CategoriaController::class, 'store']);
+    Route::patch('/categorias/editar/{id}', [\App\Http\Controllers\CategoriaController::class, 'update']);
+    Route::delete('/categorias/delete/{id}', [\App\Http\Controllers\CategoriaController::class, 'destroy']);
 
 });
 

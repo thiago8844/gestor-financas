@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { DefaultLayout } from "./layouts/DefaultLayout";
-import { Dashboard } from "./pages/Dashboard";
+import { Dashboard } from "./pages/Dashboard/Dashboard";
 import { GuestLayout } from "./layouts/GuestLayout";
 import { Login } from "./pages/Login";
 import { Cadastro } from "./pages/Cadastro";
@@ -21,6 +21,9 @@ import { ReceitaRoute } from "./pages/Receita/ReceitaRoute";
 import { ListagemReceita } from "./pages/Receita/ListagemReceita";
 import { CadastrarReceita } from "./pages/Receita/CadastrarReceita";
 import { EditarReceita } from "./pages/Receita/EditarReceita";
+import { ConsultorPage } from "./pages/Consultor/ConsultorPage";
+import { CategoriaRoutes } from "./pages/Categorias/CategoriaRoutes";
+import { ListagemCategorias } from "./pages/Categorias/ListagemCategorias";
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +60,15 @@ export const router = createBrowserRouter([
           { path: "cadastrar", element: <CadastrarReceita /> },
           { path: "editar/:id", element: <EditarReceita /> },
         ],
+      },
+      {
+        path: "categorias",
+        element: <CategoriaRoutes />,
+        children: [{ path: "", element: <ListagemCategorias /> }],
+      },
+      {
+        path: "consultor",
+        element: <ConsultorPage />,
       },
       {
         path: "/teste-categoria",

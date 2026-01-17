@@ -128,7 +128,7 @@ export default function Editar() {
   }
 
   return (
-    <PageLayout title="Editar Conta">
+    <PageLayout title="Editar Conta"  backTo="/contas">
       <div className="container-fluid">
 
         {/** @ts-expect-error TS não entende Zod transform string->number */}

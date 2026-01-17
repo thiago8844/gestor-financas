@@ -4,8 +4,8 @@ import type { User } from "../types";
 import type { LoginResponse } from "../types/auth";
 
 export const getUser = async (): Promise<User> => {
-  const response = await api.get<User>("/user");
-  return response.data;
+  const response = await api.get<{user: User}>("/user");
+  return response.data.user;
 };
 
 export const login = async (payload: LoginRequest): Promise<LoginResponse> => {

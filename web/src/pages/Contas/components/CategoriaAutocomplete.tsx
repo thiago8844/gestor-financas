@@ -74,7 +74,7 @@ export function CategoriaAutocomplete({
 
   // ✅ MUDANÇA NO INPUT
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
+    const newValue = e.target.value.toUpperCase();
     setInputValue(newValue);
     setShowSuggestions(true); // ✅ SEMPRE MOSTRA DROPDOWN AO DIGITAR
     onChange?.(newValue);

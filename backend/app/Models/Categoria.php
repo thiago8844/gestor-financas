@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Categoria extends Model
 {
@@ -20,6 +21,15 @@ class Categoria extends Model
 
     public function transacoes() {
         return $this->hasMany(Transacao::class, 'category_id');
+    }
+
+    public function qtdTransacoesAttribute(): int {
+        //query para pegar a quantidade de transações
+        return DB::table('transactions')
+        ->where('category_id', $this->id)
+        ->where('user_id', $this->user_id)
+        ->count();
+
     }
 
 }

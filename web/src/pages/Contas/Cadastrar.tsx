@@ -15,10 +15,11 @@ import type { AxiosError } from "axios";
 import { SubmitBtn } from "../../components/SubmitBtn";
 import { getBrazilDateTime } from "../../utils";
 import { useCacheUtils } from "../../hooks/useCacheUtils"; // ✅ NOVO
+import { useNavigate } from "react-router-dom";
 
 export default function Cadastrar() {
   const { invalidateFormularios } = useCacheUtils(); // ✅ NOVO
-
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -40,22 +41,22 @@ export default function Cadastrar() {
     mutationFn: (data: ContaForm) => criarConta(data),
     onSuccess: () => {
       invalidateFormularios(); // ✅ Atualiza TODOS os formulários
+      navigate("/contas");
       alert("Conta criada com sucesso!");
+
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
   });
 
-  console.log(errors);
   const onSubmit = (data: ContaForm) => {
     mutate(data);
-    console.log(data);
   };
 
   const tipoSelecionado = watch("type");
   const isReceita = tipoSelecionado === "INCOME";
 
   return (
-    <PageLayout title="Cadastrar Conta">
+    <PageLayout title="Cadastrar Conta"  backTo="/contas">
       <div className="container-fluid">
         {/** @ts-expect-error TS não entende Zod transform string->number */}
         <form onSubmit={handleSubmit(onSubmit)} className="container mt-4">

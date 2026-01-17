@@ -155,7 +155,8 @@ Listagem.Tabela = function Tabela({
   children,
   loading = false,
   emptyMessage = "Nenhum registro encontrado",
-}: TabelaProps) {
+  footer,
+}: TabelaProps & { footer?: ReactNode }) {
   return (
     <div className="table-responsive shadow-sm rounded">
       <table className="table table-hover align-middle mb-0">
@@ -165,7 +166,6 @@ Listagem.Tabela = function Tabela({
               <th
                 key={header}
                 className="text-uppercase fw-semibold text-muted small py-3 px-2"
-
                 style={{
                   borderBottom: "2px solid #dee2e6",
                   letterSpacing: "0.5px",
@@ -195,6 +195,13 @@ Listagem.Tabela = function Tabela({
             children
           )}
         </tbody>
+        {(!loading && footer) && (
+          <tfoot>
+            <tr>
+              <td colSpan={headers.length}>{footer}</td>
+            </tr>
+          </tfoot>
+        )}
       </table>
       {!loading && !children && (
         <div className="text-center py-5 bg-light">

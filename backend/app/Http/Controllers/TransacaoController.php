@@ -81,8 +81,11 @@ class TransacaoController extends Controller
         $limit = $request->input('limit', 25);
 
         $transacoes = $query->paginate($limit);
+        $total = $transacoes->sum('amount');
 
-        return TransacaoResource::collection($transacoes)->response()->getData(true);
+        return TransacaoResource::collection($transacoes)->additional([
+            'total' => $total
+        ]);
     }
 
 
@@ -91,7 +94,7 @@ class TransacaoController extends Controller
      */
     public function store(TransacaoRequest $request)
     {
-     
+
         if (!$request->filled('category_id') && $request->filled('category_name')) {
             //Verificar se não existe um categori acom o mesmo nome por coincidência que o burrão não clicou no automcomplete
             $novaCategoria = Categoria::where('user_id', Auth::id())
