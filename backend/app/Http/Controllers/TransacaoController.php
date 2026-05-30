@@ -36,24 +36,42 @@ class TransacaoController extends Controller
         if ($request->filled('periodo')) {
             switch ($request->periodo) {
                 case 'hoje':
-                    $query->whereDate('date', now()->toDateString());
+                    $query->whereRaw('DATE(COALESCE(date, due_date, created_at)) = DATE(?)', [now()->toDateString()]);
                     break;
                 case "semana":
-                    $query->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()]);
+                    $query->whereRaw(
+                        'DATE(COALESCE(date, due_date, created_at)) BETWEEN DATE(?) AND DATE(?)',
+                        [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()]
+                    );
                     break;
                 case "mes":
-                    $query->whereMonth('date', now()->month)
-                        ->whereYear('date', now()->year);
+                    $startOfMonth = now()->startOfMonth()->toDateString();
+                    $endOfMonth = now()->endOfMonth()->toDateString();
+                    $query->whereRaw(
+                        'DATE(COALESCE(date, due_date, created_at)) BETWEEN DATE(?) AND DATE(?)',
+                        [$startOfMonth, $endOfMonth]
+                    );
                     break;
                 case "ano":
-                    $query->whereYear('date', now()->year);
+                    $startOfYear = now()->startOfYear()->toDateString();
+                    $endOfYear = now()->endOfYear()->toDateString();
+                    $query->whereRaw(
+                        'DATE(COALESCE(date, due_date, created_at)) BETWEEN DATE(?) AND DATE(?)',
+                        [$startOfYear, $endOfYear]
+                    );
                     break;
             }
         }
 
 
         if ($request->filled('data_inicial') && $request->periodo === 'custom') {
-            $query->where('date', '>=', $request->data_inicial);
+            // $query->where('date', '>=', $request->data_inicial);
+            $query->whereRaw('COALESCE(date, due_date, created_at) >= ?', [$request->data_inicial]);
+        }
+
+        if ($request->filled('data_final') && $request->periodo === 'custom') {
+            //$query->where('date', '<=', $request->data_final);
+            $query->whereRaw('COALESCE(date, due_date, created_at) <= ?', [$request->data_final]);
         }
 
         if ($request->filled('order_by')) {
@@ -66,16 +84,12 @@ class TransacaoController extends Controller
                     $query->orderBy('amount', 'desc');
                     break;
                 case 'date_asc':
-                    $query->orderBy('date', 'asc');
+                    $query->orderByRaw('COALESCE(date, due_date, created_at) asc');
                     break;
                 case 'date_desc':
-                    $query->orderBy('date', 'desc');
+                    $query->orderByRaw('COALESCE(date, due_date, created_at) desc');
                     break;
             }
-        }
-
-        if ($request->filled('data_final') && $request->periodo === 'custom') {
-            $query->where('date', '<=', $request->data_final);
         }
 
         $limit = $request->input('limit', 25);
@@ -94,7 +108,6 @@ class TransacaoController extends Controller
      */
     public function store(TransacaoRequest $request)
     {
-
         if (!$request->filled('category_id') && $request->filled('category_name')) {
             //Verificar se não existe um categori acom o mesmo nome por coincidência que o burrão não clicou no automcomplete
             $novaCategoria = Categoria::where('user_id', Auth::id())

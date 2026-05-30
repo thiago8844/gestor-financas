@@ -7,7 +7,7 @@ import { convertNumberToCurrencyMask } from "../../utils";
 export function Dashboard() {
   const { user } = useAuthStore();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => getDashboardData(),
   });
@@ -22,11 +22,19 @@ export function Dashboard() {
     );
   }
 
-  console.log(data);
+
+
+  const indicadoresMes = data?.indicadores_mes;
+
+  //TODO: CRIAR COMPONENTE DOS INDICADORES DO MêS
 
   return (
     <PageLayout title={`Bem-Vindo ${user?.name}`} loading={isLoading}>
-      <div className="container py-4">
+
+      <button onClick={() => refetch()} className="btn btn-primary">Refetch Dashboard</button>
+
+      {indicadoresMes && 
+      (<div className="container py-4">
         <h5 className="mb-4 fw-bold">Dados do mês atual</h5>
         <div className="row g-4">
           <div className="col-12 col-md-6 col-lg-3">
@@ -37,7 +45,7 @@ export function Dashboard() {
                   Entradas
                 </span>
                 <span className="fs-4 fw-semibold text-success">
-                  {data ? convertNumberToCurrencyMask(data.entrada) : "--"}
+                  {indicadoresMes ? convertNumberToCurrencyMask(indicadoresMes.entrada) : "--"}
                 </span>
               </div>
             </div>
@@ -50,7 +58,7 @@ export function Dashboard() {
                   Saídas
                 </span>
                 <span className="fs-4 fw-semibold text-danger">
-                  {data ? convertNumberToCurrencyMask(data.saida) : "--"}
+                  {indicadoresMes ? convertNumberToCurrencyMask(indicadoresMes.saida) : "--"}
                 </span>
               </div>
             </div>
@@ -64,13 +72,13 @@ export function Dashboard() {
                 </span>
                 <span
                   className={`fs-4 fw-semibold ${
-                    data && data.entrada_menos_saida >= 0
+                    indicadoresMes && indicadoresMes.saldo >= 0
                       ? "text-success"
                       : "text-danger"
                   }`}
                 >
-                  {data
-                    ? convertNumberToCurrencyMask(data.entrada_menos_saida)
+                  {indicadoresMes
+                    ? convertNumberToCurrencyMask(indicadoresMes.saldo)
                     : "--"}
                 </span>
               </div>
@@ -84,15 +92,15 @@ export function Dashboard() {
                   Patrimônio Líquido
                 </span>
                 <span className="fs-4 fw-semibold text-dark">
-                  {data
-                    ? convertNumberToCurrencyMask(data.patrimonio_liquido)
+                  {indicadoresMes
+                    ? convertNumberToCurrencyMask(indicadoresMes.patrimonio_liquido)
                     : "--"}
                 </span>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </div>)}
     </PageLayout>
   );
 }

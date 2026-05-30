@@ -21,7 +21,7 @@ return new class extends Migration
 
             // FK para conta
             $table->foreignId('account_id')
-                ->constrained('accounts')
+            ->constrained('accounts')
                 ->onDelete('cascade');
             $table->boolean('is_initial_balance')->default(false);
 
@@ -39,12 +39,12 @@ return new class extends Migration
             $table->date('date')->nullable()->comment('Data exata da movimentação financeira'); // data do movimento
             $table->date('due_date')->nullable(); //Data de vencimento prazo máximo de pagamento
 
-            
-            
+
+
             // -=-=- Parcelas -=-=-
-            $table->integer('installment_number')->nullable(); 
+            $table->integer('installment_number')->nullable();
             $table->integer('installment_total')->nullable();
-            $table->uuid('installment_group')->nullable();  
+            $table->uuid('installment_group')->nullable();
 
             // -=-=- Transferências -=-=-
             //TODO: DESCOMENTAR QUANDO FOR IMPLEMENTAR AS TRANSFERÊNCIAS

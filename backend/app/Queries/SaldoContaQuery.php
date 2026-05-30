@@ -13,12 +13,14 @@ class SaldoContaQuery
     $income = DB::table('transactions')
       ->where('account_id', $contaId)
       ->where('type', TransactionType::INCOME->value)
+      ->where('status', 'PAID')
       ->sum('amount');
 
     // Soma as transações do tipo EXPENSE
     $expense = DB::table('transactions')
       ->where('account_id', $contaId)
       ->where('type', TransactionType::EXPENSE->value)
+      ->where('status', 'PAID')
       ->sum('amount');
 
     // Calcula o saldo: INCOME - EXPENSE
