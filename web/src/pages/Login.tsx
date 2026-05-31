@@ -12,6 +12,7 @@ import { defaultFormErrorHandler } from "../utils/formErrorHandlers";
 import type { LoginResponse } from "../types/auth";
 import { useAuthStore } from "../stores/auth";
 import { ACCESS_TOKEN_KEY } from "../config/config";
+import "../styles/auth.scss";
 
 export function Login() {
   const {
@@ -24,68 +25,64 @@ export function Login() {
   });
 
   const { setToken, setUser } = useAuthStore();
-
   const navigate = useNavigate();
 
-  //Mutation para fazer o request
   const { mutate, isPending } = useMutation({
     mutationFn: login,
     onSuccess: (data: LoginResponse) => {
-      localStorage.setItem(ACCESS_TOKEN_KEY, data.token); //Salvar o token no localStorage
-      setToken(data.token); //Estado global
-      setUser(data.user); //Estado global
-
-      navigate("/"); //Redirecionar para a página inicial
+      localStorage.setItem(ACCESS_TOKEN_KEY, data.token);
+      setToken(data.token);
+      setUser(data.user);
+      navigate("/");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
   });
 
-  const onSubmit = (data: LoginRequest) => {
-    mutate(data);
-  };
-
   return (
-    <div className="container mt-5" style={{ maxWidth: "400px" }}>
-      <h2 className="mb-4 text-center">Login</h2>
+    <div className="auth-page">
+      <div className="auth-card">
+        <img src="/images/logo.svg" alt="Logo" className="auth-logo" />
+        <h2 className="auth-title">Bem-vindo de volta</h2>
+        <p className="auth-subtitle">Entre na sua conta para continuar</p>
 
-      {errors.root && (
-        <div className="alert alert-danger">{errors.root.message}</div>
-      )}
+        {errors.root && (
+          <div className="alert alert-danger py-2 small">
+            {errors.root.message}
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Email */}
-        <FormGroup label="Email" id="email">
-          <input
-            {...register("email")}
-            type="email"
-            className={`form-control ${errors.email ? "is-invalid" : ""}`}
-            id="email"
-            placeholder="Digite seu email"
-          />
-          <FieldError>{errors.email?.message}</FieldError>
-        </FormGroup>
+        <form onSubmit={handleSubmit((data) => mutate(data))}>
+          <FormGroup label="Email" id="email">
+            <input
+              {...register("email")}
+              type="email"
+              className={`form-control ${errors.email ? "is-invalid" : ""}`}
+              id="email"
+              placeholder="seu@email.com"
+              autoComplete="email"
+            />
+            <FieldError>{errors.email?.message}</FieldError>
+          </FormGroup>
 
-        {/* Password */}
-        <FormGroup label="Senha" id="password">
-          <input
-            {...register("password")}
-            type="password"
-            className={`form-control ${errors.password ? "is-invalid" : ""}`}
-            id="password"
-            placeholder="Digite sua senha"
-          />
-          <FieldError>{errors.password?.message}</FieldError>
-        </FormGroup>
+          <FormGroup label="Senha" id="password">
+            <input
+              {...register("password")}
+              type="password"
+              className={`form-control ${errors.password ? "is-invalid" : ""}`}
+              id="password"
+              placeholder="Digite sua senha"
+              autoComplete="current-password"
+            />
+            <FieldError>{errors.password?.message}</FieldError>
+          </FormGroup>
 
-        {/* Submit */}
-        <SubmitBtn loading={isPending}>Entrar</SubmitBtn>
-        <small className="d-block mb-1">
+          <SubmitBtn loading={isPending}>Entrar</SubmitBtn>
+        </form>
+
+        <p className="auth-footer">
           Não possui conta? <Link to="/cadastro">Cadastre-se</Link>
-        </small>
-        {/* <small className="d-block">
-          Esqueceu a senha? <Link to="/resetar-senha">Clique aqui</Link>
-        </small> */}
-      </form>
+        </p>
+      </div>
     </div>
   );
 }

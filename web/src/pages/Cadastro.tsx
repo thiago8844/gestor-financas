@@ -9,6 +9,7 @@ import { FieldError } from "../components/FieldError";
 import { defaultFormErrorHandler } from "../utils/formErrorHandlers";
 import type { AxiosError } from "axios";
 import { FormGroup } from "../components/FormGroup";
+import "../styles/auth.scss";
 
 export function Cadastro() {
   const navigate = useNavigate();
@@ -24,76 +25,81 @@ export function Cadastro() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: registerUser,
-    onSuccess: () => {
-      //Disparar notificação de usuário cadastrado com sucesso
-      navigate("/login");
-    },
+    onSuccess: () => navigate("/login"),
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
   });
 
-  const onSubmit = (data: RegisterUserRequest) => {
-    mutate(data);
-  };
-
   return (
-    <div className="container mt-5" style={{ maxWidth: "400px" }}>
-      <h2 className="mb-4 text-center">Cadastro</h2>
+    <div className="auth-page">
+      <div className="auth-card">
+        <img src="/images/logo.svg" alt="Logo" className="auth-logo" />
+        <h2 className="auth-title">Criar conta</h2>
+        <p className="auth-subtitle">Comece a controlar suas finanças hoje</p>
 
-      {errors.root && (
-        <div className="alert alert-danger">{errors.root.message}</div>
-      )}
+        {errors.root && (
+          <div className="alert alert-danger py-2 small">
+            {errors.root.message}
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <FormGroup label="Nome" id="name">
-          <input
-            {...register("name")}
-            type="text"
-            className={`form-control ${errors.name ? "is-invalid" : ""}`}
-            id="name"
-            placeholder="Digite seu nome"
-          />
-          <FieldError>{errors.name?.message}</FieldError>
-        </FormGroup>
+        <form onSubmit={handleSubmit((data) => mutate(data))}>
+          <FormGroup label="Nome" id="name">
+            <input
+              {...register("name")}
+              type="text"
+              className={`form-control ${errors.name ? "is-invalid" : ""}`}
+              id="name"
+              placeholder="Seu nome completo"
+              autoComplete="name"
+            />
+            <FieldError>{errors.name?.message}</FieldError>
+          </FormGroup>
 
-        <FormGroup label="Email" id="email">
-          <input
-            {...register("email")}
-            type="text"
-            className={`form-control ${errors.email ? "is-invalid" : ""}`}
-            id="email"
-            placeholder="Digite seu email"
-          />
-          <FieldError>{errors.email?.message}</FieldError>
-        </FormGroup>
-        <FormGroup label="Senha" id="password">
-          <input
-            {...register("password")}
-            type="password"
-            className={`form-control ${errors.password ? "is-invalid" : ""}`}
-            id="password"
-            placeholder="Digite sua senha"
-          />
-          <FieldError>{errors.password?.message}</FieldError>
-        </FormGroup>
+          <FormGroup label="Email" id="email">
+            <input
+              {...register("email")}
+              type="email"
+              className={`form-control ${errors.email ? "is-invalid" : ""}`}
+              id="email"
+              placeholder="seu@email.com"
+              autoComplete="email"
+            />
+            <FieldError>{errors.email?.message}</FieldError>
+          </FormGroup>
 
-        <FormGroup label="Confirmar senha" id="password_confirmation">
-          <input
-            {...register("password_confirmation")}
-            type="password"
-            className={`form-control ${
-              errors.password_confirmation ? "is-invalid" : ""
-            }`}
-            id="password_confirmation"
-            placeholder="Confirme sua senha"
-          />
-          <FieldError>{errors.password_confirmation?.message}</FieldError>
-        </FormGroup>
+          <FormGroup label="Senha" id="password">
+            <input
+              {...register("password")}
+              type="password"
+              className={`form-control ${errors.password ? "is-invalid" : ""}`}
+              id="password"
+              placeholder="Crie uma senha"
+              autoComplete="new-password"
+            />
+            <FieldError>{errors.password?.message}</FieldError>
+          </FormGroup>
 
-        <SubmitBtn loading={isPending}>Cadastrar</SubmitBtn>
-        <small>
-          Já possui conta ? faça <Link to="/login">login</Link>
-        </small>
-      </form>
+          <FormGroup label="Confirmar senha" id="password_confirmation">
+            <input
+              {...register("password_confirmation")}
+              type="password"
+              className={`form-control ${
+                errors.password_confirmation ? "is-invalid" : ""
+              }`}
+              id="password_confirmation"
+              placeholder="Repita a senha"
+              autoComplete="new-password"
+            />
+            <FieldError>{errors.password_confirmation?.message}</FieldError>
+          </FormGroup>
+
+          <SubmitBtn loading={isPending}>Cadastrar</SubmitBtn>
+        </form>
+
+        <p className="auth-footer">
+          Já possui conta? <Link to="/login">Faça login</Link>
+        </p>
+      </div>
     </div>
   );
 }
