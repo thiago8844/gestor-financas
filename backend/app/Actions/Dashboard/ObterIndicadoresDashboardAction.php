@@ -4,11 +4,13 @@ namespace App\Actions\Dashboard;
 
 use App\Models\Conta;
 use App\Queries\Dashboard\IndicadoresMesDashboardQuery;
+use Illuminate\Support\Facades\Auth;
 
 class ObterIndicadoresDashboardAction
 {
-    public static function execute(int $userId)
+    public static function execute()
     {
+        $userId = Auth::id();
         $inicioMes = now()->startOfMonth();
         $fimMes = now()->endOfMonth();
 

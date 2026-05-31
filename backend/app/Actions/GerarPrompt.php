@@ -17,7 +17,7 @@ class GerarPrompt
     //Saldo líquido médio mensal  Tendência de saldo
 
     $datas = DB::table('transactions')
-      ->where('user_id', 3)
+      ->where('user_id', $user->id)
       ->selectRaw('MIN(date) as data_min, MAX(date) as data_max')
       ->first();
 
@@ -36,20 +36,20 @@ class GerarPrompt
 
     //TODO: JOGAR EM /QUERIES        
     $rendaMedia = DB::table('transactions')
-      ->selectRaw("strftime('%Y-%m', date) as mes, SUM(amount) as total_mes")
+      ->selectRaw("DATE_FORMAT(date, '%Y-%m') as mes, SUM(amount) as total_mes")
       ->where('user_id', $user->id)
       ->where('type', 'INCOME')
-      ->where('date', '>=', DB::raw("date('now', '-12 months')"))
+      ->where('date', '>=', DB::raw("DATE_SUB(NOW(), INTERVAL 12 MONTH)"))
       ->groupBy('mes')
       ->orderByDesc('mes')
       ->get()
       ->avg('total_mes');
 
     $despesaMedia = DB::table('transactions')
-      ->selectRaw("strftime('%Y-%m', date) as mes, SUM(amount) as total_mes")
+      ->selectRaw("DATE_FORMAT(date, '%Y-%m') as mes, SUM(amount) as total_mes")
       ->where('user_id', $user->id)
       ->where('type', 'EXPENSE')
-      ->where('date', '>=', DB::raw("date('now', '-12 months')"))
+      ->where('date', '>=', DB::raw("DATE_SUB(NOW(), INTERVAL 12 MONTH)"))
       ->groupBy('mes')
       ->orderByDesc('mes')
       ->get()

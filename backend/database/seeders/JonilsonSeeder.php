@@ -73,11 +73,13 @@ class JonilsonSeeder extends Seeder
                 'user_id' => $jonilson->id,
             ]);
         }
-        
+
         $VALOR_GADO = 4327.56;
+
         // Gerar 12 meses de transações Jonilson
+        $mesBase = Carbon::now()->startOfMonth();
         for ($i = 0; $i < 12; $i++) {
-            $mesAtual = Carbon::now()->subMonths(11 - $i)->startOfMonth();
+            $mesAtual = $mesBase->copy()->subMonthsNoOverflow(11 - $i);
 
             // RECEITAS JONILSON
             // Venda de gado (principal receita)

@@ -1,106 +1,86 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageLayout from "../../layouts/PageLayout";
-import { getDashboardData } from "../../api/dashboard";
+import {
+  getIndicadoresDashboard,
+  getSaldoContas,
+  getTransacoesCategoria,
+} from "../../api/dashboard";
 import { useAuthStore } from "../../stores/auth";
-import { convertNumberToCurrencyMask } from "../../utils";
+
+import IndicadoresMes from "./components/IndicadoresMes";
+import { SaldoPorContaPeriodo } from "./components/SaldoPorContaPeriodo";
+import { TransacaoCategoria } from "./components/TransacaoCategoria";
+import type { SaldoFiltroParams } from "./components/SaldoPorContaPeriodo";
+import type { CategoriaFiltroParams } from "./components/TransacaoCategoria";
 
 export function Dashboard() {
   const { user } = useAuthStore();
 
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["dashboard"],
-    queryFn: () => getDashboardData(),
+  // Cada gráfico tem seu próprio estado de filtro e sua própria query —
+  // filtrar um não recarrega os outros.
+  const [saldoFiltros, setSaldoFiltros] = useState<SaldoFiltroParams>({});
+  const [categoriaFiltros, setCategoriaFiltros] =
+    useState<CategoriaFiltroParams>({});
+
+  const { data: indicadores, isLoading: loadingIndicadores } = useQuery({
+    queryKey: ["dashboard-indicadores"],
+    queryFn: getIndicadoresDashboard,
   });
 
-  if (isError) {
-    return (
-      <PageLayout title="Erro ao carregar o dashboard">
-        <div className="alert alert-danger">
-          Erro ao carregar os dados do dashboard.
-        </div>
-      </PageLayout>
-    );
-  }
+  const { data: saldoContas, isLoading: loadingSaldo } = useQuery({
+    queryKey: ["dashboard-saldo-contas", saldoFiltros],
+    queryFn: () =>
+      getSaldoContas({
+        alltime: saldoFiltros.saldosContasAlltime,
+        dataInicial: saldoFiltros.saldosContasDataInicial,
+        dataFinal: saldoFiltros.saldosContasDataFinal,
+        intervalo: saldoFiltros.saldosContasIntervalo,
+      }),
+  });
 
+  const { data: categorias, isLoading: loadingCategorias } = useQuery({
+    queryKey: ["dashboard-transacoes-categoria", categoriaFiltros],
+    queryFn: () =>
+      getTransacoesCategoria({
+        despesasAlltime: categoriaFiltros.despesasCategoriaAlltime,
+        despesasDataInicial: categoriaFiltros.despesasCategoriaDataInicial,
+        despesasDataFinal: categoriaFiltros.despesasCategoriaDataFinal,
+        receitasAlltime: categoriaFiltros.receitasCategoriaAlltime,
+        receitasDataInicial: categoriaFiltros.receitasCategoriaDataInicial,
+        receitasDataFinal: categoriaFiltros.receitasCategoriaDataFinal,
+      }),
+  });
 
-
-  const indicadoresMes = data?.indicadores_mes;
-
-  //TODO: CRIAR COMPONENTE DOS INDICADORES DO MêS
+  const isLoading = loadingIndicadores && loadingSaldo && loadingCategorias;
 
   return (
     <PageLayout title={`Bem-Vindo ${user?.name}`} loading={isLoading}>
+      {/* Cards de indicadores do mês */}
+      {indicadores && <IndicadoresMes {...indicadores} />}
 
-      <button onClick={() => refetch()} className="btn btn-primary">Refetch Dashboard</button>
-
-      {indicadoresMes && 
-      (<div className="container py-4">
-        <h5 className="mb-4 fw-bold">Dados do mês atual</h5>
-        <div className="row g-4">
-          <div className="col-12 col-md-6 col-lg-3">
-            <div className="card shadow-sm border-0 h-100">
-              <div className="card-body d-flex flex-column align-items-start">
-                <span className="text-muted small mb-1">
-                  <i className="bi bi-arrow-down-circle-fill text-success me-2"></i>
-                  Entradas
-                </span>
-                <span className="fs-4 fw-semibold text-success">
-                  {indicadoresMes ? convertNumberToCurrencyMask(indicadoresMes.entrada) : "--"}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="col-12 col-md-6 col-lg-3">
-            <div className="card shadow-sm border-0 h-100">
-              <div className="card-body d-flex flex-column align-items-start">
-                <span className="text-muted small mb-1">
-                  <i className="bi bi-arrow-up-circle-fill text-danger me-2"></i>
-                  Saídas
-                </span>
-                <span className="fs-4 fw-semibold text-danger">
-                  {indicadoresMes ? convertNumberToCurrencyMask(indicadoresMes.saida) : "--"}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="col-12 col-md-6 col-lg-3">
-            <div className="card shadow-sm border-0 h-100">
-              <div className="card-body d-flex flex-column align-items-start">
-                <span className="text-muted small mb-1">
-                  <i className="bi bi-calculator-fill text-primary me-2"></i>
-                  Saldo do mês
-                </span>
-                <span
-                  className={`fs-4 fw-semibold ${
-                    indicadoresMes && indicadoresMes.saldo >= 0
-                      ? "text-success"
-                      : "text-danger"
-                  }`}
-                >
-                  {indicadoresMes
-                    ? convertNumberToCurrencyMask(indicadoresMes.saldo)
-                    : "--"}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="col-12 col-md-6 col-lg-3">
-            <div className="card shadow-sm border-0 h-100">
-              <div className="card-body d-flex flex-column align-items-start">
-                <span className="text-muted small mb-1">
-                  <i className="bi bi-piggy-bank-fill text-warning me-2"></i>
-                  Patrimônio Líquido
-                </span>
-                <span className="fs-4 fw-semibold text-dark">
-                  {indicadoresMes
-                    ? convertNumberToCurrencyMask(indicadoresMes.patrimonio_liquido)
-                    : "--"}
-                </span>
-              </div>
-            </div>
+      <div className="container py-2">
+        {/* Saldo por conta ao longo do tempo */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <SaldoPorContaPeriodo
+              data={saldoContas}
+              onFiltroChange={setSaldoFiltros}
+            />
           </div>
         </div>
-      </div>)}
+
+        {/* Despesas e Receitas por categoria */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <TransacaoCategoria
+              despesas={categorias?.despesas_por_categoria}
+              receitas={categorias?.receitas_por_categoria}
+              onFiltroChange={setCategoriaFiltros}
+            />
+          </div>
+        </div>
+      </div>
     </PageLayout>
   );
 }

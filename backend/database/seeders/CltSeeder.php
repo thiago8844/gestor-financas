@@ -73,10 +73,11 @@ class CltSeeder extends Seeder
                 'user_id' => $clt->id,
             ]);
         }
-
+        
+        $mesBase = Carbon::now()->startOfMonth();
         // Gerar 12 meses de transações CLT
         for ($i = 0; $i < 12; $i++) {
-            $mesAtual = Carbon::now()->subMonths(11 - $i)->startOfMonth();
+            $mesAtual = $mesBase->copy()->subMonthsNoOverflow(11 - $i);
 
             // RECEITAS CLT
             // Salário fixo
@@ -85,7 +86,7 @@ class CltSeeder extends Seeder
                 'category_id' => Categoria::where('name', 'SALÁRIO')->where('user_id', $clt->id)->first()->id,
                 'amount' => 2500,
                 'type' => 'INCOME',
-                'date' => $mesAtual->copy()->day(5),
+                'date' => $mesAtual->copy()->day(1),
                 'description' => 'Salário Mensal',
                 'user_id' => $clt->id,
                 'status' => TransactionStatus::PAID

@@ -23,7 +23,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     //DASHBOARD
-    Route::get('/dashboard-data', [\App\Http\Controllers\DashboardController::class, 'index']);
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/indicadores',          [\App\Http\Controllers\DashboardController::class, 'indicadores']);
+        Route::get('/saldo-contas',         [\App\Http\Controllers\DashboardController::class, 'saldoContas']);
+        Route::get('/transacoes-categoria', [\App\Http\Controllers\DashboardController::class, 'transacoesCategoria']);
+    });
 
     Route::get('prompt', \App\Http\Controllers\PromptController::class);
 
@@ -51,7 +55,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/categorias/criar', [\App\Http\Controllers\CategoriaController::class, 'store']);
     Route::patch('/categorias/editar/{id}', [\App\Http\Controllers\CategoriaController::class, 'update']);
     Route::delete('/categorias/delete/{id}', [\App\Http\Controllers\CategoriaController::class, 'destroy']);
-
 });
 
 
