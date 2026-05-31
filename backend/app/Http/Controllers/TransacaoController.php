@@ -196,6 +196,10 @@ class TransacaoController extends Controller
             return response()->json(['message' => 'Acesso negado'], 403);
         }
 
+        if($transacao->is_initial_balance){
+            return response()->json(['message' => 'Não é permitido deletar a transação de saldo inicial'], 403);
+        }   
+
         $transacao->delete();
 
         return response()->json(['message' => 'Transação deletada com sucesso'], 200);

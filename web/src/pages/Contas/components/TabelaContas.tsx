@@ -38,22 +38,22 @@ export function TabelaContas({ contas }: TabelaProps) {
       {/* Filtros */}
       <header className="mb-3 d-flex align-items-center justify-content-between">
         <div className="d-flex">
-          <div
+          {/* <div
             onClick={() => setFiltros({ ...filtros, tipo: "INCOME" })}
             className={`text-success  px-2 selected-conta ${
               filtros.tipo === "INCOME" ? "active" : ""
             }`}
           >
             Receita
-          </div>
-          <div
+          </div> */}
+          {/* <div
             onClick={() => setFiltros({ ...filtros, tipo: "EXPENSE" })}
             className={`text-danger selected-tab px-2 selected-conta ${
               filtros.tipo === "EXPENSE" ? "active" : ""
             }`}
           >
             Despesa
-          </div>
+          </div> */}
         </div>
       </header>
 

@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StoreContaRequest extends FormRequest
 {
@@ -22,7 +24,13 @@ class StoreContaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:accounts,name'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('accounts', 'name')
+                    ->where('user_id', Auth::id()),
+            ],
             'type' => ['required', 'in:EXPENSE,INCOME'],
             'active' => ['boolean'],
             'include_in_networth' => ['boolean'],

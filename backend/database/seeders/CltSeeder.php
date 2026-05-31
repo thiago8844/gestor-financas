@@ -22,7 +22,8 @@ class CltSeeder extends Seeder
         $clt = User::factory()->create([
             'name' => 'CLT',
             'email' => 'clt@email.com',
-            'password' => bcrypt('123'),
+            'can_use_ai' => true,
+            'password' => bcrypt('12345Opi*'),
         ]);
 
         $contaCLT = Conta::create([

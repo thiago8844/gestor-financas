@@ -74,12 +74,21 @@ export default function Sidebar({
           </NavLink>
 
           <NavLink
-            to="/relatorios"
+            to="/orcamentos"
             className={({ isActive }) =>
-              `nav-link rounded ${isActive ? "active" : ""}`
+              `nav-link rounded ${isActive ? "active" : ""} disabled`
             }
           >
-            <i className="bi bi-bar-chart"></i> Relatórios
+            <i className="bi bi-pie-chart"></i> Orçamentos (Em Breve)
+          </NavLink>
+
+          <NavLink
+            to="/relatorios"
+            className={({ isActive }) =>
+              `nav-link rounded ${isActive ? "active" : ""} disabled`
+            }
+          >
+            <i className="bi bi-bar-chart"></i> Relatórios (Em Breve)
           </NavLink>
         </nav>
       </Offcanvas.Body>

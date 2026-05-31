@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageLayout from "../../layouts/PageLayout";
-import { getPrompt } from "../../api/consultor";
+import { getPrompt, enviarMensagemChatbot } from "../../api/consultor";
+import { CopyPromptButton } from "./CopyPromptButton";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "../../styles/consultor.scss"; // ✅ Arquivo de estilos (vou criar depois)
+import type {
+  DadosFinanceirosResponse,
+  HistoryMessage,
+} from "../../types/chatbot";
 
 // ✅ TIPO DA MENSAGEM
 type Message = {
@@ -16,10 +21,12 @@ type Message = {
 
 export function ConsultorPage() {
   // ✅ BUSCA O PROMPT INICIAL (contexto financeiro do usuário)
-  const { data: promptContext, isLoading } = useQuery({
-    queryKey: ["prompt"],
-    queryFn: getPrompt,
-  });
+  const { data: promptContext, isLoading } = useQuery<DadosFinanceirosResponse>(
+    {
+      queryKey: ["prompt"],
+      queryFn: getPrompt,
+    },
+  );
 
   // ✅ ESTADOS DO CHAT
   const [messages, setMessages] = useState<Message[]>([]);
@@ -50,35 +57,32 @@ export function ConsultorPage() {
     setIsTyping(true); // Mostra "IA pensando..."
 
     try {
-      const question =
-        promptContext + "\n\n Pergunta Usuario: " + userMessage.text;
-      // ✅ ENVIA PARA O WEBHOOK DO N8N
-      const response = await fetch(
-        "https://sistemasoito-n8n.3apavv.easypanel.host/webhook-test/webhook/consultor-financeiro",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            question: question, // Pergunta do usuário
-            //history: messages.map((m) => ({ role: m.role, text: m.text })), // Histórico
-          }),
-        }
+
+      const history: HistoryMessage[] = messages.slice(-3).map((message) => {
+        const role: HistoryMessage["role"] =
+          message.role === "ai" ? "assistant" : "user";
+
+        return {
+          role,
+          content: message.text,
+        };
+      });
+
+      const reply = await enviarMensagemChatbot(
+        userMessage.text,
+        promptContext!,
+        history,
       );
 
-      const data = await response.json();
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        text: reply || "Desculpe, não consegui processar sua pergunta.",
+        timestamp: new Date(),
+      };
 
-      // ✅ ADICIONA RESPOSTA DA IA (com delay para efeito)
-      setTimeout(() => {
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "ai",
-          text: data.reply || "Desculpe, não consegui processar sua pergunta.",
-          timestamp: new Date(),
-        };
-
-        setMessages((prev) => [...prev, aiMessage]);
-        setIsTyping(false);
-      }, 100); // Delay de 100ms para simular "pensando"
+      setMessages((prev) => [...prev, aiMessage]);
+      setIsTyping(false);
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);
 
@@ -187,15 +191,25 @@ export function ConsultorPage() {
 
         {/* ✅ INPUT DE MENSAGEM */}
         <form className="chat-input" onSubmit={handleSendMessage}>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Digite sua pergunta sobre finanças..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isTyping}
-            autoFocus
-          />
+          <div className="chat-input-wrapper">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Digite sua pergunta sobre finanças..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={isTyping}
+              autoFocus
+            />
+            <CopyPromptButton
+              text={
+                promptContext
+                  ? JSON.stringify(promptContext, null, 2)
+                  : undefined
+              }
+            />
+          </div>
+
           <button
             type="submit"
             className="btn btn-primary"

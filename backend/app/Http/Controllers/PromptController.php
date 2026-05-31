@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\GerarPrompt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class PromptController extends Controller
 {
@@ -14,8 +15,10 @@ class PromptController extends Controller
     public function __invoke(Request $request)
     {
 
-        $prompt = GerarPrompt::execute(Auth::user());
+        Gate::authorize('use-ai-chatbot');
 
-        return response()->json(['prompt' => $prompt], 200);
+        $dadosFinanceiros = GerarPrompt::execute(Auth::user());
+
+        return response()->json(['dados_financeiros' => $dadosFinanceiros], 200);
     }
 }

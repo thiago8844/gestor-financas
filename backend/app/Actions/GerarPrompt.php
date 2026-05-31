@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class GerarPrompt
 {
-  public static function execute(User $user): string
+  public static function execute(User $user): array
   {
     //Saldo líquido médio mensal  Tendência de saldo
 
@@ -66,24 +66,33 @@ class GerarPrompt
     $desvioPadraoProporcaoReceita = $rendaMedia != 0 ? ($desvioPadraoReceita / $rendaMedia) * 100 : 0.0;
 
 
-    return "
-          Você é um consultor financeiro pessoal. Responda com base nas boas práticas de finanças pessoais (limite de aluguel, poupança ideal, risco e estabilidade de renda), sem inventar valores futuros.
+    return [
+      'periodo_meses' => $meses_periodo,
 
-          Dados do usuário:
-          - Patrimônio líquido: R$ {$patrimonioLiquido}
-          - Renda média (últimos {$meses_periodo} meses): R$ {$rendaMedia}
-          - Despesa média: R$ {$despesaMedia}
-          - Saldo líquido médio mensal: R$ {$saldoMedioMensal}
-          - Tendência de saldo: {$tendenciaSaldo}%
-          - Desvio padrão da renda: {$desvioPadraoReceita} ({$desvioPadraoProporcaoReceita}%)
-          - Desvio padrão das despesas: {$desvioPadraoDespesa} ({$desvioPadraoProporcaoDespesa}%)
+      'patrimonio_liquido' => round($patrimonioLiquido, 2),
 
-          Regra:
-          - O desvio padrão mede estabilidade (quanto menor, mais previsível).
-          - A tendência de saldo indica crescimento ou perda patrimonial.
-          - Use esses números como o retrato atual da pessoa.
+      'renda' => [
+        'media_mensal' => round($rendaMedia ?? 0, 2),
+        'desvio_padrao' => round($desvioPadraoReceita ?? 0, 2),
+        'desvio_padrao_percentual' => round($desvioPadraoProporcaoReceita ?? 0, 2),
+      ],
 
-          Responda de forma objetiva, prática e contextualizada à pergunta do usuário.
-    ";
+      'despesas' => [
+        'media_mensal' => round($despesaMedia ?? 0, 2),
+        'desvio_padrao' => round($desvioPadraoDespesa ?? 0, 2),
+        'desvio_padrao_percentual' => round($desvioPadraoProporcaoDespesa ?? 0, 2),
+      ],
+
+      'saldo' => [
+        'medio_mensal' => round($saldoMedioMensal ?? 0, 2),
+        'tendencia_percentual' => round($tendenciaSaldo ?? 0, 2),
+      ],
+
+      'regras_interpretacao' => [
+        'desvio_padrao' => 'Mede estabilidade. Quanto menor, mais previsível.',
+        'tendencia_saldo' => 'Indica crescimento ou perda patrimonial.',
+        'orientacao' => 'Use esses números como o retrato financeiro atual do usuário.',
+      ],
+    ];
   }
 }

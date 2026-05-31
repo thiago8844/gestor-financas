@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Conta Padrão',
             'type' => 'INCOME',
             'role' => 'USER',
-            
+
             'active' => true,
             'include_in_networth' => true,
             'currency' => 'BRL',
@@ -57,5 +57,9 @@ class DatabaseSeeder extends Seeder
             JonilsonSeeder::class,
             CltSeeder::class,
         ], false, ['userId' => $user->id]);
+
+        echo "\n✅ Seed completo!\n";
+        echo "👨‍💼 CLT - Email: clt@email.com | \n";
+        echo "🐄 Jonilson - Email: jonilson@email.com | \n";
     }
 }

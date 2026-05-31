@@ -3,6 +3,7 @@ import { Dropdown } from "react-bootstrap";
 import Sidebar from "./Sidebar";
 import { useAuthStore } from "../stores/auth";
 import "../styles/components/header.scss";
+import { Link } from "react-router-dom";
 export default function Header() {
   const [show, setShow] = useState(false);
   const { logout } = useAuthStore();
@@ -25,7 +26,7 @@ export default function Header() {
               <i className="bi bi-list fs-2"></i>
             </button>
 
-            <div className="d-flex align-items-center gap-2">
+            <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
               <img
                 src="/images/logo.svg"
                 alt="Logo Gestor Finanças"
@@ -34,7 +35,7 @@ export default function Header() {
               <h1 className="header-title mb-0 d-none d-md-block">
                 Gestor Finanças
               </h1>
-            </div>
+            </Link>
           </div>
 
           {/* ✅ LADO DIREITO: DROPDOWN DO USUÁRIO */}

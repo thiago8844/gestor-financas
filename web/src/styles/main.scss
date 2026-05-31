@@ -1,9 +1,12 @@
 @import "variables";
 @import "bootstrap/scss/bootstrap";
 @import "bootstrap-icons/font/bootstrap-icons.css";
+
 //Components
 @import "./components/overlay.scss";
 
+//utils
+@import "./utils.scss";
 
 .app-max-width {
   max-width: 1260px;
@@ -39,5 +42,14 @@
   border-bottom: 2px solid;
   font-weight: bold;
   // box-shadow: 0 0 1px 0;
+}
+
+
+.header a,
+.header a:hover,
+.header a:visited,
+.header a:active {
+  text-decoration: none;
+  color: inherit;
 }
 

@@ -21,7 +21,8 @@ class JonilsonSeeder extends Seeder
         $jonilson = User::factory()->create([
             'name' => 'Jonilson',
             'email' => 'jonilson@email.com',
-            'password' => bcrypt('123'),
+            'can_use_ai' => true,
+            'password' => bcrypt('12345Opi*'),
         ]);
 
         $contaJonilson = Conta::create([
@@ -184,8 +185,6 @@ class JonilsonSeeder extends Seeder
             }
         }
 
-        echo "\n✅ Seed completo!\n";
-        echo "👨‍💼 CLT - Email: clt@email.com | Senha: 123\n";
-        echo "🐄 Jonilson - Email: jonilson@email.com | Senha: 123\n";
+   
     }
 }
