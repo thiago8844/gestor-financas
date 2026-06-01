@@ -29,8 +29,9 @@ class Conta extends Model
             ->first();
     }
 
-    public function getSaldoInicialAttribute(): float {
-        return $this->saldo_inicial_transaction->amount ?? '';
+    public function getSaldoInicialAttribute(): float
+    {
+        return (float) ($this->saldo_inicial_transaction?->amount ?? 0);
     }
 
     public function user(): BelongsTo

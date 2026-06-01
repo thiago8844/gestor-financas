@@ -14,6 +14,7 @@ class IndicadoresMesDashboardQuery
         $row = DB::table('transactions')
             ->where('status', 'PAID')
             ->where('user_id', $userId)
+            ->where('is_initial_balance', false)
             ->whereBetween('date', [$dataInicial->toDateString(), $dataFinal->toDateString()])
             ->selectRaw("
             SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) AS total_in,

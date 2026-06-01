@@ -19,6 +19,7 @@ class TransacaoController extends Controller
     {
 
         $query = Transacao::with(['categoria', 'conta'])
+            ->where('is_initial_balance', false)
             ->where('user_id', Auth::id());
 
         if ($request->filled('categoria_id')) {
@@ -79,9 +80,11 @@ class TransacaoController extends Controller
             switch ($request->order_by) {
                 case 'valor_asc':
                     $query->orderBy('amount', 'asc');
+                    $query->orderByRaw('COALESCE(date, due_date, created_at) desc');
                     break;
                 case 'valor_desc':
                     $query->orderBy('amount', 'desc');
+                    $query->orderByRaw('COALESCE(date, due_date, created_at) desc');
                     break;
                 case 'date_asc':
                     $query->orderByRaw('COALESCE(date, due_date, created_at) asc');

@@ -29,6 +29,7 @@ class TransacoesPorCategoriaQuery
             ->where('transactions.user_id', $userId)
             ->where('transactions.type',   $tipo)
             ->where('transactions.status', 'PAID')
+            ->where('transactions.is_initial_balance', false)
             // Filtro de período — só aplicado quando as datas forem informadas
             ->when($dataInicial && $dataFinal, function ($q) use ($dataInicial, $dataFinal) {
                 $q->whereBetween('transactions.date', [
