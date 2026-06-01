@@ -1,4 +1,3 @@
-import React from "react";
 import { Modal } from "react-bootstrap";
 import { SubmitBtn } from "../../../components/SubmitBtn";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getContas } from "../api/conta";
-import { getCategorias } from "../api/categoria";
+import { getCategorias, type CategoriasResponse } from "../api/categoria";
 
 export function useFormularioTransacao() {
   //Contas
@@ -22,9 +22,9 @@ export function useFormularioTransacao() {
     data: categorias,
     isLoading: isLoadingCategorias,
     isError: isErrorCategorias,
-  } = useQuery({
+  } = useQuery<CategoriasResponse>({
     queryKey: ["categorias"],
-    queryFn: getCategorias,
+    queryFn: () => getCategorias(),
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
@@ -50,7 +50,7 @@ export function useFormularioTransacao() {
 
   return {
     contas: contas?.data || [],
-    categorias: categorias?.data || [],
+    categorias: categorias?.data ?? [],
     orcamentos: orcamentos?.data || [],
     isLoading: isLoadingContas || isLoadingCategorias || isLoadingOrcamentos,
     isError: isErrorContas || isErrorCategorias || isErrorOrcamentos,

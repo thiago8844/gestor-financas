@@ -11,7 +11,7 @@ interface TabelaProps {
 }
 
 export function TabelaContas({ contas }: TabelaProps) {
-  const [filtros, setFiltros] = useState({
+  const [filtros] = useState({
     tipo: "INCOME" as TipoConta,
     busca: "",
   });
