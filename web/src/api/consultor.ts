@@ -1,5 +1,8 @@
 import { api } from "../api-client";
-import type { DadosFinanceirosResponse, HistoryMessage } from "../types/chatbot";
+import type {
+  DadosFinanceirosResponse,
+  HistoryMessage,
+} from "../types/chatbot";
 
 export async function getPrompt(): Promise<DadosFinanceirosResponse> {
   const response = await api.get("/prompt");
@@ -17,4 +20,9 @@ export async function enviarMensagemChatbot(
     history,
   });
   return response.data.reply;
+}
+
+export async function verificarPermissaoChatbot() {
+  const response = await api.get("/chatbot/permission");
+  return response.data;
 }

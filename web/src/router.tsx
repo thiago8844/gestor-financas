@@ -24,6 +24,7 @@ import { EditarReceita } from "./pages/Receita/EditarReceita";
 import { ConsultorPage } from "./pages/Consultor/ConsultorPage";
 import { CategoriaRoutes } from "./pages/Categorias/CategoriaRoutes";
 import { ListagemCategorias } from "./pages/Categorias/ListagemCategorias";
+import Page403 from "./pages/Page403";
 
 export const router = createBrowserRouter([
   {
@@ -97,5 +98,9 @@ export const router = createBrowserRouter([
   {
     path: "*",
     element: <Page404 />,
+  },
+  {
+    path: "/acesso-negado",
+    element: <Page403 />,
   },
 ]);

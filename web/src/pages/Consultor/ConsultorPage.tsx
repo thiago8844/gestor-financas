@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageLayout from "../../layouts/PageLayout";
-import { getPrompt, enviarMensagemChatbot } from "../../api/consultor";
+import {
+  getPrompt,
+  enviarMensagemChatbot,
+  verificarPermissaoChatbot,
+} from "../../api/consultor";
 import { CopyPromptButton } from "./CopyPromptButton";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -10,6 +14,8 @@ import type {
   DadosFinanceirosResponse,
   HistoryMessage,
 } from "../../types/chatbot";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 // ✅ TIPO DA MENSAGEM
 type Message = {
@@ -20,13 +26,37 @@ type Message = {
 };
 
 export function ConsultorPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    verificarPermissaoChatbot()
+      .then((res) => {
+        console.log("Permissão concedida:", res);
+      })
+      .catch((error) => {
+        console.error("Erro ao verificar permissão:", error);
+        if (axios.isAxiosError(error) && error.response?.status === 403) {
+          //alert("Acesso negado ao consultor financeiro. Redirecionando...");
+          navigate("/acesso-negado");
+        } else {
+          alert(
+            "Ocorreu um erro ao verificar acesso ao consultor financeiro. Tente novamente mais tarde.",
+          );
+          navigate("/");
+        }
+      });
+  }, [navigate]);
+
   // ✅ BUSCA O PROMPT INICIAL (contexto financeiro do usuário)
-  const { data: promptContext, isLoading } = useQuery<DadosFinanceirosResponse>(
-    {
-      queryKey: ["prompt"],
-      queryFn: getPrompt,
-    },
-  );
+  const {
+    data: promptContext,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<DadosFinanceirosResponse>({
+    queryKey: ["prompt"],
+    queryFn: getPrompt,
+  });
 
   // ✅ ESTADOS DO CHAT
   const [messages, setMessages] = useState<Message[]>([]);
@@ -57,7 +87,6 @@ export function ConsultorPage() {
     setIsTyping(true); // Mostra "IA pensando..."
 
     try {
-
       const history: HistoryMessage[] = messages.slice(-3).map((message) => {
         const role: HistoryMessage["role"] =
           message.role === "ai" ? "assistant" : "user";
@@ -106,7 +135,28 @@ export function ConsultorPage() {
     }
   }
 
-  console.log('promptContext:', promptContext); // ✅ LOG PARA DEBUG DO PROMPT
+  if (isError) {
+    return (
+      <PageLayout title="" backTo="/">
+        <div className="d-flex flex-column align-items-center justify-content-center py-5 text-center">
+          <i className="bi bi-exclamation-triangle-fill text-warning fs-1 mb-3"></i>
+          <h5 className="fw-bold">Não foi possível carregar o consultor</h5>
+          <p className="text-muted small mb-3">
+            {axios.isAxiosError(error) && error.response?.data?.message
+              ? error.response.data.message
+              : "Ocorreu um erro ao buscar seus dados financeiros. Tente novamente."}
+          </p>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => window.location.reload()}
+          >
+            <i className="bi bi-arrow-clockwise me-1"></i>
+            Tentar novamente
+          </button>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="" backTo="/" loading={isLoading}>
@@ -204,11 +254,7 @@ export function ConsultorPage() {
               autoFocus
             />
             <CopyPromptButton
-              text={
-                promptContext
-                  ? promptContext.prompt
-                  : undefined
-              }
+              text={promptContext ? promptContext.prompt : undefined}
             />
           </div>
 

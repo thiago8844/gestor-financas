@@ -58,6 +58,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //CHATBOT
     Route::post('/chatbot', [\App\Http\Controllers\ChatbotController::class, 'chat']);
     Route::get('/prompt', \App\Http\Controllers\PromptController::class);
+    Route::get('/chatbot/permission', [\App\Http\Controllers\ChatbotController::class, 'permission']);
 });
 
 
