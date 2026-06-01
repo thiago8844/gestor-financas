@@ -14,12 +14,8 @@ export function ListagemContas() {
     refetchOnWindowFocus: true, // 🚨 Refetch quando voltar pra aba
   });
 
-  if (isPending) {
-    return <div>Carregando...</div>;
-  }
-
   return (
-    <PageLayout title="Contas" backTo="/">
+    <PageLayout title="Contas" backTo="/" loading={isPending}>
       <Link to="/contas/cadastrar" className="btn btn-success mb-3">
         + Nova Conta
       </Link>
