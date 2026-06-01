@@ -9,10 +9,13 @@ import { buscarConta, editarConta } from "../../api/conta";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import type { AxiosError } from "axios";
 import { SubmitBtn } from "../../components/SubmitBtn";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
+import { convertNumberToCurrencyMask } from "../../utils";
 
 export default function Editar() {
+  const navigate = useNavigate();
+  
   const {
     register,
     handleSubmit,
@@ -63,7 +66,7 @@ export default function Editar() {
         reset(formData);
       } else {
         const dataFormatada = conta.data_saldo_inicial
-          ? new Date(conta.data_saldo_inicial).toISOString().slice(0, 16)
+          ? new Date(conta.data_saldo_inicial).toISOString().slice(0, 10)
           : "";
 
         const formData = {
@@ -73,7 +76,7 @@ export default function Editar() {
           include_in_networth: conta.include_in_networth ? true : false,
           currency: conta.currency || "BRL",
           instituicao: conta.instituicao || "",
-          saldo_inicial: String(conta.saldo_inicial),
+          saldo_inicial: convertNumberToCurrencyMask(conta.saldo_inicial),
           data_saldo_inicial: dataFormatada,
         };
         // @ts-expect-error TS NÃO ENTENDE QUE O CAMPO É STRING E USA TRANSFORM PRA VIRAR NUMBER
@@ -90,6 +93,7 @@ export default function Editar() {
     mutationFn: (data: ContaForm) => editarConta(Number(id), data),
     onSuccess: () => {
       alert("Conta editada com sucesso!");
+      navigate("/contas");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
   });
@@ -256,7 +260,7 @@ export default function Editar() {
                 Data do Saldo Inicial
               </label>
               <input
-                type="datetime-local"
+                type="date"
                 id="data_saldo_inicial"
                 className="form-control"
                 {...register("data_saldo_inicial")}

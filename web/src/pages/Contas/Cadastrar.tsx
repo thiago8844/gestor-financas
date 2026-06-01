@@ -79,16 +79,16 @@ export default function Cadastrar() {
           </div>
 
           {/* Tipo */}
-          <div className="mb-3">
+          {/* <div className="mb-3">
             <label htmlFor="type" className="form-label">
               Tipo
             </label>
             <select {...register("type")} id="type" className="form-select">
               <option value="EXPENSE">Despesa</option>
-              <option value="INCOME">Receita</option>
+              <option  value="INCOME">Receita</option>
             </select>
             <FieldError>{errors.type?.message}</FieldError>
-          </div>
+          </div> */}
 
           {/* Incluir no Patrimônio */}
           {isReceita && (
@@ -179,7 +179,7 @@ export default function Cadastrar() {
                 Data do Saldo Inicial
               </label>
               <input
-                type="datetime-local"
+                type="date"
                 id="data_saldo_inicial"
                 className="form-control"
                 {...register("data_saldo_inicial")}
