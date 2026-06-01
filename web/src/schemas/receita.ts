@@ -5,7 +5,7 @@ export const ReceitaFormSchema = z.object({
   description: z.string().min(1, "Descrição é obrigatória"),
   account_id: z.string().min(1, "Conta é obrigatória"),
   amount: z
-    .string()
+    .string('É preciso definir um valor pra receita')
     .min(1, "Valor é obrigatório")
     .refine((val) => {
       // ✅ VALIDA A STRING ANTES DE TRANSFORMAR

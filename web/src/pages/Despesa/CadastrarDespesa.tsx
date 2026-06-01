@@ -124,11 +124,11 @@ export function CadastrarDespesa() {
     );
   }
 
-  console.log(errors);
+  console.log('Erros de validação: ', errors);
 
   const status = watch("status");
   const isPago = status === "PAID";
-  console.log(status);
+
   return (
     <PageLayout
       loading={isLoading}

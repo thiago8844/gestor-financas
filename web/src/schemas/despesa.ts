@@ -6,7 +6,7 @@ export const DespesaFormSchema = z
     description: z.string().min(1, "Descrição é obrigatória"),
     account_id: z.string().min(1, "Conta é obrigatória"),
     amount: z
-      .string()
+      .string('É preciso definir um valor pra despesa')
       .min(1, "Valor é obrigatório")
       .refine((val) => {
         // ✅ VALIDA A STRING ANTES DE TRANSFORMAR
@@ -32,7 +32,7 @@ export const DespesaFormSchema = z
     },
     {
       message: "Data da transação é obrigatória quando está pago",
-      path: ["data_transacao"],
+      path: ["date"],
     }
   )
   .refine(
@@ -45,7 +45,7 @@ export const DespesaFormSchema = z
     },
     {
       message: "Data de vencimento é obrigatória quando não está pago",
-      path: ["data_vencimento"],
+      path: ["due_date"],
     }
   );
 
