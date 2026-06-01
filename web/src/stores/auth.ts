@@ -43,6 +43,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setUser: (user: User | null) => set({ user }),
 
   logout: () => {
+    //TODO: COLOCAR PRA RETORNAR TRUE OR FALSE PARA SABER O LOGOUT FOI BEM SUCEDIDO E ELIMNAR O CACHE
     const token = get().token; // 👈 pega o token do estado
 
     if (token) {
