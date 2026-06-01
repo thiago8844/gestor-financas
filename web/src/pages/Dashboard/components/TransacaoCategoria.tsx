@@ -80,12 +80,10 @@ function resolverPeriodo(
     ultimos_12_meses: 12,
   };
   const n = meses[periodo] ?? 0;
-  const inicio =
-    n === 0
-      ? new Date(hoje.getFullYear(), hoje.getMonth(), 1)
-      : new Date(hoje.getFullYear(), hoje.getMonth() - n, hoje.getDate());
+  const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - n, 1);
+  const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0); // último dia do mês atual
 
-  return { alltime: false, inicio: toISO(inicio), fim: toISO(hoje) };
+  return { alltime: false, inicio: toISO(inicio), fim: toISO(fim) };
 }
 
 // Paleta de cores para as fatias
