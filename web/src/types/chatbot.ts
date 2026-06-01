@@ -22,6 +22,7 @@ export type DadosFinanceirosResponse = {
       orientacao: string;
     };
   };
+  prompt: string;
 };
 
 export type HistoryMessage = {

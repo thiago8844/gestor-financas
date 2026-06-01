@@ -106,6 +106,8 @@ export function ConsultorPage() {
     }
   }
 
+  console.log('promptContext:', promptContext); // ✅ LOG PARA DEBUG DO PROMPT
+
   return (
     <PageLayout title="" backTo="/" loading={isLoading}>
       <div className="consultor-container">
@@ -204,7 +206,7 @@ export function ConsultorPage() {
             <CopyPromptButton
               text={
                 promptContext
-                  ? JSON.stringify(promptContext, null, 2)
+                  ? promptContext.prompt
                   : undefined
               }
             />
