@@ -9,72 +9,46 @@ export default function Sidebar({
   show: boolean;
   handleClose: () => void;
 }) {
-
-  //TODO: CRIAR SUBLINKS NO FUTURO
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `nav-link rounded ${isActive ? "active" : ""}`;
 
   return (
     <Offcanvas show={show} onHide={handleClose} id="main-sidebar">
       <Offcanvas.Header closeButton>
-        <Offcanvas.Title><span className="fw-bold">Gestor Finanças</span> </Offcanvas.Title>
+        <Offcanvas.Title>
+          <span className="fw-bold">Gestor Finanças</span>
+        </Offcanvas.Title>
       </Offcanvas.Header>
 
       <Offcanvas.Body>
-        <nav className="nav flex-column gap-1 ">
-          <NavLink
-            to="/"
-            end
-            className={({isActive}) =>
-              `nav-link rounded ${isActive ? "active" : ""}`
-            }
-          >
+        <nav className="nav flex-column gap-1">
+          <NavLink to="/" end onClick={handleClose} className={linkClass}>
             <i className="bi bi-house"></i> Dashboard
           </NavLink>
-          <NavLink
-            to="/contas"
-            className={({ isActive }) =>
-              `nav-link rounded ${isActive ? "active" : ""}`
-            }
-          >
+
+          <NavLink to="/contas" onClick={handleClose} className={linkClass}>
             <i className="bi bi-wallet2"></i> Contas
           </NavLink>
 
-          <NavLink
-            to="/despesas"
-            className={({ isActive }) =>
-              `nav-link rounded ${isActive ? "active" : ""}`
-            }
-          >
+          <NavLink to="/despesas" onClick={handleClose} className={linkClass}>
             <i className="bi bi-arrow-down-circle"></i> Despesas
           </NavLink>
 
-          <NavLink
-            to="/receitas"
-            className={({ isActive }) =>
-              `nav-link rounded ${isActive ? "active" : ""}`
-            }
-          >
+          <NavLink to="/receitas" onClick={handleClose} className={linkClass}>
             <i className="bi bi-arrow-up-circle"></i> Receitas
           </NavLink>
-          <NavLink
-            to="/consultor"
-            className={({ isActive }) =>
-              `nav-link rounded ${isActive ? "active" : ""}`
-            }
-          >
+
+          <NavLink to="/consultor" onClick={handleClose} className={linkClass}>
             <i className="bi bi-chat-text"></i> Consultor IA
           </NavLink>
 
-          <NavLink
-            to="/categorias"
-            className={({ isActive }) =>
-              `nav-link rounded ${isActive ? "active" : ""}`
-            }
-          >
+          <NavLink to="/categorias" onClick={handleClose} className={linkClass}>
             <i className="bi bi-tags"></i> Categorias
           </NavLink>
 
           <NavLink
             to="/orcamentos"
+            onClick={(e) => e.preventDefault()}
             className={({ isActive }) =>
               `nav-link rounded ${isActive ? "active" : ""} disabled`
             }
@@ -84,6 +58,7 @@ export default function Sidebar({
 
           <NavLink
             to="/relatorios"
+            onClick={(e) => e.preventDefault()}
             className={({ isActive }) =>
               `nav-link rounded ${isActive ? "active" : ""} disabled`
             }
