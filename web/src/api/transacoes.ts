@@ -2,7 +2,7 @@ import { api } from "../api-client";
 import type { DespesaForm } from "../schemas/despesa";
 import type { ReceitaForm } from "../schemas/receita";
 import type { ParcelamentoForm } from "../schemas/parcelamento";
-import type { TransacaoResponse } from "../types/transacao";
+import type { GrupoParceladoResponse, TransacaoResponse } from "../types/transacao";
 
 
 // -=-=-=- TRANSACOES -=-=-=-
@@ -15,6 +15,8 @@ export async function getTransacoes(filtros: {
   conta_id?: number;
   periodo?: string; //TODO: TIPAR DPS
   order_by?: string; //TODO: TIPAR DPS
+  apenas_parceladas?: boolean;
+  installment_group?: string;
   page?: number;
   limit?: number;
 }) {
@@ -23,6 +25,15 @@ export async function getTransacoes(filtros: {
       ...filtros,
     },
   });
+
+  return response.data;
+}
+
+export async function getGruposParcelados(type: "EXPENSE" | "INCOME") {
+  const response = await api.get<GrupoParceladoResponse>(
+    "/transacoes/grupos-parcelados",
+    { params: { type } }
+  );
 
   return response.data;
 }

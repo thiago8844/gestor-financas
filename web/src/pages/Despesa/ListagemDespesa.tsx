@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { deletarDespesa, getTransacoes } from "../../api/transacoes";
+import { deletarDespesa, getGruposParcelados, getTransacoes } from "../../api/transacoes";
 import PageLayout from "../../layouts/PageLayout";
 import { Link } from "react-router-dom";
 import { useConfirmModalStore } from "../../stores/confirmModal";
@@ -24,6 +24,8 @@ const filtrosOriginais = {
   periodo: "",
   order_by: "date_desc",
   conta_id: undefined as number | undefined,
+  apenas_parceladas: false,
+  installment_group: undefined as string | undefined,
 };
 
 export function ListagemDespesa() {
@@ -49,6 +51,12 @@ export function ListagemDespesa() {
   const { data: contas, refetch: refetchContas } = useQuery({
     queryKey: ["contas"],
     queryFn: () => getContas({ active: true, tipo: "INCOME" }),
+  });
+
+  const { data: gruposParcelados } = useQuery({
+    queryKey: ["despesas", "grupos-parcelados"],
+    queryFn: () => getGruposParcelados("EXPENSE"),
+    enabled: filtrosModificados.apenas_parceladas,
   });
 
   //Deletar despesa
@@ -215,6 +223,52 @@ export function ListagemDespesa() {
                   </div>
                 )}
               </div>
+
+              <div className="px-3 py-2">
+                <div className="form-check form-switch">
+                  <input
+                    id="apenasParceladas"
+                    type="checkbox"
+                    role="switch"
+                    className="form-check-input"
+                    checked={filtrosModificados.apenas_parceladas}
+                    onChange={(e) =>
+                      setFiltrosModificados({
+                        ...filtrosModificados,
+                        apenas_parceladas: e.target.checked,
+                        installment_group: undefined,
+                      })
+                    }
+                  />
+                  <label htmlFor="apenasParceladas" className="form-check-label small">
+                    Somente despesas compostas (parceladas)
+                  </label>
+                </div>
+
+                {filtrosModificados.apenas_parceladas && (
+                  <div className="mt-2">
+                    <label className="form-label small">Compra parcelada:</label>
+                    <select
+                      value={filtrosModificados.installment_group || ""}
+                      onChange={(e) =>
+                        setFiltrosModificados({
+                          ...filtrosModificados,
+                          installment_group: e.target.value || undefined,
+                        })
+                      }
+                      className="form-select form-select-sm"
+                    >
+                      <option value="">Todas as compostas</option>
+                      {gruposParcelados?.data.map((grupo) => (
+                        <option key={grupo.installment_group} value={grupo.installment_group}>
+                          {grupo.description} ({grupo.installment_total}x) —{" "}
+                          {grupo.installment_group.slice(0, 8)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
             </Listagem.FiltrosDropdown>
 
             <Listagem.OrdenarDropdown>
@@ -354,35 +408,59 @@ export function ListagemDespesa() {
                 )}
               </td>
               <td>
-                {despesa.is_installment ? (
-                  <span className="badge text-bg-info">
-                    {despesa.installment_number}/{despesa.installment_total}
-                  </span>
+                {despesa.is_installment && despesa.installment_group ? (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-info d-flex flex-column align-items-start py-1 px-2"
+                    title={`Ver todas as parcelas do grupo ${despesa.installment_group}`}
+                    onClick={() => {
+                      setFiltrosModificados({
+                        ...filtrosModificados,
+                        apenas_parceladas: true,
+                        installment_group: despesa.installment_group as string,
+                      });
+                      setFiltros({
+                        ...filtros,
+                        apenas_parceladas: true,
+                        installment_group: despesa.installment_group as string,
+                        page: 1,
+                      });
+                    }}
+                  >
+                    <span className="badge text-bg-info">
+                      {despesa.installment_number}/{despesa.installment_total}
+                    </span>
+                    <small className="text-muted" style={{ fontSize: "0.65rem" }}>
+                      {despesa.installment_group.slice(0, 8)}
+                    </small>
+                  </button>
                 ) : (
                   "-"
                 )}
               </td>
 
               <td>
-                <Link
-                  to={`/despesas/editar/${despesa.id}`}
-                  className="btn btn-sm btn-secondary"
-                >
-                  <i className="bi bi-pencil"></i>
-                </Link>
-                <button
-                  onClick={() =>
-                    openModal({
-                      callback: () => mutate(despesa.id),
-                      title: "Confirmar Exclusão",
-                      message: "Tem certeza que deseja excluir esta despesa?",
-                      autoClose: true,
-                    })
-                  }
-                  className="btn btn-sm btn-danger ms-2"
-                >
-                  <i className="bi bi-trash"></i>
-                </button>
+                <div className="d-flex gap-2">
+                  <Link
+                    to={`/despesas/editar/${despesa.id}`}
+                    className="btn btn-sm btn-secondary"
+                  >
+                    <i className="bi bi-pencil"></i>
+                  </Link>
+                  <button
+                    onClick={() =>
+                      openModal({
+                        callback: () => mutate(despesa.id),
+                        title: "Confirmar Exclusão",
+                        message: "Tem certeza que deseja excluir esta despesa?",
+                        autoClose: true,
+                      })
+                    }
+                    className="btn btn-sm btn-danger"
+                  >
+                    <i className="bi bi-trash"></i>
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

@@ -36,6 +36,14 @@ class TransacaoController extends Controller
             $query->where('type', $request->type);
         }
 
+        if ($request->boolean('apenas_parceladas')) {
+            $query->whereNotNull('installment_group');
+        }
+
+        if ($request->filled('installment_group')) {
+            $query->where('installment_group', $request->installment_group);
+        }
+
         if ($request->filled('periodo')) {
             switch ($request->periodo) {
                 case 'hoje':
@@ -105,6 +113,27 @@ class TransacaoController extends Controller
         return TransacaoResource::collection($transacoes)->additional([
             'total' => $total
         ]);
+    }
+
+    /**
+     * Lista os grupos de parcelamento do usuário (para preencher o filtro de compras/receitas compostas).
+     */
+    public function gruposParcelados(Request $request)
+    {
+        $query = Transacao::where('user_id', Auth::id())
+            ->whereNotNull('installment_group');
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $grupos = $query
+            ->selectRaw('installment_group, description, installment_total, MIN(COALESCE(date, due_date, created_at)) as primeira_data')
+            ->groupBy('installment_group', 'description', 'installment_total')
+            ->orderByDesc('primeira_data')
+            ->get();
+
+        return response()->json(['data' => $grupos]);
     }
 
 

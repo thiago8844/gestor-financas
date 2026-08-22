@@ -39,6 +39,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //TRANSACOES
     Route::get('/transacoes', [\App\Http\Controllers\TransacaoController::class, 'index']);
+    Route::get('/transacoes/grupos-parcelados', [\App\Http\Controllers\TransacaoController::class, 'gruposParcelados']);
     Route::get('/transacoes/{id}', [\App\Http\Controllers\TransacaoController::class, 'show']);
     Route::post('/transacoes/criar', [\App\Http\Controllers\TransacaoController::class, 'store']);
     Route::post('/transacoes/parceladas', [\App\Http\Controllers\TransacaoController::class, 'storeParcelado']);

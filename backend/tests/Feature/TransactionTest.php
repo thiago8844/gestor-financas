@@ -130,4 +130,50 @@ class TransactionTest extends TestCase
         $this->assertNotNull($criadas->first()->category_id);
     }
 
+    #[Test]
+    public function filtra_transacoes_por_parcelamento_e_lista_grupos(): void {
+
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        $grupo = Str::uuid();
+        for ($i = 1; $i <= 3; $i++) {
+            Transacao::factory()->create([
+                "user_id" => $conta->user->id,
+                "account_id" => $conta->id,
+                "amount" => 100,
+                "type" => TransactionType::EXPENSE,
+                "description" => "Fogão em 3x",
+                "status" => TransactionStatus::PENDING,
+                "installment_number" => $i,
+                "installment_total" => 3,
+                "installment_group" => $grupo,
+            ]);
+        }
+
+        Transacao::factory()->create([
+            "user_id" => $conta->user->id,
+            "account_id" => $conta->id,
+            "type" => TransactionType::EXPENSE,
+            "status" => TransactionStatus::PENDING,
+        ]);
+
+        // Só as parceladas
+        $response = $this->getJson('/api/transacoes?apenas_parceladas=1');
+        $response->assertStatus(200);
+        $this->assertCount(3, $response->json('data'));
+
+        // Filtrando por um grupo específico
+        $response = $this->getJson("/api/transacoes?installment_group={$grupo}");
+        $response->assertStatus(200);
+        $this->assertCount(3, $response->json('data'));
+
+        // Lista de grupos parcelados
+        $response = $this->getJson('/api/transacoes/grupos-parcelados?type=EXPENSE');
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertEquals($grupo, $response->json('data.0.installment_group'));
+        $this->assertEquals('Fogão em 3x', $response->json('data.0.description'));
+    }
+
 }

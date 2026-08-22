@@ -42,6 +42,17 @@ export type TransacaoResponse = {
   total: number;
 };
 
+export type GrupoParcelado = {
+  installment_group: string;
+  description: string;
+  installment_total: number;
+  primeira_data: string | null;
+};
+
+export type GrupoParceladoResponse = {
+  data: GrupoParcelado[];
+};
+
 export type TransacaoFilters = {
   type?: "EXPENSE" | "INCOME";
   account_id?: number;
