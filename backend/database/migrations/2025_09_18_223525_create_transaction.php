@@ -39,8 +39,6 @@ return new class extends Migration
             $table->date('date')->nullable()->comment('Data exata da movimentação financeira'); // data do movimento
             $table->date('due_date')->nullable(); //Data de vencimento prazo máximo de pagamento
 
-
-
             // -=-=- Parcelas -=-=-
             $table->integer('installment_number')->nullable();
             $table->integer('installment_total')->nullable();

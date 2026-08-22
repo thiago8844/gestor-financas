@@ -161,10 +161,13 @@ interface Props {
   onFiltroChange: (params: SaldoFiltroParams) => void;
 }
 
+const NOME_SERIE_UNIFICADA = "Patrimônio total";
+
 export function SaldoPorContaPeriodo({ data, onFiltroChange }: Props) {
   const [periodo, setPeriodo] = useState("mes_atual");
   const [dataInicialBR, setDataInicial] = useState("");
   const [dataFinalBR, setDataFinal] = useState("");
+  const [unificarContas, setUnificarContas] = useState(false);
 
   const erroInicial =
     periodo === "personalizado" &&
@@ -213,11 +216,23 @@ export function SaldoPorContaPeriodo({ data, onFiltroChange }: Props) {
     });
   });
 
-  const chartData = Object.entries(pontosPorData)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([p, valores]) => ({ periodo: p, ...valores }));
+  const chartData = unificarContas
+    ? Object.entries(pontosPorData)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([p, valores]) => ({
+          periodo: p,
+          [NOME_SERIE_UNIFICADA]: Object.values(valores).reduce(
+            (acc, v) => acc + v,
+            0,
+          ),
+        }))
+    : Object.entries(pontosPorData)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([p, valores]) => ({ periodo: p, ...valores }));
 
-  const series = nomeContas.map((n) => n || "Conta");
+  const series = unificarContas
+    ? [NOME_SERIE_UNIFICADA]
+    : nomeContas.map((n) => n || "Conta");
 
   return (
     <div className="card shadow-sm border-0">
@@ -225,10 +240,27 @@ export function SaldoPorContaPeriodo({ data, onFiltroChange }: Props) {
         <div className="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
           <h6 className="fw-bold mb-0">
             <i className="bi bi-graph-up-arrow me-2 text-primary"></i>
-            Saldo por Conta
+            {unificarContas ? "Evolução do Patrimônio" : "Saldo por Conta"}
           </h6>
 
           <div className="d-flex flex-wrap align-items-start gap-2">
+            <div className="btn-group btn-group-sm" role="group">
+              <button
+                type="button"
+                onClick={() => setUnificarContas(false)}
+                className={`btn btn-outline-primary ${!unificarContas ? "active" : ""}`}
+              >
+                Por conta
+              </button>
+              <button
+                type="button"
+                onClick={() => setUnificarContas(true)}
+                className={`btn btn-outline-primary ${unificarContas ? "active" : ""}`}
+              >
+                Todas as contas
+              </button>
+            </div>
+
             <select
               value={periodo}
               onChange={(e) => {
@@ -246,7 +278,6 @@ export function SaldoPorContaPeriodo({ data, onFiltroChange }: Props) {
               <option value="todo_periodo">Todo o período</option>
               <option value="personalizado">Personalizado</option>
             </select>
-
             {periodo === "personalizado" && (
               <div className="d-flex gap-2 align-items-start">
                 <div>

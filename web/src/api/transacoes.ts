@@ -1,6 +1,7 @@
 import { api } from "../api-client";
 import type { DespesaForm } from "../schemas/despesa";
 import type { ReceitaForm } from "../schemas/receita";
+import type { ParcelamentoForm } from "../schemas/parcelamento";
 import type { TransacaoResponse } from "../types/transacao";
 
 
@@ -28,6 +29,11 @@ export async function getTransacoes(filtros: {
 
 export async function criarTransacao(data: DespesaForm|ReceitaForm) {
   const response = await api.post("/transacoes/criar", { ...data});
+  return response.status;
+}
+
+export async function criarTransacaoParcelada(data: ParcelamentoForm) {
+  const response = await api.post("/transacoes/parceladas", { ...data });
   return response.status;
 }
 

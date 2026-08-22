@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CriarTransacaoParcelada;
 use App\Enums\TransactionStatus;
+use App\Http\Requests\TransacaoParceladaRequest;
 use App\Http\Requests\TransacaoRequest;
 use App\Http\Resources\TransacaoResource;
 use App\Models\Categoria;
@@ -136,6 +138,36 @@ class TransacaoController extends Controller
         return response()->json(['message' => 'Transação criada com sucesso'], 201);
     }
 
+    /**
+     * Store a new set of installment transactions (compra parcelada).
+     */
+    public function storeParcelado(TransacaoParceladaRequest $request)
+    {
+        $dados = $request->all();
+
+        if (!$request->filled('category_id') && $request->filled('category_name')) {
+            $categoria = Categoria::where('user_id', Auth::id())
+                ->where('name', $request->category_name)
+                ->first();
+
+            if (!$categoria) {
+                $categoria = Categoria::create([
+                    'user_id' => Auth::id(),
+                    'name' => $request->category_name,
+                ]);
+            }
+
+            $dados['category_id'] = $categoria->id;
+        }
+
+        $installmentGroup = CriarTransacaoParcelada::executar(Auth::id(), $dados);
+
+        return response()->json([
+            'message' => 'Transação parcelada criada com sucesso',
+            'installment_group' => $installmentGroup,
+        ], 201);
+    }
+
 
 
     /**
@@ -183,7 +215,7 @@ class TransacaoController extends Controller
         }
 
         $transacao->update([
-            ...$request->all(),
+            ...$request->except(['installment_number', 'installment_total', 'installment_group']),
         ]);
 
         return response()->json(['message' => 'Transação atualizada com sucesso'], 200);

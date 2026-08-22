@@ -337,6 +337,15 @@ export function EditarDespesa() {
                       ? new Date(despesa.created_at).toLocaleDateString("pt-BR")
                       : ""}
                   </li>
+                  {despesa?.is_installment && (
+                    <li>
+                      <strong>Parcela:</strong>{" "}
+                      <span className="badge text-bg-info">
+                        {despesa.installment_number}/{despesa.installment_total}
+                      </span>{" "}
+                      — as demais parcelas dessa compra são editadas separadamente.
+                    </li>
+                  )}
                   <li>Alterações serão salvas permanentemente</li>
                 </ul>
               </div>

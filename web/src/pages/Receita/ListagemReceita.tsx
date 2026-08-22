@@ -312,6 +312,7 @@ export function ListagemReceita() {
             "Data Transação",
             "Conta",
             "Categoria",
+            "Parcela",
             "Ações",
           ]}
           footer={
@@ -354,6 +355,16 @@ export function ListagemReceita() {
                   <span className="badge text-bg-secondary">PENDENTE</span>
                 )}
               </td> */}
+
+              <td>
+                {receita.is_installment ? (
+                  <span className="badge text-bg-info">
+                    {receita.installment_number}/{receita.installment_total}
+                  </span>
+                ) : (
+                  "-"
+                )}
+              </td>
 
               <td>
                 <Link

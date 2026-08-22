@@ -2,6 +2,7 @@ import PageLayout from "../../layouts/PageLayout";
 import { useForm, Controller } from "react-hook-form";
 import InputMoeda from "../../components/InputMoeda";
 import { DespesaFormSchema, type DespesaForm } from "../../schemas/despesa";
+import { ParcelamentoFormSchema } from "../../schemas/parcelamento";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldError } from "../../components/FieldError";
 import { useMutation } from "@tanstack/react-query";
@@ -9,11 +10,13 @@ import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import type { AxiosError } from "axios";
 
 import type { Conta } from "../../types/conta";
-import { criarDespesa } from "../../api/transacoes";
+import { criarDespesa, criarTransacaoParcelada } from "../../api/transacoes";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { CategoriaAutocomplete } from "../Contas/components/CategoriaAutocomplete";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
+import { useParcelamento } from "../../hooks/useParcelamento";
+import { ParcelamentoCampos } from "../../components/Parcelamento/ParcelamentoCampos";
 
 export function CadastrarDespesa() {
   const { contas, isLoading, isError } = useFormularioTransacao();
@@ -21,6 +24,8 @@ export function CadastrarDespesa() {
     null
   );
   const [formKey, setFormKey] = useState(0); // ✅ KEY PARA FORÇAR RE-RENDER
+  const [isParcelado, setIsParcelado] = useState(false);
+  const parcelamento = useParcelamento();
 
   const navigate = useNavigate();
 
@@ -30,6 +35,7 @@ export function CadastrarDespesa() {
     setError,
     control,
     setValue,
+    getValues,
     reset,
     watch,
     unregister, // ✅ ADICIONA UNREGISTER
@@ -114,6 +120,78 @@ export function CadastrarDespesa() {
     });
   };
 
+  const { mutate: mutateParcelado, isPending: isPendingParcelado } = useMutation({
+    mutationFn: (data: ReturnType<typeof ParcelamentoFormSchema.parse>) =>
+      criarTransacaoParcelada(data),
+    onSuccess: () => {
+      if (actionType === "save") {
+        alert("Despesa parcelada criada com sucesso!");
+        navigate("/despesas");
+      } else if (actionType === "saveAndNew") {
+        alert("Despesa parcelada criada! Preencha os dados da próxima.");
+        setValue("description", "");
+        setValue("category_name", "");
+        setValue("category_id", null);
+        parcelamento.reset();
+      }
+
+      setActionType(null);
+    },
+    onError: (error: AxiosError) => {
+      setActionType(null);
+      defaultFormErrorHandler(error, setError);
+    },
+  });
+
+  const onSubmitParceladoWithAction = (action: "save" | "saveAndNew") => {
+    return () => {
+      const descricaoAtual = getValues("description");
+      const accountIdAtual = getValues("account_id");
+      const categoryIdAtual = getValues("category_id");
+      const categoryNameAtual = getValues("category_name");
+
+      let valido = true;
+
+      if (!descricaoAtual) {
+        setError("description", { message: "Descrição é obrigatória" });
+        valido = false;
+      }
+
+      if (!accountIdAtual) {
+        setError("account_id", { message: "Conta é obrigatória" });
+        valido = false;
+      }
+
+      if (!valido) return;
+
+      const resultado = ParcelamentoFormSchema.safeParse({
+        description: descricaoAtual,
+        account_id: accountIdAtual,
+        category_id: categoryIdAtual,
+        category_name: categoryNameAtual,
+        type: "EXPENSE",
+        installment_total: parcelamento.installmentTotal,
+        parcelas: parcelamento.parcelas,
+      });
+
+      if (!resultado.success) {
+        alert(resultado.error.issues.map((issue) => issue.message).join("\n"));
+        return;
+      }
+
+      setActionType(action);
+      mutateParcelado(resultado.data);
+    };
+  };
+
+  const handleSalvar = (action: "save" | "saveAndNew") => {
+    if (isParcelado) {
+      onSubmitParceladoWithAction(action)();
+    } else {
+      onSubmitWithAction(action)();
+    }
+  };
+
   if (isError) {
     return (
       <PageLayout title="Cadastrar Despesa" backTo="/despesas">
@@ -181,80 +259,101 @@ export function CadastrarDespesa() {
                 <FieldError>{errors.account_id?.message}</FieldError>
               </div>
 
-              {/* Valor */}
-              <div className="mb-3">
-                <label htmlFor="amount" className="form-label">
-                  Valor <span className="text-danger">*</span>
-                </label>
-                <Controller
-                  name="amount"
-                  control={control}
-                  render={({ field }) => (
-                    <InputMoeda {...field} placeholder="0,00" />
-                  )}
-                />
-                <FieldError>{errors.amount?.message}</FieldError>
-              </div>
-
-              {/* Pago */}
+              {/* Parcelar */}
               <div className="mb-3">
                 <div className="form-check form-switch">
                   <input
-                    id="paid"
+                    id="isParcelado"
                     type="checkbox"
                     role="switch"
                     className="form-check-input"
-                    checked={isPago} // ✅ CONTROLADO PELO STATUS
-                    onChange={(e) => {
-                      const newStatus = e.target.checked ? "PAID" : "PENDING";
-                      setValue("status", newStatus); // ✅ USA setValue AO INVÉS DE register().onChange
-
-                      // ✅ LIMPA O CAMPO QUE NÃO ESTÁ SENDO USADO
-                      if (e.target.checked) {
-                        // Se marcou como PAGO, limpa vencimento
-                        setValue("due_date", "");
-                      } else {
-                        // Se desmarcou (PENDENTE), limpa data transação
-                        setValue("date", "");
-                      }
-                    }}
+                    checked={isParcelado}
+                    onChange={(e) => setIsParcelado(e.target.checked)}
                   />
-                  <label htmlFor="paid" className="form-check-label">
-                    Pago?
+                  <label htmlFor="isParcelado" className="form-check-label">
+                    Parcelar essa despesa?
                   </label>
                 </div>
               </div>
 
-              {/* Data da transação - SÓ SE PAGO */}
-              {isPago && (
-                <div className="mb-3">
-                  <label htmlFor="date" className="form-label">
-                    Data da Transação <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="datetime-local"
-                    id="date"
-                    className="form-control"
-                    {...register("date")}
-                  />
-                  <FieldError>{errors.date?.message}</FieldError>
-                </div>
-              )}
+              {!isParcelado && (
+                <>
+                  {/* Valor */}
+                  <div className="mb-3">
+                    <label htmlFor="amount" className="form-label">
+                      Valor <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="amount"
+                      control={control}
+                      render={({ field }) => (
+                        <InputMoeda {...field} placeholder="0,00" />
+                      )}
+                    />
+                    <FieldError>{errors.amount?.message}</FieldError>
+                  </div>
 
-              {/* Data de Vencimento - SÓ SE NÃO PAGO */}
-              {!isPago && (
-                <div className="mb-3">
-                  <label htmlFor="due_date" className="form-label">
-                    Data de Vencimento <span className="text-danger"></span>
-                  </label>
-                  <input
-                    type="datetime-local"
-                    id="due_date"
-                    className="form-control"
-                    {...register("due_date")}
-                  />
-                  <FieldError>{errors.due_date?.message}</FieldError>
-                </div>
+                  {/* Pago */}
+                  <div className="mb-3">
+                    <div className="form-check form-switch">
+                      <input
+                        id="paid"
+                        type="checkbox"
+                        role="switch"
+                        className="form-check-input"
+                        checked={isPago} // ✅ CONTROLADO PELO STATUS
+                        onChange={(e) => {
+                          const newStatus = e.target.checked ? "PAID" : "PENDING";
+                          setValue("status", newStatus); // ✅ USA setValue AO INVÉS DE register().onChange
+
+                          // ✅ LIMPA O CAMPO QUE NÃO ESTÁ SENDO USADO
+                          if (e.target.checked) {
+                            // Se marcou como PAGO, limpa vencimento
+                            setValue("due_date", "");
+                          } else {
+                            // Se desmarcou (PENDENTE), limpa data transação
+                            setValue("date", "");
+                          }
+                        }}
+                      />
+                      <label htmlFor="paid" className="form-check-label">
+                        Pago?
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Data da transação - SÓ SE PAGO */}
+                  {isPago && (
+                    <div className="mb-3">
+                      <label htmlFor="date" className="form-label">
+                        Data da Transação <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="datetime-local"
+                        id="date"
+                        className="form-control"
+                        {...register("date")}
+                      />
+                      <FieldError>{errors.date?.message}</FieldError>
+                    </div>
+                  )}
+
+                  {/* Data de Vencimento - SÓ SE NÃO PAGO */}
+                  {!isPago && (
+                    <div className="mb-3">
+                      <label htmlFor="due_date" className="form-label">
+                        Data de Vencimento <span className="text-danger"></span>
+                      </label>
+                      <input
+                        type="datetime-local"
+                        id="due_date"
+                        className="form-control"
+                        {...register("due_date")}
+                      />
+                      <FieldError>{errors.due_date?.message}</FieldError>
+                    </div>
+                  )}
+                </>
               )}
             </div>
             <div className="col-lg-6">
@@ -326,6 +425,14 @@ export function CadastrarDespesa() {
             </div>
           </div>
 
+          {isParcelado && (
+            <div className="row">
+              <div className="col-12">
+                <ParcelamentoCampos parcelamento={parcelamento} />
+              </div>
+            </div>
+          )}
+
           {/* ✅ BOTÕES DE AÇÃO */}
           <div className="row mt-4">
             <div className="col-12 mb-3">
@@ -349,7 +456,7 @@ export function CadastrarDespesa() {
                   type="button"
                   className="btn btn-secondary text-white"
                   onClick={() => navigate("/despesas")}
-                  disabled={isPending}
+                  disabled={isPending || isPendingParcelado}
                 >
                   <i className="bi bi-x-circle me-2"></i>
                   Cancelar
@@ -359,10 +466,10 @@ export function CadastrarDespesa() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={onSubmitWithAction("saveAndNew")}
-                  disabled={isPending}
+                  onClick={() => handleSalvar("saveAndNew")}
+                  disabled={isPending || isPendingParcelado}
                 >
-                  {isPending && actionType === "saveAndNew" ? (
+                  {(isPending || isPendingParcelado) && actionType === "saveAndNew" ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2"></span>
                       Salvando...
@@ -379,10 +486,10 @@ export function CadastrarDespesa() {
                 <button
                   type="button"
                   className="btn btn-success"
-                  onClick={onSubmitWithAction("save")}
-                  disabled={isPending}
+                  onClick={() => handleSalvar("save")}
+                  disabled={isPending || isPendingParcelado}
                 >
-                  {isPending && actionType === "save" ? (
+                  {(isPending || isPendingParcelado) && actionType === "save" ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2"></span>
                       Salvando...

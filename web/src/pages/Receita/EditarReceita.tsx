@@ -289,6 +289,15 @@ export function EditarReceita() {
                       ? new Date(receita.created_at).toLocaleDateString("pt-BR")
                       : ""}
                   </li>
+                  {receita?.is_installment && (
+                    <li>
+                      <strong>Parcela:</strong>{" "}
+                      <span className="badge text-bg-info">
+                        {receita.installment_number}/{receita.installment_total}
+                      </span>{" "}
+                      — as demais parcelas dessa receita são editadas separadamente.
+                    </li>
+                  )}
                   <li>Alterações serão salvas permanentemente</li>
                 </ul>
               </div>

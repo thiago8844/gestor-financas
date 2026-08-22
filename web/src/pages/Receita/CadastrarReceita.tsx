@@ -8,12 +8,15 @@ import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import type { AxiosError } from "axios";
 
 import type { Conta } from "../../types/conta";
-import { criarTransacao } from "../../api/transacoes";
+import { criarTransacao, criarTransacaoParcelada } from "../../api/transacoes";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { CategoriaAutocomplete } from "../Contas/components/CategoriaAutocomplete";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
 import { ReceitaFormSchema, type ReceitaForm } from "../../schemas/receita";
+import { ParcelamentoFormSchema } from "../../schemas/parcelamento";
+import { useParcelamento } from "../../hooks/useParcelamento";
+import { ParcelamentoCampos } from "../../components/Parcelamento/ParcelamentoCampos";
 
 export function CadastrarReceita() {
   const { contas, isLoading, isError } = useFormularioTransacao();
@@ -21,6 +24,8 @@ export function CadastrarReceita() {
     null
   );
   const [formKey, setFormKey] = useState(0); // ✅ KEY PARA FORÇAR RE-RENDER
+  const [isParcelado, setIsParcelado] = useState(false);
+  const parcelamento = useParcelamento();
 
   const navigate = useNavigate();
 
@@ -30,6 +35,7 @@ export function CadastrarReceita() {
     setError,
     control,
     setValue,
+    getValues,
     reset,
     unregister, // ✅ ADICIONA UNREGISTER
     formState: { errors },
@@ -112,6 +118,78 @@ export function CadastrarReceita() {
     });
   };
 
+  const { mutate: mutateParcelado, isPending: isPendingParcelado } = useMutation({
+    mutationFn: (data: ReturnType<typeof ParcelamentoFormSchema.parse>) =>
+      criarTransacaoParcelada(data),
+    onSuccess: () => {
+      if (actionType === "save") {
+        alert("Receita parcelada criada com sucesso!");
+        navigate("/receitas");
+      } else if (actionType === "saveAndNew") {
+        alert("Receita parcelada criada! Preencha os dados da próxima.");
+        setValue("description", "");
+        setValue("category_name", "");
+        setValue("category_id", null);
+        parcelamento.reset();
+      }
+
+      setActionType(null);
+    },
+    onError: (error: AxiosError) => {
+      setActionType(null);
+      defaultFormErrorHandler(error, setError);
+    },
+  });
+
+  const onSubmitParceladoWithAction = (action: "save" | "saveAndNew") => {
+    return () => {
+      const descricaoAtual = getValues("description");
+      const accountIdAtual = getValues("account_id");
+      const categoryIdAtual = getValues("category_id");
+      const categoryNameAtual = getValues("category_name");
+
+      let valido = true;
+
+      if (!descricaoAtual) {
+        setError("description", { message: "Descrição é obrigatória" });
+        valido = false;
+      }
+
+      if (!accountIdAtual) {
+        setError("account_id", { message: "Conta é obrigatória" });
+        valido = false;
+      }
+
+      if (!valido) return;
+
+      const resultado = ParcelamentoFormSchema.safeParse({
+        description: descricaoAtual,
+        account_id: accountIdAtual,
+        category_id: categoryIdAtual,
+        category_name: categoryNameAtual,
+        type: "INCOME",
+        installment_total: parcelamento.installmentTotal,
+        parcelas: parcelamento.parcelas,
+      });
+
+      if (!resultado.success) {
+        alert(resultado.error.issues.map((issue) => issue.message).join("\n"));
+        return;
+      }
+
+      setActionType(action);
+      mutateParcelado(resultado.data);
+    };
+  };
+
+  const handleSalvar = (action: "save" | "saveAndNew") => {
+    if (isParcelado) {
+      onSubmitParceladoWithAction(action)();
+    } else {
+      onSubmitWithAction(action)();
+    }
+  };
+
   if (isError) {
     return (
       <PageLayout title="Cadastrar Despesa" backTo="/despesas">
@@ -177,36 +255,55 @@ export function CadastrarReceita() {
                 <FieldError>{errors.account_id?.message}</FieldError>
               </div>
 
-              {/* Valor */}
+              {/* Parcelar */}
               <div className="mb-3">
-                <label htmlFor="amount" className="form-label">
-                  Valor <span className="text-danger">*</span>
-                </label>
-                <Controller
-                  name="amount"
-                  control={control}
-                  render={({ field }) => (
-                    <InputMoeda {...field} placeholder="0,00" />
-                  )}
-                />
-                <FieldError>{errors.amount?.message}</FieldError>
+                <div className="form-check form-switch">
+                  <input
+                    id="isParcelado"
+                    type="checkbox"
+                    role="switch"
+                    className="form-check-input"
+                    checked={isParcelado}
+                    onChange={(e) => setIsParcelado(e.target.checked)}
+                  />
+                  <label htmlFor="isParcelado" className="form-check-label">
+                    Parcelar essa receita?
+                  </label>
+                </div>
               </div>
 
-              {/* Data da transação - SÓ SE PAGO */}
-              {
-                <div className="mb-3">
-                  <label htmlFor="date" className="form-label">
-                    Data da Transação <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="datetime-local"
-                    id="date"
-                    className="form-control"
-                    {...register("date")}
-                  />
-                  <FieldError>{errors.date?.message}</FieldError>
-                </div>
-              }
+              {!isParcelado && (
+                <>
+                  {/* Valor */}
+                  <div className="mb-3">
+                    <label htmlFor="amount" className="form-label">
+                      Valor <span className="text-danger">*</span>
+                    </label>
+                    <Controller
+                      name="amount"
+                      control={control}
+                      render={({ field }) => (
+                        <InputMoeda {...field} placeholder="0,00" />
+                      )}
+                    />
+                    <FieldError>{errors.amount?.message}</FieldError>
+                  </div>
+
+                  {/* Data da transação */}
+                  <div className="mb-3">
+                    <label htmlFor="date" className="form-label">
+                      Data da Transação <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="date"
+                      className="form-control"
+                      {...register("date")}
+                    />
+                    <FieldError>{errors.date?.message}</FieldError>
+                  </div>
+                </>
+              )}
             </div>
             <div className="col-lg-6">
               {/* Categoria */}
@@ -277,6 +374,14 @@ export function CadastrarReceita() {
             </div>
           </div>
 
+          {isParcelado && (
+            <div className="row">
+              <div className="col-12">
+                <ParcelamentoCampos parcelamento={parcelamento} />
+              </div>
+            </div>
+          )}
+
           {/* ✅ BOTÕES DE AÇÃO */}
           <div className="row mt-4">
             <div className="col-12 mb-3">
@@ -300,7 +405,7 @@ export function CadastrarReceita() {
                   type="button"
                   className="btn btn-secondary text-white"
                   onClick={() => navigate("/despesas")}
-                  disabled={isPending}
+                  disabled={isPending || isPendingParcelado}
                 >
                   <i className="bi bi-x-circle me-2"></i>
                   Cancelar
@@ -310,10 +415,10 @@ export function CadastrarReceita() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={onSubmitWithAction("saveAndNew")}
-                  disabled={isPending}
+                  onClick={() => handleSalvar("saveAndNew")}
+                  disabled={isPending || isPendingParcelado}
                 >
-                  {isPending && actionType === "saveAndNew" ? (
+                  {(isPending || isPendingParcelado) && actionType === "saveAndNew" ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2"></span>
                       Salvando...
@@ -330,10 +435,10 @@ export function CadastrarReceita() {
                 <button
                   type="button"
                   className="btn btn-success"
-                  onClick={onSubmitWithAction("save")}
-                  disabled={isPending}
+                  onClick={() => handleSalvar("save")}
+                  disabled={isPending || isPendingParcelado}
                 >
-                  {isPending && actionType === "save" ? (
+                  {(isPending || isPendingParcelado) && actionType === "save" ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2"></span>
                       Salvando...

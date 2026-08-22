@@ -20,6 +20,7 @@ class TransacoesPorCategoriaQuery
         string $tipo,
         ?Carbon $dataInicial,
         ?Carbon $dataFinal,
+        ?int $contaId = null,
     ): array {
         $userId = Auth::id();
 
@@ -30,6 +31,7 @@ class TransacoesPorCategoriaQuery
             ->where('transactions.type',   $tipo)
             ->where('transactions.status', 'PAID')
             ->where('transactions.is_initial_balance', false)
+            ->when($contaId, fn($q) => $q->where('transactions.account_id', $contaId))
             // Filtro de período — só aplicado quando as datas forem informadas
             ->when($dataInicial && $dataFinal, function ($q) use ($dataInicial, $dataFinal) {
                 $q->whereBetween('transactions.date', [

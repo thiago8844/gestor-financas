@@ -310,6 +310,7 @@ export function ListagemDespesa() {
             "Categoria",
             "Data Vencimento",
             "Status",
+            "Parcela",
             "Ações",
           ]}
           footer={
@@ -350,6 +351,15 @@ export function ListagemDespesa() {
                   <span className="badge text-bg-success">PAGO</span>
                 ) : (
                   <span className="badge text-bg-secondary">PENDENTE</span>
+                )}
+              </td>
+              <td>
+                {despesa.is_installment ? (
+                  <span className="badge text-bg-info">
+                    {despesa.installment_number}/{despesa.installment_total}
+                  </span>
+                ) : (
+                  "-"
                 )}
               </td>
 

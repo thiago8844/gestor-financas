@@ -73,6 +73,7 @@ export interface TransacoesCategoriaParams {
   receitasAlltime?: boolean;
   receitasDataInicial?: string;
   receitasDataFinal?: string;
+  contaId?: number;
 }
 
 export const getTransacoesCategoria = async ({
@@ -82,8 +83,9 @@ export const getTransacoesCategoria = async ({
   receitasAlltime = false,
   receitasDataInicial,
   receitasDataFinal,
+  contaId,
 }: TransacoesCategoriaParams = {}) => {
-  const params: Record<string, string | boolean> = {
+  const params: Record<string, string | boolean | number> = {
     despesas_categoria_alltime: despesasAlltime,
     despesas_categoria_periodo_inicial:
       despesasDataInicial ?? primeiroDiaMesAtual(),
@@ -92,6 +94,7 @@ export const getTransacoesCategoria = async ({
     receitas_categoria_periodo_inicial:
       receitasDataInicial ?? primeiroDiaMesAtual(),
     receitas_categoria_periodo_final: receitasDataFinal ?? ultimoDiaMesAtual(),
+    ...(contaId ? { conta_id: contaId } : {}),
   };
   const response = await api.get("/dashboard/transacoes-categoria", { params });
   return response.data as {

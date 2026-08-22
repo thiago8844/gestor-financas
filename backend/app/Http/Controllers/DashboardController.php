@@ -68,9 +68,11 @@ class DashboardController extends Controller
         $receitasInicial = $receitasAlltime ? null : Carbon::parse($request->query('receitas_categoria_periodo_inicial'));
         $receitasFinal   = $receitasAlltime ? null : Carbon::parse($request->query('receitas_categoria_periodo_final'));
 
+        $contaId = $request->filled('conta_id') ? (int) $request->query('conta_id') : null;
+
         return response()->json([
-            'despesas_por_categoria' => ObterDespesasPorCategoriaAction::execute($despesasInicial, $despesasFinal),
-            'receitas_por_categoria' => ObterReceitasPorCategoriaAction::execute($receitasInicial, $receitasFinal),
+            'despesas_por_categoria' => ObterDespesasPorCategoriaAction::execute($despesasInicial, $despesasFinal, $contaId),
+            'receitas_por_categoria' => ObterReceitasPorCategoriaAction::execute($receitasInicial, $receitasFinal, $contaId),
         ], 200);
     }
 }

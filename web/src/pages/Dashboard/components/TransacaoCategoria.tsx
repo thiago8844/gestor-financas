@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { convertNumberToCurrencyMask } from "../../../utils";
+import type { Conta } from "../../../types";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -19,6 +20,7 @@ export interface CategoriaFiltroParams {
   receitasCategoriaAlltime?: boolean;
   receitasCategoriaDataInicial?: string;
   receitasCategoriaDataFinal?: string;
+  categoriaContaId?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -167,12 +169,14 @@ function LabelCustom({
 interface Props {
   despesas: CategoriaPonto[] | undefined;
   receitas: CategoriaPonto[] | undefined;
+  contas?: Conta[];
   onFiltroChange: (params: CategoriaFiltroParams) => void;
 }
 
 export function TransacaoCategoria({
   despesas,
   receitas,
+  contas,
   onFiltroChange,
 }: Props) {
   // Toggle entre DESPESA e RECEITA
@@ -181,6 +185,7 @@ export function TransacaoCategoria({
   const [periodo, setPeriodo] = useState("mes_atual");
   const [dataInicialBR, setDataInicial] = useState("");
   const [dataFinalBR, setDataFinal] = useState("");
+  const [contaId, setContaId] = useState<number | null>(null);
 
   const erroInicial =
     periodo === "personalizado" &&
@@ -222,6 +227,7 @@ export function TransacaoCategoria({
           receitasCategoriaAlltime: alltime,
           receitasCategoriaDataInicial: inicio,
           receitasCategoriaDataFinal: fim,
+          categoriaContaId: contaId ?? undefined,
         });
       }
       return;
@@ -234,9 +240,10 @@ export function TransacaoCategoria({
       receitasCategoriaAlltime: alltime,
       receitasCategoriaDataInicial: inicio,
       receitasCategoriaDataFinal: fim,
+      categoriaContaId: contaId ?? undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodo, dataInicialBR, dataFinalBR]);
+  }, [periodo, dataInicialBR, dataFinalBR, contaId]);
 
   const chartData = (tipo === "EXPENSE" ? despesas : receitas) ?? [];
 
@@ -275,6 +282,25 @@ export function TransacaoCategoria({
                 Receitas
               </button>
             </div>
+
+            {/* Filtro por conta */}
+            {contas && contas.length > 0 && (
+              <select
+                value={contaId ?? ""}
+                onChange={(e) =>
+                  setContaId(e.target.value ? Number(e.target.value) : null)
+                }
+                className="form-select form-select-sm"
+                style={{ minWidth: 160 }}
+              >
+                <option value="">Todas as contas</option>
+                {contas.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            )}
 
             {/* Filtro de período */}
             <div className="d-flex flex-wrap align-items-start gap-2">

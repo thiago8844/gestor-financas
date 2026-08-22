@@ -28,6 +28,10 @@ export type Transacao = {
   updated_at: string;
   categoria: Categoria | null;
   conta: Conta | null;
+  installment_number: number | null;
+  installment_total: number | null;
+  installment_group: string | null;
+  is_installment: boolean;
 };
 
 //FUTURAMENTE COLOCAR OS TIPOS DE PAGINAÇÃO NA RESPONSE TAMBÉM

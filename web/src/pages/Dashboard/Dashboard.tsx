@@ -6,6 +6,7 @@ import {
   getSaldoContas,
   getTransacoesCategoria,
 } from "../../api/dashboard";
+import { getContas } from "../../api/conta";
 import { useAuthStore } from "../../stores/auth";
 
 import IndicadoresMes from "./components/IndicadoresMes";
@@ -26,6 +27,11 @@ export function Dashboard() {
   const { data: indicadores, isLoading: loadingIndicadores } = useQuery({
     queryKey: ["dashboard-indicadores"],
     queryFn: getIndicadoresDashboard,
+  });
+
+  const { data: contas } = useQuery({
+    queryKey: ["contas"],
+    queryFn: () => getContas({}),
   });
 
   const { data: saldoContas, isLoading: loadingSaldo } = useQuery({
@@ -49,6 +55,7 @@ export function Dashboard() {
         receitasAlltime: categoriaFiltros.receitasCategoriaAlltime,
         receitasDataInicial: categoriaFiltros.receitasCategoriaDataInicial,
         receitasDataFinal: categoriaFiltros.receitasCategoriaDataFinal,
+        contaId: categoriaFiltros.categoriaContaId,
       }),
   });
 
@@ -76,6 +83,7 @@ export function Dashboard() {
             <TransacaoCategoria
               despesas={categorias?.despesas_por_categoria}
               receitas={categorias?.receitas_por_categoria}
+              contas={contas?.data}
               onFiltroChange={setCategoriaFiltros}
             />
           </div>

@@ -33,6 +33,10 @@ class TransacaoResource extends JsonResource
             'updated_at' => $this->updated_at,
             'categoria' => $this->whenLoaded('categoria'),
             'conta' => $this->whenLoaded('conta'),
+            'installment_number' => $this->installment_number,
+            'installment_total' => $this->installment_total,
+            'installment_group' => $this->installment_group,
+            'is_installment' => (int) $this->installment_total > 1,
         ];
     }
 }

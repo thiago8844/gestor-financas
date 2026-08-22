@@ -43,7 +43,12 @@ class Transacao extends Model
     public function scopeParcelasDoGrupo($query, string $grupo_uuid)
     {
         return $query->where('installment_group', $grupo_uuid)
-            ->orderBy('installmente_number');
+            ->orderBy('installment_number');
+    }
+
+    public function isParcelada(): bool
+    {
+        return (int) $this->installment_total > 1;
     }
 
     public static function resumoParcelas(string $grupo): array

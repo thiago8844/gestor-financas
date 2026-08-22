@@ -7,6 +7,7 @@ use App\Enums\TransactionType;
 use App\Models\Transacao;
 use App\Models\Conta;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Illuminate\Support\Str;
@@ -88,6 +89,45 @@ class TransactionTest extends TestCase
 
     }
 
-    
+    #[Test]
+    public function cria_transacao_parcelada_via_endpoint(): void {
+
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        $parcelas = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $parcelas[] = [
+                'amount' => 150.00,
+                'date' => $i <= 2 ? now()->addMonths($i - 1)->toDateString() : null,
+                'due_date' => now()->addMonths($i - 1)->addDays(10)->toDateString(),
+                'status' => $i <= 2 ? TransactionStatus::PAID->value : TransactionStatus::PENDING->value,
+            ];
+        }
+
+        $response = $this->postJson('/api/transacoes/parceladas', [
+            'account_id' => $conta->id,
+            'type' => TransactionType::EXPENSE->value,
+            'description' => 'Geladeira Brastemp',
+            'category_name' => 'Eletrodomésticos',
+            'installment_total' => 12,
+            'parcelas' => $parcelas,
+        ]);
+
+        $response->assertStatus(201);
+
+        $installmentGroup = $response->json('installment_group');
+        $this->assertNotNull($installmentGroup);
+
+        $criadas = Transacao::where('installment_group', $installmentGroup)->orderBy('installment_number')->get();
+
+        $this->assertEquals(12, $criadas->count());
+        $this->assertEquals(1800.00, $criadas->sum('amount'));
+        $this->assertEquals(2, $criadas->where('status', TransactionStatus::PAID)->count());
+        $this->assertEquals(1, $criadas->first()->installment_number);
+        $this->assertEquals(12, $criadas->first()->installment_total);
+        $this->assertEquals('Geladeira Brastemp', $criadas->first()->description);
+        $this->assertNotNull($criadas->first()->category_id);
+    }
 
 }
