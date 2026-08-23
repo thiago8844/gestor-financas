@@ -14,6 +14,7 @@ import { EditarDespesa } from "./pages/Despesa/EditarDespesa";
 import { DespesaRoute } from "./pages/Despesa/DespesaRoute";
 import { ListagemDespesa } from "./pages/Despesa/ListagemDespesa";
 import { CadastrarDespesa } from "./pages/Despesa/CadastrarDespesa";
+import { EditarMultiplasDespesas } from "./pages/Despesa/EditarMultiplasDespesas";
 import { TesteCategoria } from "./pages/Contas/components/CategoriaAutocomplete";
 import TesteTabela from "./pages/TesteTabela";
 import { ListagemContas } from "./pages/Contas/ListagemContas";
@@ -21,6 +22,7 @@ import { ReceitaRoute } from "./pages/Receita/ReceitaRoute";
 import { ListagemReceita } from "./pages/Receita/ListagemReceita";
 import { CadastrarReceita } from "./pages/Receita/CadastrarReceita";
 import { EditarReceita } from "./pages/Receita/EditarReceita";
+import { EditarMultiplasReceitas } from "./pages/Receita/EditarMultiplasReceitas";
 import { ConsultorPage } from "./pages/Consultor/ConsultorPage";
 import { CategoriaRoutes } from "./pages/Categorias/CategoriaRoutes";
 import { ListagemCategorias } from "./pages/Categorias/ListagemCategorias";
@@ -55,6 +57,7 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemDespesa /> },
           { path: "cadastrar", element: <CadastrarDespesa /> },
           { path: "editar/:id", element: <EditarDespesa /> },
+          { path: "editar-multiplas", element: <EditarMultiplasDespesas /> },
         ],
       },
       {
@@ -64,6 +67,7 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemReceita /> },
           { path: "cadastrar", element: <CadastrarReceita /> },
           { path: "editar/:id", element: <EditarReceita /> },
+          { path: "editar-multiplas", element: <EditarMultiplasReceitas /> },
         ],
       },
       {

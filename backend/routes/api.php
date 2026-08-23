@@ -44,6 +44,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/transacoes/criar', [\App\Http\Controllers\TransacaoController::class, 'store']);
     Route::post('/transacoes/parceladas', [\App\Http\Controllers\TransacaoController::class, 'storeParcelado']);
     Route::put('/transacoes/atualizar/{transacao}', [\App\Http\Controllers\TransacaoController::class, 'update']);
+    Route::delete('/transacoes/deletar-multiplas', [\App\Http\Controllers\TransacaoController::class, 'destroyMultiplas']);
     Route::delete('/transacoes/deletar/{transacao}', [\App\Http\Controllers\TransacaoController::class, 'destroy']);
 
     //Despesas
@@ -58,6 +59,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/recorrencias/atualizar/{id}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'update']);
     Route::patch('/recorrencias/{id}/alternar-ativo', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'alternarAtivo']);
     Route::delete('/recorrencias/deletar/{recorrencia}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'destroy']);
+
+    //NOTIFICACOES
+    Route::get('/notificacoes', [\App\Http\Controllers\NotificacaoController::class, 'index']);
+    Route::patch('/notificacoes/marcar-todas-lidas', [\App\Http\Controllers\NotificacaoController::class, 'marcarTodasComoLidas']);
+    Route::patch('/notificacoes/{id}/marcar-lida', [\App\Http\Controllers\NotificacaoController::class, 'marcarComoLida']);
 
     //CATEGORIAS
     Route::get('/categorias', [\App\Http\Controllers\CategoriaController::class, 'index']);

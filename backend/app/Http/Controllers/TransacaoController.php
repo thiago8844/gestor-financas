@@ -268,4 +268,25 @@ class TransacaoController extends Controller
 
         return response()->json(['message' => 'Transação deletada com sucesso'], 200);
     }
+
+    /**
+     * Remove multiple resources from storage at once.
+     */
+    public function destroyMultiplas(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ]);
+
+        $excluidas = Transacao::whereIn('id', $request->input('ids'))
+            ->where('user_id', Auth::id())
+            ->where('is_initial_balance', false)
+            ->delete();
+
+        return response()->json([
+            'message' => 'Transações deletadas com sucesso',
+            'excluidas' => $excluidas,
+        ], 200);
+    }
 }

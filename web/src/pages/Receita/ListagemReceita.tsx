@@ -1,7 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { deletarTransacao, getGruposParcelados, getTransacoes } from "../../api/transacoes";
+import {
+  deletarTransacao,
+  deletarTransacoesMultiplas,
+  getGruposParcelados,
+  getTransacoes,
+} from "../../api/transacoes";
 import PageLayout from "../../layouts/PageLayout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useConfirmModalStore } from "../../stores/confirmModal";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { Paginator } from "../../components/Listagens/Paginator";
@@ -10,6 +15,8 @@ import { getCategorias } from "../../api/categoria";
 import { getContas } from "../../api/conta";
 import type { Conta } from "../../types";
 import { Listagem } from "../../components/Listagens/Listagem";
+import { AcoesEmMassa } from "../../components/Listagens/AcoesEmMassa";
+import { useSelecaoEmMassa } from "../../hooks/useSelecaoEmMassa";
 
 // TODO: COLOCAR O STATUS PENDENTE EM RECEITAS DEPOIS
 
@@ -30,6 +37,9 @@ const filtrosOriginais = {
 };
 
 export function ListagemReceita() {
+  const navigate = useNavigate();
+  const selecao = useSelecaoEmMassa();
+
   //Filtros despesa
   const [filtros, setFiltros] = useState(filtrosOriginais);
   const [filtrosModificados, setFiltrosModificados] =
@@ -71,7 +81,36 @@ export function ListagemReceita() {
     },
   });
 
+  //Deletar múltiplas receitas
+  const { mutate: mutateDeletarMultiplas } = useMutation({
+    mutationFn: (ids: number[]) => deletarTransacoesMultiplas(ids),
+    onSuccess: () => {
+      selecao.cancelar();
+      refetch();
+    },
+    onError: () => {
+      alert("Erro ao excluir receitas. Tente novamente.");
+    },
+  });
+
   const { openModal } = useConfirmModalStore();
+
+  const handleProsseguirSelecao = () => {
+    const ids = [...selecao.selecionados];
+
+    if (selecao.modo === "editar") {
+      navigate(`/receitas/editar-multiplas?ids=${ids.join(",")}`);
+    } else if (selecao.modo === "excluir") {
+      openModal({
+        title: "Confirmar exclusão",
+        message: `Tem certeza que deseja excluir ${ids.length} receita${
+          ids.length !== 1 ? "s" : ""
+        }? Essa ação não poderá ser desfeita.`,
+        callback: () => mutateDeletarMultiplas(ids),
+        autoClose: true,
+      });
+    }
+  };
 
   const handlePageChange = (page: number) => {
     setFiltros((prev) => ({ ...prev, page }));
@@ -113,6 +152,14 @@ export function ListagemReceita() {
               <i className="bi bi-plus-circle me-2"></i>
               Nova Receita
             </Link>
+
+            <AcoesEmMassa
+              modo={selecao.modo}
+              quantidade={selecao.quantidade}
+              onIniciar={selecao.iniciar}
+              onCancelar={selecao.cancelar}
+              onProsseguir={handleProsseguirSelecao}
+            />
           </Listagem.Acoes>
 
           {/* ✅ CONTROLES À DIREITA */}
@@ -360,6 +407,7 @@ export function ListagemReceita() {
         {/* ✅ TABELA */}
         <Listagem.Tabela
           headers={[
+            ...(selecao.ativo ? [""] : []),
             "ID",
             "Descrição",
             "Valor",
@@ -385,6 +433,16 @@ export function ListagemReceita() {
         >
           {receitas.map((receita) => (
             <tr key={receita.id}>
+              {selecao.ativo && (
+                <td>
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={selecao.selecionados.has(receita.id)}
+                    onChange={() => selecao.alternar(receita.id)}
+                  />
+                </td>
+              )}
               <td>{receita.id}</td>
               <td>
                 {receita.description}

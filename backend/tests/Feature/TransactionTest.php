@@ -176,4 +176,42 @@ class TransactionTest extends TestCase
         $this->assertEquals('Fogão em 3x', $response->json('data.0.description'));
     }
 
+    #[Test]
+    public function exclui_multiplas_transacoes_de_uma_vez(): void {
+
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        $minhas = Transacao::factory()->count(3)->create([
+            'user_id' => $conta->user_id,
+            'account_id' => $conta->id,
+        ]);
+
+        $saldoInicial = Transacao::factory()->create([
+            'user_id' => $conta->user_id,
+            'account_id' => $conta->id,
+            'is_initial_balance' => true,
+        ]);
+
+        $deOutroUsuario = Transacao::factory()->create();
+
+        $response = $this->deleteJson('/api/transacoes/deletar-multiplas', [
+            'ids' => [
+                ...$minhas->pluck('id')->toArray(),
+                $saldoInicial->id,
+                $deOutroUsuario->id,
+            ],
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('excluidas', 3);
+
+        foreach ($minhas as $transacao) {
+            $this->assertDatabaseMissing('transactions', ['id' => $transacao->id]);
+        }
+
+        $this->assertDatabaseHas('transactions', ['id' => $saldoInicial->id]);
+        $this->assertDatabaseHas('transactions', ['id' => $deOutroUsuario->id]);
+    }
+
 }

@@ -58,6 +58,13 @@ export async function deletarTransacao(id: number) {
   return response.status;
 }
 
+export async function deletarTransacoesMultiplas(ids: number[]) {
+  const response = await api.delete("/transacoes/deletar-multiplas", {
+    data: { ids },
+  });
+  return response.data;
+}
+
 export async function updateTransacao(id: number, data: DespesaForm|ReceitaForm) {
   const response = await api.put(`/transacoes/atualizar/${id}`, data);
   return response.data;

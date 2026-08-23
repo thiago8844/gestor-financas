@@ -5,6 +5,7 @@ import { useAuthStore } from "../stores/auth";
 import "../styles/components/header.scss";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { SinoNotificacoes } from "./Notificacoes/SinoNotificacoes";
 export default function Header() {
   const [show, setShow] = useState(false);
   const { logout } = useAuthStore();
@@ -48,28 +49,31 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* ✅ LADO DIREITO: DROPDOWN DO USUÁRIO */}
-          <Dropdown align="end">
-            <Dropdown.Toggle
-              variant="link"
-              className="btn-user d-flex align-items-center justify-content-center p-2 text-decoration-none"
-              id="dropdown-user"
-            >
-              <i className="bi bi-person-circle fs-2 text-dark d-block"></i>
-              <span className="d-none d-md-inline-block ms-2 text-dark">
-                {user?.name}
-              </span>
-            </Dropdown.Toggle>
+          {/* ✅ LADO DIREITO: SINO DE NOTIFICAÇÕES + DROPDOWN DO USUÁRIO */}
+          <div className="d-flex align-items-center gap-1">
+            <SinoNotificacoes />
+            <Dropdown align="end">
+              <Dropdown.Toggle
+                variant="link"
+                className="btn-user d-flex align-items-center justify-content-center p-2 text-decoration-none"
+                id="dropdown-user"
+              >
+                <i className="bi bi-person-circle fs-2 text-dark d-block"></i>
+                <span className="d-none d-md-inline-block ms-2 text-dark">
+                  {user?.name}
+                </span>
+              </Dropdown.Toggle>
 
-            <Dropdown.Menu>
-              <Dropdown.Header>Minha Conta</Dropdown.Header>
-              <Dropdown.Divider />
-              <Dropdown.Item onClick={logoutUser}>
-                <i className="bi bi-box-arrow-right me-2"></i>
-                Sair
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
+              <Dropdown.Menu>
+                <Dropdown.Header>Minha Conta</Dropdown.Header>
+                <Dropdown.Divider />
+                <Dropdown.Item onClick={logoutUser}>
+                  <i className="bi bi-box-arrow-right me-2"></i>
+                  Sair
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
         </div>
       </header>
 

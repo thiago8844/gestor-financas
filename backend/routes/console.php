@@ -10,3 +10,5 @@ Artisan::command('inspire', function () {
 
 // TODO: em produção (Railway), garantir que algo dispare isso todo dia (revisão separada).
 Schedule::command('recorrencias:gerar')->dailyAt('06:00');
+
+Schedule::command('notificacoes:gerar')->hourly();
