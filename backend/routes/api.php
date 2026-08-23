@@ -51,6 +51,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Receitas
     Route::get('/receitas', [\App\Http\Controllers\TransacaoController::class, 'index']);
 
+    //RECORRENCIAS
+    Route::get('/recorrencias', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'index']);
+    Route::get('/recorrencias/{id}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'show']);
+    Route::post('/recorrencias/criar', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'store']);
+    Route::put('/recorrencias/atualizar/{id}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'update']);
+    Route::patch('/recorrencias/{id}/alternar-ativo', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'alternarAtivo']);
+    Route::delete('/recorrencias/deletar/{recorrencia}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'destroy']);
+
     //CATEGORIAS
     Route::get('/categorias', [\App\Http\Controllers\CategoriaController::class, 'index']);
     Route::post('/categorias/criar', [\App\Http\Controllers\CategoriaController::class, 'store']);

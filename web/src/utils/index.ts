@@ -26,7 +26,7 @@ export function convertCurrencyMaskToNumber(
  * @param value - Número para converter
  * @returns string formatada (ex: "R$ 1.500,50")
  */
-export function convertNumberToCurrencyMask(value?: number): string {
+export function convertNumberToCurrencyMask(value?: number | null): string {
   if (!value && value !== 0) return "";
 
   return new Intl.NumberFormat("pt-BR", {

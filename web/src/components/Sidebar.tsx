@@ -38,6 +38,10 @@ export default function Sidebar({
             <i className="bi bi-arrow-up-circle"></i> Receitas
           </NavLink>
 
+          <NavLink to="/recorrencias" onClick={handleClose} className={linkClass}>
+            <i className="bi bi-arrow-repeat"></i> Recorrências
+          </NavLink>
+
           <NavLink to="/consultor" onClick={handleClose} className={linkClass}>
             <i className="bi bi-chat-text"></i> Consultor IA
           </NavLink>

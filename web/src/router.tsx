@@ -25,6 +25,10 @@ import { ConsultorPage } from "./pages/Consultor/ConsultorPage";
 import { CategoriaRoutes } from "./pages/Categorias/CategoriaRoutes";
 import { ListagemCategorias } from "./pages/Categorias/ListagemCategorias";
 import Page403 from "./pages/Page403";
+import { RecorrenciaRoute } from "./pages/Recorrencia/RecorrenciaRoute";
+import { ListagemRecorrencia } from "./pages/Recorrencia/ListagemRecorrencia";
+import { CadastrarRecorrencia } from "./pages/Recorrencia/CadastrarRecorrencia";
+import { EditarRecorrencia } from "./pages/Recorrencia/EditarRecorrencia";
 
 export const router = createBrowserRouter([
   {
@@ -66,6 +70,15 @@ export const router = createBrowserRouter([
         path: "categorias",
         element: <CategoriaRoutes />,
         children: [{ path: "", element: <ListagemCategorias /> }],
+      },
+      {
+        path: "recorrencias",
+        element: <RecorrenciaRoute />,
+        children: [
+          { path: "", element: <ListagemRecorrencia /> },
+          { path: "cadastrar", element: <CadastrarRecorrencia /> },
+          { path: "editar/:id", element: <EditarRecorrencia /> },
+        ],
       },
       {
         path: "consultor",

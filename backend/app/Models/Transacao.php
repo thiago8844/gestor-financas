@@ -38,6 +38,11 @@ class Transacao extends Model
         return $this->belongsTo(Categoria::class, 'category_id');
     }
 
+    public function recorrencia(): BelongsTo
+    {
+        return $this->belongsTo(RecorrenciaTransacao::class, 'recurring_transaction_id');
+    }
+
     // -=-=-=- PARCELAMENTO -=-=-=-
 
     public function scopeParcelasDoGrupo($query, string $grupo_uuid)

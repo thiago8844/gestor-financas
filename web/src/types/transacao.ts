@@ -16,7 +16,7 @@ export type Transacao = {
   user_id: number;
   account_id: number;
   category_id: number | null;
-  amount: number;
+  amount: number | null;
   type: "EXPENSE" | "INCOME";
   date: string;
   status: "PENDING" | "PAID";
@@ -32,6 +32,8 @@ export type Transacao = {
   installment_total: number | null;
   installment_group: string | null;
   is_installment: boolean;
+  recurring_transaction_id: number | null;
+  is_recurring: boolean;
 };
 
 //FUTURAMENTE COLOCAR OS TIPOS DE PAGINAÇÃO NA RESPONSE TAMBÉM

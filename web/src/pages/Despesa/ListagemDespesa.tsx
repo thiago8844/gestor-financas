@@ -384,9 +384,24 @@ export function ListagemDespesa() {
           {despesas.map((despesa) => (
             <tr key={despesa.id}>
               <td>{despesa.id}</td>
-              <td>{despesa.description}</td>
+              <td>
+                {despesa.description}
+                {despesa.is_recurring && (
+                  <Link
+                    to={`/recorrencias/editar/${despesa.recurring_transaction_id}`}
+                    className="badge text-bg-light border ms-2 text-decoration-none"
+                    title="Veio de uma recorrência — clique para ver/editar a regra"
+                  >
+                    <i className="bi bi-arrow-repeat"></i> Recorrente
+                  </Link>
+                )}
+              </td>
               <td className="text-danger fw-bold">
-                R$ {convertNumberToCurrencyMask(despesa.amount)}
+                {despesa.amount !== null ? (
+                  `R$ ${convertNumberToCurrencyMask(despesa.amount)}`
+                ) : (
+                  <span className="text-muted fw-normal">A definir</span>
+                )}
               </td>
               <td>{despesa.date ?? "-"}</td>
               <td>{despesa.conta?.name || "-"}</td>

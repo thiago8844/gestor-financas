@@ -386,9 +386,24 @@ export function ListagemReceita() {
           {receitas.map((receita) => (
             <tr key={receita.id}>
               <td>{receita.id}</td>
-              <td>{receita.description}</td>
+              <td>
+                {receita.description}
+                {receita.is_recurring && (
+                  <Link
+                    to={`/recorrencias/editar/${receita.recurring_transaction_id}`}
+                    className="badge text-bg-light border ms-2 text-decoration-none"
+                    title="Veio de uma recorrência — clique para ver/editar a regra"
+                  >
+                    <i className="bi bi-arrow-repeat"></i> Recorrente
+                  </Link>
+                )}
+              </td>
               <td className="text-success fw-bold">
-                R$ {convertNumberToCurrencyMask(receita.amount)}
+                {receita.amount !== null ? (
+                  `R$ ${convertNumberToCurrencyMask(receita.amount)}`
+                ) : (
+                  <span className="text-muted fw-normal">A definir</span>
+                )}
               </td>
               <td>{receita.date ?? "-"}</td>
               <td>{receita.conta?.name || "-"}</td>
