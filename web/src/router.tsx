@@ -43,6 +43,7 @@ import { RevisarImportacaoOfx } from "./pages/ImportacaoOfx/RevisarImportacaoOfx
 import { RelatoriosRoute } from "./pages/Relatorios/RelatoriosRoute";
 import { ListagemRelatorios } from "./pages/Relatorios/ListagemRelatorios";
 import { FluxoCaixaPage } from "./pages/Relatorios/FluxoCaixa/FluxoCaixaPage";
+import { ResultadoFinanceiroPage } from "./pages/Relatorios/ResultadoFinanceiro/ResultadoFinanceiroPage";
 
 export const router = createBrowserRouter([
   {
@@ -121,6 +122,7 @@ export const router = createBrowserRouter([
         children: [
           { path: "", element: <ListagemRelatorios /> },
           { path: "fluxo-de-caixa", element: <FluxoCaixaPage /> },
+          { path: "resultado-financeiro", element: <ResultadoFinanceiroPage /> },
         ],
       },
       {

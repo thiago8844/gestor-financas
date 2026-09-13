@@ -105,6 +105,40 @@ class RelatorioFluxoCaixaTest extends TestCase
     }
 
     #[Test]
+    public function serie_agrupa_por_semana_e_por_mes_sem_depender_de_funcoes_especificas_do_mysql(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        // 2026-06-01 é segunda-feira; 2026-06-08 é a segunda seguinte (semanas distintas).
+        $this->criarTransacao($conta, ['type' => 'INCOME', 'amount' => 500, 'date' => '2026-06-01', 'due_date' => '2026-06-01']);
+        $this->criarTransacao($conta, ['type' => 'INCOME', 'amount' => 700, 'date' => '2026-06-08', 'due_date' => '2026-06-08']);
+        $this->criarTransacao($conta, ['type' => 'EXPENSE', 'amount' => 100, 'date' => '2026-07-03', 'due_date' => '2026-07-03']);
+
+        $semanal = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-07-31', 'conta_id' => $conta->id, 'agrupamento' => 'WEEKLY',
+        ]));
+        $semanal->assertStatus(200);
+        $serieSemanal = $semanal->json('data.serie');
+        $this->assertEquals('2026-06-01', $serieSemanal[0]['periodo']);
+        $this->assertEquals(500, $serieSemanal[0]['entradas']);
+        $this->assertEquals('2026-06-08', $serieSemanal[1]['periodo']);
+        $this->assertEquals(700, $serieSemanal[1]['entradas']);
+
+        $mensal = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-07-31', 'conta_id' => $conta->id, 'agrupamento' => 'MONTHLY',
+        ]));
+        $mensal->assertStatus(200);
+        $serieMensal = $mensal->json('data.serie');
+        $this->assertEquals('2026-06-01', $serieMensal[0]['periodo']);
+        $this->assertEquals(1200, $serieMensal[0]['entradas']);
+        $this->assertEquals(1200, $serieMensal[0]['saldo_acumulado']);
+        $this->assertEquals('2026-07-01', $serieMensal[1]['periodo']);
+        $this->assertEquals(100, $serieMensal[1]['saidas']);
+        $this->assertEquals(1100, $serieMensal[1]['saldo_acumulado']);
+    }
+
+    #[Test]
     public function filtros_secundarios_nao_afetam_o_resumo_mas_afetam_serie_e_lancamentos(): void
     {
         $conta = Conta::factory()->create();

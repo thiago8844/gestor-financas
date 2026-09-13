@@ -19,7 +19,7 @@ const RELATORIOS: CardRelatorio[] = [
     titulo: "Resultado Financeiro",
     pergunta: "Estou ganhando ou gastando mais? Onde está meu resultado?",
     icone: "bi-graph-up",
-    to: null,
+    to: "/relatorios/resultado-financeiro",
   },
   {
     titulo: "Orçado x Realizado",

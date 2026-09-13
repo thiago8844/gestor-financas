@@ -32,6 +32,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //RELATORIOS
     Route::get('/relatorios/fluxo-de-caixa', [\App\Http\Controllers\RelatorioController::class, 'fluxoCaixa']);
+    Route::get('/relatorios/resultado-financeiro', [\App\Http\Controllers\RelatorioController::class, 'resultadoFinanceiro']);
 
     //CONTAS
     Route::get('/contas', [ContaController::class, 'index']);

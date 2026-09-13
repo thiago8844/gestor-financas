@@ -54,3 +54,55 @@ export type FiltrosFluxoCaixaParams = {
   valor_maximo?: number;
   descricao?: string;
 };
+
+// --- Resultado Financeiro ---
+
+export type LinhaCategoriaResultado = {
+  categoria_id: number | null;
+  categoria: string;
+  total: number;
+  percentual: number | null;
+  periodo_anterior: number | null;
+  variacao_percentual: number | null;
+  transacoes: Transacao[];
+};
+
+export type ComparacaoResumoResultado = {
+  periodo_inicio: string;
+  periodo_fim: string;
+  resultado: number;
+  variacao_percentual: number | null;
+};
+
+export type ResumoResultadoFinanceiro = {
+  receitas: number;
+  despesas: number;
+  resultado: number;
+  margem: number | null;
+  comparacao: ComparacaoResumoResultado | null;
+};
+
+export type PontoMensalResultado = {
+  periodo: string;
+  receitas: number;
+  despesas: number;
+};
+
+export type RelatorioResultadoFinanceiro = {
+  resumo: ResumoResultadoFinanceiro;
+  receitas: LinhaCategoriaResultado[];
+  despesas: LinhaCategoriaResultado[];
+  serie_mensal: PontoMensalResultado[];
+};
+
+export type RelatorioResultadoFinanceiroResponse = {
+  data: RelatorioResultadoFinanceiro;
+};
+
+export type FiltrosResultadoFinanceiroParams = {
+  data_inicial: string;
+  data_final: string;
+  conta_id?: number;
+  regime?: RegimeRelatorio;
+  comparar_com?: ComparacaoRelatorio;
+};
