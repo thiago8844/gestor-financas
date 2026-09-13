@@ -1,5 +1,5 @@
 // src/components/Listagens/Listagem.tsx
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import { Dropdown } from "react-bootstrap";
 
 // ✅ COMPONENTE PRINCIPAL
@@ -157,6 +157,8 @@ Listagem.Tabela = function Tabela({
   emptyMessage = "Nenhum registro encontrado",
   footer,
 }: TabelaProps & { footer?: ReactNode }) {
+  const vazio = Children.count(children) === 0;
+
   return (
     <div className="table-responsive shadow-sm rounded">
       <table className="table table-hover align-middle mb-0">
@@ -203,7 +205,7 @@ Listagem.Tabela = function Tabela({
           </tfoot>
         )}
       </table>
-      {!loading && !children && (
+      {!loading && vazio && (
         <div className="text-center py-5 bg-light">
           <i className="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
           <p className="text-muted mb-0">{emptyMessage}</p>

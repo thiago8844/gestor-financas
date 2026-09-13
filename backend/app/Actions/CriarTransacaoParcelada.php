@@ -18,6 +18,7 @@ class CriarTransacaoParcelada
                     'user_id' => $userId,
                     'account_id' => $dados['account_id'],
                     'category_id' => $dados['category_id'] ?? null,
+                    'budget_id' => $dados['budget_id'] ?? null,
                     'type' => $dados['type'],
                     'description' => $dados['description'],
 

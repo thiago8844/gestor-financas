@@ -27,7 +27,7 @@ export function SinoNotificacoes() {
         className="btn-user d-flex align-items-center justify-content-center p-2 text-decoration-none position-relative"
         id="dropdown-notificacoes"
       >
-        <i className="bi bi-bell fs-2 text-dark d-block"></i>
+        <i className="bi bi-bell fs-4 text-dark d-block"></i>
         {naoLidasCount > 0 && (
           <Badge bg="danger" pill className="position-absolute top-0 end-0" style={{ fontSize: "0.65rem" }}>
             {naoLidasCount > 99 ? "99+" : naoLidasCount}

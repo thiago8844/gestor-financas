@@ -22,6 +22,7 @@ export function EditarReceita() {
   const navigate = useNavigate();
   const {
     contas,
+    orcamentos,
     isLoading: isLoadingForm,
     isError: isErrorForm,
   } = useFormularioTransacao();
@@ -260,15 +261,15 @@ export function EditarReceita() {
               {/* Orçamento */}
               <div className="mb-3">
                 <label htmlFor="budget_id" className="form-label">
-                  Orçamento (EM BREVE)
+                  Orçamento
                 </label>
-                <select
-                  id="budget_id"
-                  disabled
-                  className="form-select"
-                  {...register("budget_id")}
-                >
+                <select id="budget_id" className="form-select" {...register("budget_id")}>
                   <option value="">Sem orçamento</option>
+                  {orcamentos.map((orcamento) => (
+                    <option key={orcamento.id} value={orcamento.id}>
+                      {orcamento.name}
+                    </option>
+                  ))}
                 </select>
                 <FieldError>{errors.budget_id?.message}</FieldError>
               </div>

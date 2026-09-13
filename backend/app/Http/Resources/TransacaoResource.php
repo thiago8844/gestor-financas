@@ -39,6 +39,8 @@ class TransacaoResource extends JsonResource
             'is_installment' => (int) $this->installment_total > 1,
             'recurring_transaction_id' => $this->recurring_transaction_id,
             'is_recurring' => !is_null($this->recurring_transaction_id),
+            'budget_id' => $this->budget_id,
+            'orcamento' => $this->whenLoaded('orcamento'),
         ];
     }
 }

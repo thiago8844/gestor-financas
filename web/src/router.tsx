@@ -31,6 +31,11 @@ import { RecorrenciaRoute } from "./pages/Recorrencia/RecorrenciaRoute";
 import { ListagemRecorrencia } from "./pages/Recorrencia/ListagemRecorrencia";
 import { CadastrarRecorrencia } from "./pages/Recorrencia/CadastrarRecorrencia";
 import { EditarRecorrencia } from "./pages/Recorrencia/EditarRecorrencia";
+import { OrcamentoRoute } from "./pages/Orcamento/OrcamentoRoute";
+import { ListagemOrcamento } from "./pages/Orcamento/ListagemOrcamento";
+import { CadastrarOrcamento } from "./pages/Orcamento/CadastrarOrcamento";
+import { EditarOrcamento } from "./pages/Orcamento/EditarOrcamento";
+import { DetalheOrcamento } from "./pages/Orcamento/DetalheOrcamento";
 
 export const router = createBrowserRouter([
   {
@@ -82,6 +87,16 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemRecorrencia /> },
           { path: "cadastrar", element: <CadastrarRecorrencia /> },
           { path: "editar/:id", element: <EditarRecorrencia /> },
+        ],
+      },
+      {
+        path: "orcamentos",
+        element: <OrcamentoRoute />,
+        children: [
+          { path: "", element: <ListagemOrcamento /> },
+          { path: "cadastrar", element: <CadastrarOrcamento /> },
+          { path: "editar/:id", element: <EditarOrcamento /> },
+          { path: ":id", element: <DetalheOrcamento /> },
         ],
       },
       {

@@ -27,6 +27,7 @@ class TransacaoParceladaRequest extends FormRequest
             'type' => 'required|in:INCOME,EXPENSE',
             'category_id' => 'nullable|integer|exists:categories,id',
             'category_name' => 'nullable|string|max:100',
+            'budget_id' => 'nullable|integer|exists:budgets,id',
             'description' => 'required|string|max:255',
 
             'installment_total' => 'required|integer|min:2|max:60',

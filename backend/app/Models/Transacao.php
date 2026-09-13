@@ -43,6 +43,11 @@ class Transacao extends Model
         return $this->belongsTo(RecorrenciaTransacao::class, 'recurring_transaction_id');
     }
 
+    public function orcamento(): BelongsTo
+    {
+        return $this->belongsTo(Orcamento::class, 'budget_id');
+    }
+
     // -=-=-=- PARCELAMENTO -=-=-=-
 
     public function scopeParcelasDoGrupo($query, string $grupo_uuid)

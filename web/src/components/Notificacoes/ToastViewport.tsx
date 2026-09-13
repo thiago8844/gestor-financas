@@ -9,7 +9,7 @@ export function ToastViewport() {
   }
 
   return (
-    <ToastContainer position="top-end" className="p-3" style={{ zIndex: 1080, position: "fixed" }}>
+    <ToastContainer position="bottom-end" className="p-3" style={{ zIndex: 1080, position: "fixed" }}>
       {toasts.map((toast) => (
         <Toast key={toast.id} show autohide delay={8000} onClose={() => dismissToast(toast.id)}>
           <Toast.Header>

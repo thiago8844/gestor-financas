@@ -32,6 +32,7 @@ class TransacaoRequest extends FormRequest
             'category_name' => 'nullable|string|max:100',
             'description' => 'nullable|string|max:255',
             'status' => 'nullable|in:PENDING,PAID',
+            'budget_id' => 'nullable|integer|exists:budgets,id',
             
             // Parcelas (opcionais) TODO: MOVER PRA PARCELAMENTO REQUEST
             // 'is_installment' => 'nullable|boolean',

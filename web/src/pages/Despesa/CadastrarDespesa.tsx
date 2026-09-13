@@ -19,7 +19,7 @@ import { useParcelamento } from "../../hooks/useParcelamento";
 import { ParcelamentoCampos } from "../../components/Parcelamento/ParcelamentoCampos";
 
 export function CadastrarDespesa() {
-  const { contas, isLoading, isError } = useFormularioTransacao();
+  const { contas, orcamentos, isLoading, isError } = useFormularioTransacao();
   const [actionType, setActionType] = useState<"save" | "saveAndNew" | null>(
     null
   );
@@ -149,6 +149,7 @@ export function CadastrarDespesa() {
       const accountIdAtual = getValues("account_id");
       const categoryIdAtual = getValues("category_id");
       const categoryNameAtual = getValues("category_name");
+      const budgetIdAtual = getValues("budget_id");
 
       let valido = true;
 
@@ -169,6 +170,7 @@ export function CadastrarDespesa() {
         account_id: accountIdAtual,
         category_id: categoryIdAtual,
         category_name: categoryNameAtual,
+        budget_id: budgetIdAtual,
         type: "EXPENSE",
         installment_total: parcelamento.installmentTotal,
         parcelas: parcelamento.parcelas,
@@ -391,19 +393,15 @@ export function CadastrarDespesa() {
               {/* Orçamento */}
               <div className="mb-3">
                 <label htmlFor="budget_id" className="form-label">
-                  Orçamento (EM BREVE)
+                  Orçamento
                 </label>
-                <select
-                  id="budget_id"
-                  disabled
-                  className="form-select"
-                  {...register("budget_id")}
-                >
+                <select id="budget_id" className="form-select" {...register("budget_id")}>
                   <option value="">Sem orçamento</option>
-                  <option value="1">💰 Orçamento Mensal</option>
-                  <option value="2">🍽️ Alimentação Outubro</option>
-                  <option value="3">🚗 Transporte Q4</option>
-                  <option value="4">🏥 Saúde Anual</option>
+                  {orcamentos.map((orcamento) => (
+                    <option key={orcamento.id} value={orcamento.id}>
+                      {orcamento.name}
+                    </option>
+                  ))}
                 </select>
                 <FieldError>{errors.budget_id?.message}</FieldError>
               </div>

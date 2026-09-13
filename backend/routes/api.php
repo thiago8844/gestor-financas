@@ -60,6 +60,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/recorrencias/{id}/alternar-ativo', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'alternarAtivo']);
     Route::delete('/recorrencias/deletar/{recorrencia}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'destroy']);
 
+    //ORCAMENTOS
+    Route::get('/orcamentos', [\App\Http\Controllers\OrcamentoController::class, 'index']);
+    Route::get('/orcamentos/{id}', [\App\Http\Controllers\OrcamentoController::class, 'show']);
+    Route::post('/orcamentos/criar', [\App\Http\Controllers\OrcamentoController::class, 'store']);
+    Route::put('/orcamentos/atualizar/{id}', [\App\Http\Controllers\OrcamentoController::class, 'update']);
+    Route::patch('/orcamentos/{id}/alternar-ativo', [\App\Http\Controllers\OrcamentoController::class, 'alternarAtivo']);
+    Route::delete('/orcamentos/deletar/{orcamento}', [\App\Http\Controllers\OrcamentoController::class, 'destroy']);
+
     //NOTIFICACOES
     Route::get('/notificacoes', [\App\Http\Controllers\NotificacaoController::class, 'index']);
     Route::patch('/notificacoes/marcar-todas-lidas', [\App\Http\Controllers\NotificacaoController::class, 'marcarTodasComoLidas']);

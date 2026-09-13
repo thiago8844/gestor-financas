@@ -50,14 +50,8 @@ export default function Sidebar({
             <i className="bi bi-tags"></i> Categorias
           </NavLink>
 
-          <NavLink
-            to="/orcamentos"
-            onClick={(e) => e.preventDefault()}
-            className={({ isActive }) =>
-              `nav-link rounded ${isActive ? "active" : ""} disabled`
-            }
-          >
-            <i className="bi bi-pie-chart"></i> Orçamentos (Em Breve)
+          <NavLink to="/orcamentos" onClick={handleClose} className={linkClass}>
+            <i className="bi bi-pie-chart"></i> Orçamentos
           </NavLink>
 
           <NavLink

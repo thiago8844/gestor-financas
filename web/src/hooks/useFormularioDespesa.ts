@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getContas } from "../api/conta";
 import { getCategorias, type CategoriasResponse } from "../api/categoria";
+import { getOrcamentos } from "../api/orcamentos";
 
 export function useFormularioTransacao() {
   //Contas
@@ -31,21 +32,18 @@ export function useFormularioTransacao() {
     refetchOnMount: true,
   });
 
-  //ORÇAMENTOS IMPLEMENTAR DEPOIS
+  //ORÇAMENTOS
   const {
     data: orcamentos,
     isLoading: isLoadingOrcamentos,
     isError: isErrorOrcamentos,
   } = useQuery({
     queryKey: ["orcamentos", "active"],
-    queryFn: () => {
-      // TODO: Implementar getOrcamentos
-      return Promise.resolve({ data: [] });
-    },
+    queryFn: () => getOrcamentos({ active: true }),
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
-    enabled: false,
+    refetchOnMount: true,
   });
 
   return {

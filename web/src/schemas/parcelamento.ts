@@ -24,6 +24,7 @@ export const ParcelamentoFormSchema = z
     account_id: z.string().min(1, "Conta é obrigatória"),
     category_id: z.string().nullable().optional(),
     category_name: z.string().optional(),
+    budget_id: z.string().nullable().optional(),
     type: z.enum(["EXPENSE", "INCOME"]),
     installment_total: z
       .number()
