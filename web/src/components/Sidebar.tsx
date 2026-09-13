@@ -58,14 +58,8 @@ export default function Sidebar({
             <i className="bi bi-file-earmark-arrow-up"></i> Importar Extrato
           </NavLink>
 
-          <NavLink
-            to="/relatorios"
-            onClick={(e) => e.preventDefault()}
-            className={({ isActive }) =>
-              `nav-link rounded ${isActive ? "active" : ""} disabled`
-            }
-          >
-            <i className="bi bi-bar-chart"></i> Relatórios (Em Breve)
+          <NavLink to="/relatorios" onClick={handleClose} className={linkClass}>
+            <i className="bi bi-bar-chart"></i> Relatórios
           </NavLink>
         </nav>
       </Offcanvas.Body>

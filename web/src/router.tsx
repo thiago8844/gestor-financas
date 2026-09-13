@@ -40,6 +40,9 @@ import { ImportacaoOfxRoute } from "./pages/ImportacaoOfx/ImportacaoOfxRoute";
 import { HistoricoImportacoesOfx } from "./pages/ImportacaoOfx/HistoricoImportacoesOfx";
 import { UploadOfx } from "./pages/ImportacaoOfx/UploadOfx";
 import { RevisarImportacaoOfx } from "./pages/ImportacaoOfx/RevisarImportacaoOfx";
+import { RelatoriosRoute } from "./pages/Relatorios/RelatoriosRoute";
+import { ListagemRelatorios } from "./pages/Relatorios/ListagemRelatorios";
+import { FluxoCaixaPage } from "./pages/Relatorios/FluxoCaixa/FluxoCaixaPage";
 
 export const router = createBrowserRouter([
   {
@@ -110,6 +113,14 @@ export const router = createBrowserRouter([
           { path: "", element: <HistoricoImportacoesOfx /> },
           { path: "nova", element: <UploadOfx /> },
           { path: ":id", element: <RevisarImportacaoOfx /> },
+        ],
+      },
+      {
+        path: "relatorios",
+        element: <RelatoriosRoute />,
+        children: [
+          { path: "", element: <ListagemRelatorios /> },
+          { path: "fluxo-de-caixa", element: <FluxoCaixaPage /> },
         ],
       },
       {
