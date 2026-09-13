@@ -68,6 +68,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/orcamentos/{id}/alternar-ativo', [\App\Http\Controllers\OrcamentoController::class, 'alternarAtivo']);
     Route::delete('/orcamentos/deletar/{orcamento}', [\App\Http\Controllers\OrcamentoController::class, 'destroy']);
 
+    //IMPORTACAO OFX
+    Route::get('/importacoes-ofx', [\App\Http\Controllers\ImportacaoOfxController::class, 'index']);
+    Route::post('/importacoes-ofx', [\App\Http\Controllers\ImportacaoOfxController::class, 'store']);
+    Route::get('/importacoes-ofx/{id}', [\App\Http\Controllers\ImportacaoOfxController::class, 'show']);
+    Route::post('/importacoes-ofx/{id}/confirmar', [\App\Http\Controllers\ImportacaoOfxController::class, 'confirmar']);
+    Route::post('/importacoes-ofx/{id}/desfazer', [\App\Http\Controllers\ImportacaoOfxController::class, 'desfazer']);
+    Route::delete('/importacoes-ofx/{id}/cancelar', [\App\Http\Controllers\ImportacaoOfxController::class, 'cancelar']);
+    Route::patch('/importacoes-ofx/{importacao}/itens/em-massa', [\App\Http\Controllers\ImportacaoOfxController::class, 'atualizarItensEmMassa']);
+    Route::patch('/importacoes-ofx/{importacao}/itens/{item}', [\App\Http\Controllers\ImportacaoOfxController::class, 'atualizarItem']);
+
+    //REGRAS DE IMPORTACAO OFX
+    Route::get('/regras-importacao-ofx', [\App\Http\Controllers\RegraImportacaoOfxController::class, 'index']);
+    Route::post('/regras-importacao-ofx/criar', [\App\Http\Controllers\RegraImportacaoOfxController::class, 'store']);
+    Route::post('/regras-importacao-ofx/{id}/aplicar', [\App\Http\Controllers\RegraImportacaoOfxController::class, 'aplicar']);
+    Route::patch('/regras-importacao-ofx/{id}/alternar-ativo', [\App\Http\Controllers\RegraImportacaoOfxController::class, 'alternarAtivo']);
+    Route::delete('/regras-importacao-ofx/deletar/{id}', [\App\Http\Controllers\RegraImportacaoOfxController::class, 'destroy']);
+
     //NOTIFICACOES
     Route::get('/notificacoes', [\App\Http\Controllers\NotificacaoController::class, 'index']);
     Route::patch('/notificacoes/marcar-todas-lidas', [\App\Http\Controllers\NotificacaoController::class, 'marcarTodasComoLidas']);

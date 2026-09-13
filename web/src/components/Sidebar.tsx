@@ -54,6 +54,10 @@ export default function Sidebar({
             <i className="bi bi-pie-chart"></i> Orçamentos
           </NavLink>
 
+          <NavLink to="/importacoes-ofx" onClick={handleClose} className={linkClass}>
+            <i className="bi bi-file-earmark-arrow-up"></i> Importar Extrato
+          </NavLink>
+
           <NavLink
             to="/relatorios"
             onClick={(e) => e.preventDefault()}

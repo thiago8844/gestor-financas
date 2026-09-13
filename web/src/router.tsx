@@ -36,6 +36,10 @@ import { ListagemOrcamento } from "./pages/Orcamento/ListagemOrcamento";
 import { CadastrarOrcamento } from "./pages/Orcamento/CadastrarOrcamento";
 import { EditarOrcamento } from "./pages/Orcamento/EditarOrcamento";
 import { DetalheOrcamento } from "./pages/Orcamento/DetalheOrcamento";
+import { ImportacaoOfxRoute } from "./pages/ImportacaoOfx/ImportacaoOfxRoute";
+import { HistoricoImportacoesOfx } from "./pages/ImportacaoOfx/HistoricoImportacoesOfx";
+import { UploadOfx } from "./pages/ImportacaoOfx/UploadOfx";
+import { RevisarImportacaoOfx } from "./pages/ImportacaoOfx/RevisarImportacaoOfx";
 
 export const router = createBrowserRouter([
   {
@@ -97,6 +101,15 @@ export const router = createBrowserRouter([
           { path: "cadastrar", element: <CadastrarOrcamento /> },
           { path: "editar/:id", element: <EditarOrcamento /> },
           { path: ":id", element: <DetalheOrcamento /> },
+        ],
+      },
+      {
+        path: "importacoes-ofx",
+        element: <ImportacaoOfxRoute />,
+        children: [
+          { path: "", element: <HistoricoImportacoesOfx /> },
+          { path: "nova", element: <UploadOfx /> },
+          { path: ":id", element: <RevisarImportacaoOfx /> },
         ],
       },
       {

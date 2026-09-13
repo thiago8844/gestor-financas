@@ -48,6 +48,11 @@ class Transacao extends Model
         return $this->belongsTo(Orcamento::class, 'budget_id');
     }
 
+    public function ofxImport(): BelongsTo
+    {
+        return $this->belongsTo(OfxImport::class, 'ofx_import_id');
+    }
+
     // -=-=-=- PARCELAMENTO -=-=-=-
 
     public function scopeParcelasDoGrupo($query, string $grupo_uuid)
