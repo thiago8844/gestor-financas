@@ -9,7 +9,9 @@ type Props = {
   totalReceitas: number;
   totalDespesas: number;
   resultado: number;
-  onSelecionarTransacao: (transacao: Transacao) => void;
+  onSelecionarTransacao?: (transacao: Transacao) => void;
+  /** PDF: todas as categorias já expandidas, sem controles de interação. */
+  modoImpressao?: boolean;
 };
 
 function VariacaoBadge({ variacao }: { variacao: number | null }) {
@@ -30,13 +32,15 @@ function Secao({
   expandidos,
   onToggle,
   onSelecionarTransacao,
+  modoImpressao,
 }: {
   titulo: string;
   total: number;
   linhas: LinhaCategoriaResultado[];
   expandidos: Set<string>;
   onToggle: (chave: string) => void;
-  onSelecionarTransacao: (transacao: Transacao) => void;
+  onSelecionarTransacao?: (transacao: Transacao) => void;
+  modoImpressao?: boolean;
 }) {
   return (
     <>
@@ -58,13 +62,13 @@ function Secao({
 
       {linhas.map((linha) => {
         const chave = `${titulo}-${linha.categoria_id ?? "sem-categoria"}`;
-        const expandido = expandidos.has(chave);
+        const expandido = modoImpressao || expandidos.has(chave);
 
         return (
           <Fragment key={chave}>
             <tr role="button" onClick={() => onToggle(chave)}>
               <td style={{ width: 30 }}>
-                <i className={`bi bi-chevron-${expandido ? "down" : "right"}`}></i>
+                <i className={`bi bi-chevron-${expandido ? "down" : "right"} d-print-none`}></i>
               </td>
               <td>{linha.categoria}</td>
               <td>{convertNumberToCurrencyMask(linha.total)}</td>
@@ -86,7 +90,7 @@ function Secao({
                         className="d-flex justify-content-between py-1 border-bottom"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onSelecionarTransacao(transacao);
+                          onSelecionarTransacao?.(transacao);
                         }}
                       >
                         <span>
@@ -114,6 +118,7 @@ export function TabelaResultadoFinanceiro({
   totalDespesas,
   resultado,
   onSelecionarTransacao,
+  modoImpressao,
 }: Props) {
   const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
 
@@ -150,6 +155,7 @@ export function TabelaResultadoFinanceiro({
             expandidos={expandidos}
             onToggle={toggle}
             onSelecionarTransacao={onSelecionarTransacao}
+            modoImpressao={modoImpressao}
           />
           <Secao
             titulo="Despesas"
@@ -158,6 +164,7 @@ export function TabelaResultadoFinanceiro({
             expandidos={expandidos}
             onToggle={toggle}
             onSelecionarTransacao={onSelecionarTransacao}
+            modoImpressao={modoImpressao}
           />
           <tr className="table-light">
             <td colSpan={2} className="fw-bold text-uppercase">

@@ -20,7 +20,8 @@ class Transacao extends Model
         "type" => TransactionType::class,
         "status" => TransactionStatus::class,
         "date" => 'datetime',
-        "due_date" => 'datetime'
+        "due_date" => 'datetime',
+        "purchase_date" => 'date',
     ];
 
     public function user(): BelongsTo
@@ -51,6 +52,16 @@ class Transacao extends Model
     public function ofxImport(): BelongsTo
     {
         return $this->belongsTo(OfxImport::class, 'ofx_import_id');
+    }
+
+    public function cartao(): BelongsTo
+    {
+        return $this->belongsTo(Cartao::class, 'card_id');
+    }
+
+    public function fatura(): BelongsTo
+    {
+        return $this->belongsTo(Fatura::class, 'invoice_id');
     }
 
     // -=-=-=- PARCELAMENTO -=-=-=-

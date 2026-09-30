@@ -63,6 +63,7 @@ export function ListagemRecorrencia() {
           headers={[
             "Descrição",
             "Tipo",
+            "Pago com",
             "Valor",
             "Frequência",
             "Próxima geração",
@@ -81,6 +82,16 @@ export function ListagemRecorrencia() {
                   <span className="badge text-bg-danger">Despesa</span>
                 ) : (
                   <span className="badge text-bg-success">Receita</span>
+                )}
+              </td>
+              <td>
+                {recorrencia.cartao ? (
+                  <span>
+                    <i className="bi bi-credit-card me-1"></i>
+                    {recorrencia.cartao.name}
+                  </span>
+                ) : (
+                  (recorrencia.conta?.name ?? "-")
                 )}
               </td>
               <td>

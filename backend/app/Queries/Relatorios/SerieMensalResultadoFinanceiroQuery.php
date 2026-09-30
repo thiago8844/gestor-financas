@@ -26,7 +26,7 @@ class SerieMensalResultadoFinanceiroQuery
             ->where('user_id', $filtros->userId)
             ->where('is_initial_balance', false)
             ->whereIn('status', $filtros->statuses())
-            ->when($filtros->contaId, fn ($q) => $q->where('account_id', $filtros->contaId))
+            ->when($filtros->contaIds, fn ($q) => $q->whereIn('account_id', $filtros->contaIds))
             ->whereRaw("DATE({$colunaData}) BETWEEN ? AND ?", [
                 $filtros->dataInicial->toDateString(),
                 $filtros->dataFinal->toDateString(),

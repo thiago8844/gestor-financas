@@ -1,4 +1,6 @@
 import type { Conta, PaginationLinks, PaginationMeta } from ".";
+import type { Cartao } from "./cartao";
+import type { Fatura } from "./fatura";
 
 // types/transacao.ts
 export type Categoria = {
@@ -34,6 +36,11 @@ export type Transacao = {
   is_installment: boolean;
   recurring_transaction_id: number | null;
   is_recurring: boolean;
+  card_id: number | null;
+  invoice_id: number | null;
+  purchase_date: string | null;
+  cartao: Cartao | null;
+  fatura: Fatura | null;
 };
 
 //FUTURAMENTE COLOCAR OS TIPOS DE PAGINAÇÃO NA RESPONSE TAMBÉM

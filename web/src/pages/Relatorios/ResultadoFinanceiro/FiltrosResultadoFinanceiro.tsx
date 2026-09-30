@@ -3,6 +3,7 @@ import { useFormularioTransacao } from "../../../hooks/useFormularioDespesa";
 import { isDataBRValida, mascararData, resolverPresetPeriodo, type PresetPeriodo } from "../periodoPresets";
 import type { FiltrosResultadoFinanceiroParams } from "../../../types/relatorio";
 import type { Conta } from "../../../types";
+import { SelectMultiplo } from "../../../components/SelectMultiplo";
 
 type Props = {
   gerado: boolean;
@@ -25,7 +26,7 @@ export function FiltrosResultadoFinanceiro({ gerado, resumoTexto, onGerar }: Pro
   const [preset, setPreset] = useState<PresetPeriodo>("este_mes");
   const [dataInicialBR, setDataInicialBR] = useState("");
   const [dataFinalBR, setDataFinalBR] = useState("");
-  const [contaId, setContaId] = useState("");
+  const [contaIds, setContaIds] = useState<number[]>([]);
   const [regime, setRegime] = useState<"CAIXA" | "COMPETENCIA">("CAIXA");
   const [compararCom, setCompararCom] = useState<
     "NENHUM" | "PERIODO_ANTERIOR" | "MESMO_PERIODO_ANO_ANTERIOR"
@@ -45,7 +46,7 @@ export function FiltrosResultadoFinanceiro({ gerado, resumoTexto, onGerar }: Pro
     onGerar({
       data_inicial: periodo.data_inicial,
       data_final: periodo.data_final,
-      conta_id: contaId ? Number(contaId) : undefined,
+      conta_ids: contaIds.length ? contaIds : undefined,
       regime,
       comparar_com: compararCom,
     });
@@ -117,14 +118,12 @@ export function FiltrosResultadoFinanceiro({ gerado, resumoTexto, onGerar }: Pro
 
           <div className="col-12 col-md-3">
             <label className="form-label small">Conta</label>
-            <select className="form-select" value={contaId} onChange={(e) => setContaId(e.target.value)}>
-              <option value="">Todas as contas</option>
-              {contas.map((conta: Conta) => (
-                <option key={conta.id} value={conta.id}>
-                  {conta.name}
-                </option>
-              ))}
-            </select>
+            <SelectMultiplo
+              opcoes={contas.map((conta: Conta) => ({ value: conta.id, label: conta.name }))}
+              valor={contaIds}
+              onChange={setContaIds}
+              placeholder="Todas as contas"
+            />
           </div>
 
           <div className="col-12 col-md-2">

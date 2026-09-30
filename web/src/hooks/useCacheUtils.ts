@@ -12,6 +12,20 @@ export function useCacheUtils() {
     queryClient.invalidateQueries({ queryKey: ["contas"] });
   };
 
+  // ✅ Invalidar dados relacionados a CARTÕES
+  const invalidateCartoes = () => {
+    queryClient.invalidateQueries({ queryKey: ["cartoes"] });
+  };
+
+  // ✅ Invalidar faturas (["cartao", id] e ["cartao", id, "faturas"]) e os cards do dashboard
+  // que dependem delas. Chame sempre que uma despesa de cartão for criada/editada/excluída,
+  // pois isso muda o total/pago/pendente da fatura à qual ela pertence.
+  const invalidateFaturas = () => {
+    queryClient.invalidateQueries({ queryKey: ["cartao"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-fatura-atual"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-indicadores"] });
+  };
+
   // ✅ Invalidar dados relacionados a ORÇAMENTOS
   const invalidateOrcamentos = () => {
     queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
@@ -30,6 +44,8 @@ export function useCacheUtils() {
   // ✅ Invalidar TODOS os dados de formulários
   const invalidateFormularios = () => {
     invalidateContas();
+    invalidateCartoes();
+    invalidateFaturas();
     invalidateOrcamentos();
     invalidateCategorias();
   };
@@ -52,6 +68,8 @@ export function useCacheUtils() {
   return {
     // Invalidações específicas
     invalidateContas,
+    invalidateCartoes,
+    invalidateFaturas,
     invalidateOrcamentos,
     invalidateCategorias,
     invalidateDespesas,

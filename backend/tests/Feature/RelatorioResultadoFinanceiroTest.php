@@ -37,7 +37,7 @@ class RelatorioResultadoFinanceiroTest extends TestCase
         $this->criarTransacao($conta, ['type' => 'EXPENSE', 'amount' => 9300, 'date' => '2026-06-10', 'due_date' => '2026-06-10']);
 
         $response = $this->getJson('/api/relatorios/resultado-financeiro?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_id' => $conta->id,
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$conta->id],
         ]));
 
         $response->assertStatus(200);
@@ -60,7 +60,7 @@ class RelatorioResultadoFinanceiroTest extends TestCase
         $this->criarTransacao($conta, ['type' => 'EXPENSE', 'amount' => 900, 'category_id' => $alimentacao->id, 'description' => 'Mercado', 'date' => '2026-06-07', 'due_date' => '2026-06-07']);
 
         $response = $this->getJson('/api/relatorios/resultado-financeiro?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_id' => $conta->id,
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$conta->id],
         ]));
 
         $response->assertStatus(200);
@@ -84,7 +84,7 @@ class RelatorioResultadoFinanceiroTest extends TestCase
         $this->criarTransacao($conta, ['type' => 'EXPENSE', 'amount' => 50, 'category_id' => null]);
 
         $response = $this->getJson('/api/relatorios/resultado-financeiro?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_id' => $conta->id,
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$conta->id],
         ]));
 
         $despesas = $response->json('data.despesas');
@@ -106,7 +106,7 @@ class RelatorioResultadoFinanceiroTest extends TestCase
         $this->criarTransacao($conta, ['type' => 'EXPENSE', 'amount' => 3100, 'category_id' => $moradia->id, 'date' => '2026-06-15', 'due_date' => '2026-06-15']);
 
         $response = $this->getJson('/api/relatorios/resultado-financeiro?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_id' => $conta->id, 'comparar_com' => 'PERIODO_ANTERIOR',
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$conta->id], 'comparar_com' => 'PERIODO_ANTERIOR',
         ]));
 
         $despesas = $response->json('data.despesas');
@@ -128,7 +128,7 @@ class RelatorioResultadoFinanceiroTest extends TestCase
         $this->criarTransacao($conta, ['type' => 'EXPENSE', 'amount' => 300, 'date' => '2026-07-10', 'due_date' => '2026-07-10']);
 
         $response = $this->getJson('/api/relatorios/resultado-financeiro?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-07-31', 'conta_id' => $conta->id,
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-07-31', 'conta_ids' => [$conta->id],
         ]));
 
         $serie = $response->json('data.serie_mensal');
@@ -147,5 +147,25 @@ class RelatorioResultadoFinanceiroTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['data_inicial', 'data_final']);
+    }
+
+    #[Test]
+    public function filtra_por_multiplas_contas(): void
+    {
+        $contaA = Conta::factory()->create();
+        Sanctum::actingAs($contaA->user);
+        $contaB = Conta::factory()->create(['user_id' => $contaA->user_id]);
+        $contaC = Conta::factory()->create(['user_id' => $contaA->user_id]);
+
+        $this->criarTransacao($contaA, ['type' => 'INCOME', 'amount' => 100]);
+        $this->criarTransacao($contaB, ['type' => 'INCOME', 'amount' => 200]);
+        $this->criarTransacao($contaC, ['type' => 'INCOME', 'amount' => 400]);
+
+        $response = $this->getJson('/api/relatorios/resultado-financeiro?' . http_build_query([
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$contaA->id, $contaB->id],
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.resumo.receitas', 300);
     }
 }

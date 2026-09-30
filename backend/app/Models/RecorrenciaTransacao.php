@@ -42,6 +42,11 @@ class RecorrenciaTransacao extends Model
         return $this->belongsTo(Conta::class, 'account_id');
     }
 
+    public function cartao(): BelongsTo
+    {
+        return $this->belongsTo(Cartao::class, 'card_id');
+    }
+
     public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'category_id');

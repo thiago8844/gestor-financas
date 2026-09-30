@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Relatorios;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class FluxoCaixaRelatorioRequest extends FormRequest
 {
@@ -25,7 +26,8 @@ class FluxoCaixaRelatorioRequest extends FormRequest
             'data_final' => 'required|date|after_or_equal:data_inicial',
 
             // Filtros principais
-            'conta_id' => 'nullable|integer|exists:accounts,id',
+            'conta_ids' => 'nullable|array',
+            'conta_ids.*' => ['integer', Rule::exists('accounts', 'id')->where('user_id', $this->user()->id)],
             'regime' => 'nullable|in:CAIXA,COMPETENCIA',
             'comparar_com' => 'nullable|in:NENHUM,PERIODO_ANTERIOR,MESMO_PERIODO_ANO_ANTERIOR',
             'agrupamento' => 'nullable|in:DAILY,WEEKLY,MONTHLY',
@@ -50,7 +52,8 @@ class FluxoCaixaRelatorioRequest extends FormRequest
             'data_inicial.required' => 'A data inicial é obrigatória.',
             'data_final.required' => 'A data final é obrigatória.',
             'data_final.after_or_equal' => 'A data final não pode ser antes da data inicial.',
-            'conta_id.exists' => 'A conta selecionada não existe.',
+            'conta_ids.array' => 'As contas devem ser enviadas como uma lista.',
+            'conta_ids.*.exists' => 'Uma das contas selecionadas não existe.',
             'regime.in' => 'O regime deve ser CAIXA ou COMPETENCIA.',
             'valor_maximo.gte' => 'O valor máximo deve ser maior ou igual ao valor mínimo.',
         ];

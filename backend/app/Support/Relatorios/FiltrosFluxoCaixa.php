@@ -16,7 +16,8 @@ final class FiltrosFluxoCaixa
         public readonly Carbon $dataInicial,
         public readonly Carbon $dataFinal,
         public readonly RegimeRelatorio $regime,
-        public readonly ?int $contaId = null,
+        /** @var int[] Vazio = todas as contas do usuário. */
+        public readonly array $contaIds = [],
         public readonly ?int $categoriaId = null,
         public readonly ?int $orcamentoId = null,
         public readonly ?string $tipo = null,
@@ -34,7 +35,7 @@ final class FiltrosFluxoCaixa
             dataInicial: Carbon::parse($dados['data_inicial']),
             dataFinal: Carbon::parse($dados['data_final']),
             regime: RegimeRelatorio::from($dados['regime'] ?? RegimeRelatorio::CAIXA->value),
-            contaId: isset($dados['conta_id']) ? (int) $dados['conta_id'] : null,
+            contaIds: array_map('intval', $dados['conta_ids'] ?? []),
             categoriaId: isset($dados['category_id']) ? (int) $dados['category_id'] : null,
             orcamentoId: isset($dados['budget_id']) ? (int) $dados['budget_id'] : null,
             tipo: $dados['type'] ?? null,
@@ -70,7 +71,7 @@ final class FiltrosFluxoCaixa
     public function aplicarFiltrosSecundarios($query)
     {
         return $query
-            ->when($this->contaId, fn ($q) => $q->where('account_id', $this->contaId))
+            ->when($this->contaIds, fn ($q) => $q->whereIn('account_id', $this->contaIds))
             ->when($this->categoriaId, fn ($q) => $q->where('category_id', $this->categoriaId))
             ->when($this->orcamentoId, fn ($q) => $q->where('budget_id', $this->orcamentoId))
             ->when($this->tipo, fn ($q) => $q->where('type', $this->tipo))

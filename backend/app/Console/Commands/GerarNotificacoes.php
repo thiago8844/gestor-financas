@@ -9,7 +9,7 @@ class GerarNotificacoes extends Command
 {
     protected $signature = 'notificacoes:gerar';
 
-    protected $description = 'Verifica as regras de notificação (fatura vencida, etc.) e cria as novas notificações dos usuários.';
+    protected $description = 'Verifica as regras de notificação (pagamentos a vencer, despesas vencidas, etc.) e cria as novas notificações dos usuários.';
 
     public function handle(GerarNotificacoesAction $action): int
     {

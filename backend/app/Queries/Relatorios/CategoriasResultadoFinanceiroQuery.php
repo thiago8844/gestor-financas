@@ -23,7 +23,7 @@ class CategoriasResultadoFinanceiroQuery
             ->where('is_initial_balance', false)
             ->where('type', $tipo)
             ->whereIn('status', $filtros->statuses())
-            ->when($filtros->contaId, fn ($q) => $q->where('account_id', $filtros->contaId))
+            ->when($filtros->contaIds, fn ($q) => $q->whereIn('account_id', $filtros->contaIds))
             ->whereRaw("DATE({$colunaData}) BETWEEN ? AND ?", [
                 $filtros->dataInicial->toDateString(),
                 $filtros->dataFinal->toDateString(),

@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Cartoes\CriarDespesaCartao;
 use App\Actions\CriarTransacaoParcelada;
 use App\Enums\TransactionStatus;
+use App\Http\Requests\AtualizarValorTransacaoRequest;
+use App\Http\Requests\TransacaoCartaoRequest;
 use App\Http\Requests\TransacaoParceladaRequest;
 use App\Http\Requests\TransacaoRequest;
 use App\Http\Resources\TransacaoResource;
+use App\Models\Cartao;
 use App\Models\Categoria;
 use App\Models\Transacao;
 use Illuminate\Http\Request;
@@ -20,7 +24,7 @@ class TransacaoController extends Controller
     public function index(Request $request)
     {
 
-        $query = Transacao::with(['categoria', 'conta'])
+        $query = Transacao::with(['categoria', 'conta', 'cartao', 'fatura'])
             ->where('is_initial_balance', false)
             ->where('user_id', Auth::id());
 
@@ -30,6 +34,10 @@ class TransacaoController extends Controller
 
         if ($request->filled('conta_id')) {
             $query->where('account_id', $request->conta_id);
+        }
+
+        if ($request->filled('cartao_id')) {
+            $query->where('card_id', $request->cartao_id);
         }
 
         if ($request->filled('type')) {
@@ -200,12 +208,46 @@ class TransacaoController extends Controller
 
 
     /**
+     * Store one or more expense transactions (single or parceladas) linked to a card, grouped into faturas.
+     */
+    public function storeCartao(TransacaoCartaoRequest $request)
+    {
+        $cartao = Cartao::where('id', $request->card_id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $dados = $request->all();
+
+        if (!$request->filled('category_id') && $request->filled('category_name')) {
+            $categoria = Categoria::where('user_id', Auth::id())
+                ->where('name', $request->category_name)
+                ->first();
+
+            if (!$categoria) {
+                $categoria = Categoria::create([
+                    'user_id' => Auth::id(),
+                    'name' => $request->category_name,
+                ]);
+            }
+
+            $dados['category_id'] = $categoria->id;
+        }
+
+        $resultado = CriarDespesaCartao::executar(Auth::id(), $cartao, $dados);
+
+        return response()->json([
+            'message' => 'Despesa do cartão criada com sucesso',
+            'installment_group' => $resultado['installment_group'],
+        ], 201);
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
 
-        $transacao = Transacao::with('categoria')->find($id);
+        $transacao = Transacao::with(['categoria', 'conta', 'cartao', 'fatura'])->find($id);
 
         if (Auth::id() !== $transacao->user_id) {
             return response()->json(['message' => 'Acesso negado'], 403);
@@ -219,8 +261,20 @@ class TransacaoController extends Controller
      */
     public function update(TransacaoRequest $request, string $id)
     {
-
         $transacao = Transacao::find($id);
+
+        if (Auth::id() !== $transacao->user_id) {
+            return response()->json(['message' => 'Acesso negado'], 403);
+        }
+
+        // Despesa de cartão: pertence a um grupo de parcelas/fatura, então só o valor pode
+        // mudar por aqui. Pra alterar outra coisa, o fluxo é excluir e recriar (ver rota
+        // dedicada /transacoes/{id}/valor, usada pela tela de edição pra esse caso).
+        if ($transacao->card_id !== null) {
+            $transacao->update(['amount' => $request->amount]);
+
+            return response()->json(['message' => 'Transação atualizada com sucesso'], 200);
+        }
 
         //Colocar essa lógica em um método terceirizado
         if (!$request->filled('category_id') && $request->filled('category_name')) {
@@ -239,15 +293,27 @@ class TransacaoController extends Controller
             $request->merge(['category_id' => $novaCategoria->id]);
         }
 
-        if (Auth::id() !== $transacao->user_id) {
-            return response()->json(['message' => 'Acesso negado'], 403);
-        }
-
         $transacao->update([
             ...$request->except(['installment_number', 'installment_total', 'installment_group']),
         ]);
 
         return response()->json(['message' => 'Transação atualizada com sucesso'], 200);
+    }
+
+    /**
+     * Atualiza só o valor de uma despesa. Usado pela tela de edição para despesas de cartão,
+     * cujos demais campos (conta, vencimento, categoria etc.) pertencem ao grupo/fatura e não
+     * podem ser editados individualmente.
+     */
+    public function atualizarValor(AtualizarValorTransacaoRequest $request, Transacao $transacao)
+    {
+        if (Auth::id() !== $transacao->user_id) {
+            return response()->json(['message' => 'Acesso negado'], 403);
+        }
+
+        $transacao->update(['amount' => $request->amount]);
+
+        return response()->json(['message' => 'Valor atualizado com sucesso'], 200);
     }
 
     /**

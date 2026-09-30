@@ -1,4 +1,5 @@
 import { api } from "../api-client";
+import type { Fatura } from "../types/fatura";
 
 // Intervalos disponíveis — espelham o enum TimeIntervals do backend
 export type TimeInterval =
@@ -28,6 +29,28 @@ const ultimoDiaMesAtual = () => {
 // ---------------------------------------------------------------------------
 export const getIndicadoresDashboard = async () => {
   const response = await api.get("/dashboard/indicadores");
+  return response.data;
+};
+
+// ---------------------------------------------------------------------------
+// GET /dashboard/fatura-atual
+// Só vem preenchido quando o usuário tem exatamente 1 cartão cadastrado. Nos
+// demais casos a API retorna {} (sem as chaves cartao/fatura), então sempre
+// confira `data?.fatura` antes de usar.
+// `offset` navega ±3 faturas a partir da do próximo vencimento (0 = padrão).
+// ---------------------------------------------------------------------------
+export interface FaturaAtualDashboard {
+  cartao: { id: number; name: string; conta_nome: string | null };
+  fatura: Fatura;
+  offset: number;
+}
+
+export const FATURA_ATUAL_OFFSET_MAXIMO = 3;
+
+export const getFaturaAtualDashboard = async (offset = 0) => {
+  const response = await api.get<Partial<FaturaAtualDashboard>>("/dashboard/fatura-atual", {
+    params: { offset },
+  });
   return response.data;
 };
 

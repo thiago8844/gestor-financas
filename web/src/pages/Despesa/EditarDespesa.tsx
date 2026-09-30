@@ -16,6 +16,7 @@ import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { useEffect } from "react";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
+import { EditarDespesaCartaoForm } from "../../components/Cartao/EditarDespesaCartaoForm";
 
 export function EditarDespesa() {
   const { id } = useParams<{ id: string }>();
@@ -141,6 +142,21 @@ export function EditarDespesa() {
       <PageLayout title="Editar Despesa" backTo="/despesas">
         <div className="alert alert-danger">
           Erro ao carregar dados necessários.
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Despesa de cartão: formulário próprio, restrito, sem os campos de conta/vencimento/pago.
+  if (despesa?.card_id) {
+    return (
+      <PageLayout
+        loading={isLoading}
+        title={`Editar Despesa ${despesa.id}`}
+        backTo="/despesas"
+      >
+        <div className="container-fluid">
+          <EditarDespesaCartaoForm despesa={despesa} />
         </div>
       </PageLayout>
     );

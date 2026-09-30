@@ -37,8 +37,8 @@ class NotificacaoTest extends TestCase
         $this->assertEquals(1, $criadas);
         $this->assertDatabaseHas('notifications', [
             'user_id' => $conta->user_id,
-            'type' => 'fatura_vencida',
-            'dedupe_key' => "fatura_vencida:transacao:{$transacao->id}",
+            'type' => 'despesa_vencida',
+            'dedupe_key' => "despesa_vencida:transacao:{$transacao->id}:" . now()->toDateString(),
         ]);
     }
 
@@ -65,7 +65,7 @@ class NotificacaoTest extends TestCase
     }
 
     #[Test]
-    public function nao_notifica_transacao_paga_ou_ainda_no_prazo(): void
+    public function nao_notifica_transacao_paga_ou_com_vencimento_distante(): void
     {
         $conta = Conta::factory()->create();
 
@@ -87,7 +87,7 @@ class NotificacaoTest extends TestCase
             'description' => 'Vence no futuro',
             'amount' => 150,
             'status' => TransactionStatus::PENDING,
-            'due_date' => now()->addDays(3),
+            'due_date' => now()->addDays(30),
         ]);
 
         $criadas = (new GerarNotificacoes())->executar();

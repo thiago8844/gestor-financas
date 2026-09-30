@@ -17,7 +17,8 @@ final class FiltrosResultadoFinanceiro
         public readonly Carbon $dataInicial,
         public readonly Carbon $dataFinal,
         public readonly RegimeRelatorio $regime,
-        public readonly ?int $contaId = null,
+        /** @var int[] Vazio = todas as contas do usuário. */
+        public readonly array $contaIds = [],
     ) {
     }
 
@@ -28,7 +29,7 @@ final class FiltrosResultadoFinanceiro
             dataInicial: Carbon::parse($dados['data_inicial']),
             dataFinal: Carbon::parse($dados['data_final']),
             regime: RegimeRelatorio::from($dados['regime'] ?? RegimeRelatorio::CAIXA->value),
-            contaId: isset($dados['conta_id']) ? (int) $dados['conta_id'] : null,
+            contaIds: array_map('intval', $dados['conta_ids'] ?? []),
         );
     }
 

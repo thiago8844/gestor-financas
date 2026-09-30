@@ -5,6 +5,8 @@ export const RecorrenciaFormSchema = z
   .object({
     description: z.string().min(1, "Descrição é obrigatória"),
     account_id: z.string().min(1, "Conta é obrigatória"),
+    // Quando preenchido, a recorrência é lançada no cartão (account_id passa a ser a conta do cartão).
+    card_id: z.string().nullable().optional(),
     category_id: z.string().nullable().optional(),
     category_name: z.string().optional(),
     type: z.enum(["EXPENSE", "INCOME"]),
@@ -34,6 +36,14 @@ export const RecorrenciaFormSchema = z
         code: "custom",
         path: ["amount"],
         message: "Informe o valor fixo",
+      });
+    }
+
+    if (data.card_id && !data.valorFixo) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["amount"],
+        message: "No cartão, a recorrência precisa ter um valor fixo",
       });
     }
 

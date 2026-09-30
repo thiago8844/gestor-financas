@@ -11,6 +11,7 @@ import { FieldError } from "../../components/FieldError";
 import { CategoriaAutocomplete } from "../Contas/components/CategoriaAutocomplete";
 import type { RecorrenciaForm } from "../../schemas/recorrencia";
 import type { Conta } from "../../types/conta";
+import type { Cartao } from "../../types/cartao";
 
 const DIAS_SEMANA = [
   { valor: 0, label: "Dom" },
@@ -48,6 +49,7 @@ type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setValue: UseFormSetValue<any>;
   contas: Conta[];
+  cartoes: Cartao[];
   mostrarAtivo?: boolean;
 };
 
@@ -58,12 +60,43 @@ export function RecorrenciaFormFields({
   watch,
   setValue,
   contas,
+  cartoes,
   mostrarAtivo,
 }: Props) {
   const type = watch("type");
   const frequency = watch("frequency");
   const valorFixo = watch("valorFixo");
   const defaultStatus = watch("default_status");
+  const cardId: string | null = watch("card_id") || null;
+  const accountId: string = watch("account_id") || "";
+  const noCartao = !!cardId;
+  const cartaoSelecionado = cartoes.find((c) => String(c.id) === cardId);
+  const paymentTarget = cardId ? `cartao:${cardId}` : accountId ? `conta:${accountId}` : "";
+
+  const handleTipoChange = (novoTipo: "EXPENSE" | "INCOME") => {
+    setValue("type", novoTipo);
+    // Cartão só existe para despesa: ao virar receita, a origem precisa ser escolhida de novo.
+    if (novoTipo === "INCOME" && cardId) {
+      setValue("card_id", null);
+      setValue("account_id", "");
+    }
+  };
+
+  const handlePaymentTargetChange = (valor: string) => {
+    if (valor.startsWith("cartao:")) {
+      const cartao = cartoes.find((c) => String(c.id) === valor.split(":")[1]);
+      setValue("card_id", cartao ? String(cartao.id) : null);
+      // Conta do cartão: é onde a fatura será debitada (o servidor também garante isso).
+      setValue("account_id", cartao ? String(cartao.account_id) : "", { shouldValidate: true });
+      // No cartão o valor é sempre fixo e a baixa acontece ao pagar a fatura, nunca na recorrência.
+      setValue("valorFixo", true, { shouldValidate: true });
+      setValue("default_status", "PENDING", { shouldValidate: true });
+      return;
+    }
+
+    setValue("card_id", null);
+    setValue("account_id", valor.startsWith("conta:") ? valor.split(":")[1] : "", { shouldValidate: true });
+  };
   const diasSelecionados: number[] = watch("days_of_week") || [];
 
   const toggleDiaSemana = (dia: number) => {
@@ -88,7 +121,7 @@ export function RecorrenciaFormFields({
               className="btn-check"
               id="tipoDespesa"
               checked={type === "EXPENSE"}
-              onChange={() => setValue("type", "EXPENSE")}
+              onChange={() => handleTipoChange("EXPENSE")}
             />
             <label className="btn btn-outline-danger" htmlFor="tipoDespesa">
               <i className="bi bi-arrow-down-circle me-1"></i> Despesa
@@ -99,7 +132,7 @@ export function RecorrenciaFormFields({
               className="btn-check"
               id="tipoReceita"
               checked={type === "INCOME"}
-              onChange={() => setValue("type", "INCOME")}
+              onChange={() => handleTipoChange("INCOME")}
             />
             <label className="btn btn-outline-success" htmlFor="tipoReceita">
               <i className="bi bi-arrow-up-circle me-1"></i> Receita
@@ -122,20 +155,43 @@ export function RecorrenciaFormFields({
           <FieldError>{errors.description?.message}</FieldError>
         </div>
 
-        {/* Conta */}
+        {/* Conta ou cartão */}
         <div className="mb-3">
-          <label htmlFor="account_id" className="form-label">
-            Conta <span className="text-danger">*</span>
+          <label htmlFor="payment_target" className="form-label">
+            {type === "EXPENSE" ? "Pagar com" : "Conta"} <span className="text-danger">*</span>
           </label>
-          <select id="account_id" className="form-select" {...register("account_id")}>
-            <option value="">Selecione uma conta</option>
-            {contas.map((conta: Conta) => (
-              <option key={conta.id} value={conta.id}>
-                {conta.name}
-              </option>
-            ))}
+          <select
+            id="payment_target"
+            className="form-select"
+            value={paymentTarget}
+            onChange={(e) => handlePaymentTargetChange(e.target.value)}
+          >
+            <option value="">Selecione...</option>
+            <optgroup label="Contas">
+              {contas.map((conta: Conta) => (
+                <option key={`conta-${conta.id}`} value={`conta:${conta.id}`}>
+                  {conta.name}
+                </option>
+              ))}
+            </optgroup>
+            {type === "EXPENSE" && cartoes.length > 0 && (
+              <optgroup label="Cartões">
+                {cartoes.map((cartao: Cartao) => (
+                  <option key={`cartao-${cartao.id}`} value={`cartao:${cartao.id}`}>
+                    {cartao.name} · {cartao.conta_nome}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
           <FieldError>{errors.account_id?.message}</FieldError>
+          {noCartao && (
+            <small className="text-muted d-block mt-1">
+              <i className="bi bi-credit-card me-1"></i>
+              Cada ocorrência vira uma compra no cartão{cartaoSelecionado ? ` ${cartaoSelecionado.name}` : ""}, lançada na
+              fatura correspondente ao fechamento e vencimento do cartão. Fica pendente até você pagar a fatura.
+            </small>
+          )}
         </div>
 
         {/* Categoria */}
@@ -169,6 +225,7 @@ export function RecorrenciaFormFields({
               role="switch"
               className="form-check-input"
               checked={!!valorFixo}
+              disabled={noCartao}
               onChange={(e) => {
                 setValue("valorFixo", e.target.checked, { shouldValidate: true });
                 if (!e.target.checked) {
@@ -182,8 +239,9 @@ export function RecorrenciaFormFields({
             </label>
           </div>
           <small className="text-muted">
-            Desligado quando o valor muda a cada ocorrência (ex: conta de luz) — cada
-            lançamento nasce sem valor, pra você preencher depois.
+            {noCartao
+              ? "No cartão o valor precisa ser fixo, porque a compra entra direto na fatura."
+              : "Desligado quando o valor muda a cada ocorrência (ex: conta de luz) — cada lançamento nasce sem valor, pra você preencher depois."}
           </small>
         </div>
 
@@ -209,7 +267,7 @@ export function RecorrenciaFormFields({
               type="checkbox"
               role="switch"
               className="form-check-input"
-              disabled={!valorFixo}
+              disabled={!valorFixo || noCartao}
               checked={defaultStatus === "PAID"}
               onChange={(e) =>
                 setValue("default_status", e.target.checked ? "PAID" : "PENDING", {
@@ -221,10 +279,16 @@ export function RecorrenciaFormFields({
               Lançar já como paga
             </label>
           </div>
-          {!valorFixo && (
+          {noCartao ? (
             <small className="text-muted">
-              Só é possível nascer paga quando há um valor fixo definido.
+              No cartão a compra fica pendente e é baixada quando a fatura é paga.
             </small>
+          ) : (
+            !valorFixo && (
+              <small className="text-muted">
+                Só é possível nascer paga quando há um valor fixo definido.
+              </small>
+            )
           )}
           <FieldError>{errors.default_status?.message}</FieldError>
         </div>

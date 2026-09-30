@@ -30,6 +30,10 @@ export default function Sidebar({
             <i className="bi bi-wallet2"></i> Contas
           </NavLink>
 
+          <NavLink to="/cartoes" onClick={handleClose} className={linkClass}>
+            <i className="bi bi-credit-card"></i> Cartões
+          </NavLink>
+
           <NavLink to="/despesas" onClick={handleClose} className={linkClass}>
             <i className="bi bi-arrow-down-circle"></i> Despesas
           </NavLink>

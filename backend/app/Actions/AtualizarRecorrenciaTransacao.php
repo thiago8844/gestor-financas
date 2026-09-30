@@ -19,12 +19,11 @@ class AtualizarRecorrenciaTransacao
     public static function executar(RecorrenciaTransacao $recorrencia, int $userId, array $dados): RecorrenciaTransacao
     {
         $recorrencia->fill([
-            'account_id' => $dados['account_id'],
+            ...CriarRecorrenciaTransacao::resolverOrigem($userId, $dados),
             'category_id' => CriarRecorrenciaTransacao::resolverCategoria($userId, $dados),
             'type' => $dados['type'],
             'description' => $dados['description'],
             'amount' => $dados['amount'] ?? null,
-            'default_status' => $dados['default_status'],
             'frequency' => $dados['frequency'],
             'interval' => $dados['interval'],
             'days_of_week' => $dados['days_of_week'] ?? null,

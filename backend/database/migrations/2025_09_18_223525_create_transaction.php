@@ -25,6 +25,17 @@ return new class extends Migration
                 ->onDelete('cascade');
             $table->boolean('is_initial_balance')->default(false);
 
+            // -=-=- Cartão de crédito -=-=-
+            $table->foreignId('card_id')
+                ->nullable()
+                ->constrained('cards')
+                ->nullOnDelete();
+            $table->foreignId('invoice_id')
+                ->nullable()
+                ->constrained('invoices')
+                ->nullOnDelete();
+            $table->date('purchase_date')->nullable()->comment('Data original da compra no cartão, não muda se a fatura for corrigida depois');
+
             // FK opcional para categoria
             // TODO: DESCOMENTAR QUANDO FOR IMPLEMENTAR AS CATEGORIAS
             $table->foreignId('category_id')

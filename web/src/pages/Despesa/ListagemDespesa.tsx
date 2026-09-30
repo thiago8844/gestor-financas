@@ -14,10 +14,13 @@ import { useState } from "react";
 
 import { getCategorias } from "../../api/categoria";
 import { getContas } from "../../api/conta";
+import { getCartoes } from "../../api/cartao";
 import type { Conta } from "../../types";
+import type { Cartao } from "../../types/cartao";
 import { Listagem } from "../../components/Listagens/Listagem";
 import { AcoesEmMassa } from "../../components/Listagens/AcoesEmMassa";
 import { useSelecaoEmMassa } from "../../hooks/useSelecaoEmMassa";
+import { useCacheUtils } from "../../hooks/useCacheUtils";
 
 const filtrosOriginais = {
   type: "EXPENSE" as const,
@@ -31,6 +34,7 @@ const filtrosOriginais = {
   periodo: "",
   order_by: "date_desc",
   conta_id: undefined as number | undefined,
+  cartao_id: undefined as number | undefined,
   apenas_parceladas: false,
   installment_group: undefined as string | undefined,
 };
@@ -38,6 +42,7 @@ const filtrosOriginais = {
 export function ListagemDespesa() {
   const navigate = useNavigate();
   const selecao = useSelecaoEmMassa();
+  const { invalidateFaturas } = useCacheUtils();
 
   //Filtros despesa
   const [filtros, setFiltros] = useState(filtrosOriginais);
@@ -63,6 +68,11 @@ export function ListagemDespesa() {
     queryFn: () => getContas({ active: true, tipo: "INCOME" }),
   });
 
+  const { data: cartoes, refetch: refetchCartoes } = useQuery({
+    queryKey: ["cartoes"],
+    queryFn: () => getCartoes({ active: true }),
+  });
+
   const { data: gruposParcelados } = useQuery({
     queryKey: ["despesas", "grupos-parcelados"],
     queryFn: () => getGruposParcelados("EXPENSE"),
@@ -73,6 +83,7 @@ export function ListagemDespesa() {
   const { mutate } = useMutation({
     mutationFn: (id: number) => deletarDespesa(id),
     onSuccess: () => {
+      invalidateFaturas(); // A despesa pode pertencer a uma fatura; refaz o cálculo dela
       refetch(); // Refaz a consulta para atualizar a lista de despesas
     },
     onError: () => {
@@ -84,6 +95,7 @@ export function ListagemDespesa() {
   const { mutate: mutateDeletarMultiplas } = useMutation({
     mutationFn: (ids: number[]) => deletarTransacoesMultiplas(ids),
     onSuccess: () => {
+      invalidateFaturas();
       selecao.cancelar();
       refetch();
     },
@@ -216,6 +228,30 @@ export function ListagemDespesa() {
                   {contas?.data.map((conta: Conta) => (
                     <option key={conta.id} value={conta.id}>
                       {conta.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="px-3 py-2">
+                <label className="form-label small">Cartão:</label>
+                <select
+                  value={filtrosModificados.cartao_id || ""}
+                  onChange={(e) =>
+                    setFiltrosModificados({
+                      ...filtrosModificados,
+                      cartao_id: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  onFocus={() => refetchCartoes()}
+                  className="form-select form-select-sm"
+                >
+                  <option value="">Todos</option>
+                  {cartoes?.data.map((cartao: Cartao) => (
+                    <option key={cartao.id} value={cartao.id}>
+                      {cartao.name}
                     </option>
                   ))}
                 </select>
@@ -462,7 +498,18 @@ export function ListagemDespesa() {
                 )}
               </td>
               <td>{despesa.date ?? "-"}</td>
-              <td>{despesa.conta?.name || "-"}</td>
+              <td>
+                {despesa.conta?.name || "-"}
+                {despesa.cartao && (
+                  <>
+                    <br />
+                    <small className="text-muted">
+                      <i className="bi bi-credit-card me-1"></i>
+                      {despesa.cartao.name}
+                    </small>
+                  </>
+                )}
+              </td>
               <td>
                 {despesa.categoria ? (
                   <span className="badge text-bg-secondary">

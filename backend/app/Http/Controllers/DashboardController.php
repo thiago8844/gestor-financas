@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Dashboard\ObterDespesasPorCategoriaAction;
+use App\Actions\Dashboard\ObterFaturaAtualDashboardAction;
 use App\Actions\Dashboard\ObterReceitasPorCategoriaAction;
 use App\Actions\Dashboard\ObterIndicadoresDashboardAction;
 use App\Actions\Dashboard\ObterSaldoContasPeriodoDashboardAction;
@@ -23,6 +24,20 @@ class DashboardController extends Controller
         $indicadoresMes = ObterIndicadoresDashboardAction::execute();
 
         return response()->json($indicadoresMes, 200);
+    }
+
+    // ---------------------------------------------------------------
+    // GET /dashboard/fatura-atual
+    // Retorna a fatura do próximo vencimento, só quando o usuário tem exatamente 1 cartão
+    // cadastrado. Retorna null quando não se aplica (0 ou 2+ cartões).
+    // Query params:
+    //   offset (int) — navega ±3 faturas a partir da do próximo vencimento (0 = padrão)
+    // ---------------------------------------------------------------
+    public function faturaAtual(Request $request)
+    {
+        $offset = (int) $request->query('offset', 0);
+
+        return response()->json(ObterFaturaAtualDashboardAction::execute($offset), 200);
     }
 
     // ---------------------------------------------------------------

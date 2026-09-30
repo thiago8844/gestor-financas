@@ -34,7 +34,7 @@ class GerarRelatorioResultadoFinanceiro
                 dataInicial: $periodoAnterior['inicio'],
                 dataFinal: $periodoAnterior['fim'],
                 regime: $filtros->regime,
-                contaId: $filtros->contaId,
+                contaIds: $filtros->contaIds,
             );
 
             $resumoAnterior = ResumoResultadoFinanceiroQuery::query($filtrosAnterior);

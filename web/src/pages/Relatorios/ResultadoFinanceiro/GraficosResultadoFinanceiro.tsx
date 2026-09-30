@@ -45,9 +45,11 @@ function TooltipCustom({ active, payload, label }: { active?: boolean; payload?:
 type Props = {
   serieMensal: PontoMensalResultado[];
   despesasPorCategoria: LinhaCategoriaResultado[];
+  /** PDF: sem animação, para o snapshot sair com os gráficos completos. */
+  modoImpressao?: boolean;
 };
 
-export function GraficosResultadoFinanceiro({ serieMensal, despesasPorCategoria }: Props) {
+export function GraficosResultadoFinanceiro({ serieMensal, despesasPorCategoria, modoImpressao }: Props) {
   const dadosMensais = serieMensal.map((ponto) => ({ ...ponto, periodo: formatarMes(ponto.periodo) }));
 
   const dadosDespesas = despesasPorCategoria
@@ -79,8 +81,8 @@ export function GraficosResultadoFinanceiro({ serieMensal, despesasPorCategoria 
                 />
                 <Tooltip content={<TooltipCustom />} />
                 <Legend />
-                <Bar dataKey="receitas" name="Receita" fill={COR_RECEITAS} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="despesas" name="Despesa" fill={COR_DESPESAS} radius={[4, 4, 0, 0]} />
+                <Bar isAnimationActive={!modoImpressao} dataKey="receitas" name="Receita" fill={COR_RECEITAS} radius={[4, 4, 0, 0]} />
+                <Bar isAnimationActive={!modoImpressao} dataKey="despesas" name="Despesa" fill={COR_DESPESAS} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -128,7 +130,7 @@ export function GraficosResultadoFinanceiro({ serieMensal, despesasPorCategoria 
                     );
                   }}
                 />
-                <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+                <Bar isAnimationActive={!modoImpressao} dataKey="total" radius={[0, 4, 4, 0]}>
                   {dadosDespesas.map((_, i) => (
                     <Cell key={i} fill={CORES[i % CORES.length]} />
                   ))}

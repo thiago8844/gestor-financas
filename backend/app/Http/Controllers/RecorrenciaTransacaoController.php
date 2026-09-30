@@ -17,7 +17,7 @@ class RecorrenciaTransacaoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = RecorrenciaTransacao::with(['categoria', 'conta'])
+        $query = RecorrenciaTransacao::with(['categoria', 'conta', 'cartao'])
             ->where('user_id', Auth::id());
 
         if ($request->filled('type')) {
@@ -51,7 +51,7 @@ class RecorrenciaTransacaoController extends Controller
      */
     public function show(string $id)
     {
-        $recorrencia = RecorrenciaTransacao::with(['categoria', 'conta'])->find($id);
+        $recorrencia = RecorrenciaTransacao::with(['categoria', 'conta', 'cartao'])->find($id);
 
         if (!$recorrencia || Auth::id() !== $recorrencia->user_id) {
             return response()->json(['message' => 'Acesso negado'], 403);

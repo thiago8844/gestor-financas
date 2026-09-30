@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import InputMoeda from "../../components/InputMoeda";
 import { DespesaFormSchema, type DespesaForm } from "../../schemas/despesa";
 import { ParcelamentoFormSchema } from "../../schemas/parcelamento";
+import { DespesaCartaoFormSchema } from "../../schemas/despesaCartao";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldError } from "../../components/FieldError";
 import { useMutation } from "@tanstack/react-query";
@@ -10,22 +11,31 @@ import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import type { AxiosError } from "axios";
 
 import type { Conta } from "../../types/conta";
-import { criarDespesa, criarTransacaoParcelada } from "../../api/transacoes";
+import type { Cartao } from "../../types/cartao";
+import { criarDespesa, criarTransacaoParcelada, criarDespesaCartao } from "../../api/transacoes";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { CategoriaAutocomplete } from "../Contas/components/CategoriaAutocomplete";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
 import { useParcelamento } from "../../hooks/useParcelamento";
+import { useDespesaCartao } from "../../hooks/useDespesaCartao";
+import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { ParcelamentoCampos } from "../../components/Parcelamento/ParcelamentoCampos";
+import { DespesaCartaoCampos } from "../../components/Cartao/DespesaCartaoCampos";
 
 export function CadastrarDespesa() {
-  const { contas, orcamentos, isLoading, isError } = useFormularioTransacao();
+  const { contas, cartoes, orcamentos, isLoading, isError } = useFormularioTransacao();
   const [actionType, setActionType] = useState<"save" | "saveAndNew" | null>(
     null
   );
   const [formKey, setFormKey] = useState(0); // ✅ KEY PARA FORÇAR RE-RENDER
   const [isParcelado, setIsParcelado] = useState(false);
   const parcelamento = useParcelamento();
+  const despesaCartao = useDespesaCartao();
+  const [paymentTarget, setPaymentTarget] = useState("");
+  const isCartaoMode = paymentTarget.startsWith("cartao:");
+  const cartaoSelecionado = cartoes.find((c: Cartao) => String(c.id) === despesaCartao.cardId);
+  const { invalidateFaturas, invalidateDespesas } = useCacheUtils();
 
   const navigate = useNavigate();
 
@@ -48,6 +58,21 @@ export function CadastrarDespesa() {
       status: "PAID",
     },
   });
+
+  const handlePaymentTargetChange = (value: string) => {
+    setPaymentTarget(value);
+
+    if (value.startsWith("conta:")) {
+      setValue("account_id", value.split(":")[1]);
+      despesaCartao.setCardId("");
+    } else if (value.startsWith("cartao:")) {
+      setValue("account_id", "");
+      despesaCartao.setCardId(value.split(":")[1]);
+    } else {
+      setValue("account_id", "");
+      despesaCartao.setCardId("");
+    }
+  };
 
   const { mutate, isPending } = useMutation({
     mutationFn: (data: DespesaForm) => criarDespesa(data),
@@ -186,8 +211,79 @@ export function CadastrarDespesa() {
     };
   };
 
+  const { mutate: mutateCartao, isPending: isPendingCartao } = useMutation({
+    mutationFn: (data: ReturnType<typeof DespesaCartaoFormSchema.parse>) =>
+      criarDespesaCartao(data),
+    onSuccess: () => {
+      invalidateFaturas();
+      invalidateDespesas();
+
+      if (actionType === "save") {
+        alert("Despesa do cartão criada com sucesso!");
+        navigate("/despesas");
+      } else if (actionType === "saveAndNew") {
+        alert("Despesa do cartão criada! Preencha os dados da próxima.");
+        setValue("description", "");
+        setValue("category_name", "");
+        setValue("category_id", null);
+        despesaCartao.setValorTotal("");
+        despesaCartao.setInstallmentTotal(1);
+      }
+
+      setActionType(null);
+    },
+    onError: (error: AxiosError) => {
+      setActionType(null);
+      defaultFormErrorHandler(error, setError);
+    },
+  });
+
+  const onSubmitCartaoWithAction = (action: "save" | "saveAndNew") => {
+    return () => {
+      const descricaoAtual = getValues("description");
+      const categoryIdAtual = getValues("category_id");
+      const categoryNameAtual = getValues("category_name");
+      const budgetIdAtual = getValues("budget_id");
+
+      let valido = true;
+
+      if (!descricaoAtual) {
+        setError("description", { message: "Descrição é obrigatória" });
+        valido = false;
+      }
+
+      if (!despesaCartao.cardId) {
+        alert("Selecione um cartão");
+        valido = false;
+      }
+
+      if (!valido) return;
+
+      const resultado = DespesaCartaoFormSchema.safeParse({
+        card_id: despesaCartao.cardId,
+        description: descricaoAtual,
+        amount: despesaCartao.valorTotal,
+        purchase_date: despesaCartao.purchaseDate,
+        installment_total: despesaCartao.installmentTotal,
+        category_id: categoryIdAtual,
+        category_name: categoryNameAtual,
+        budget_id: budgetIdAtual,
+      });
+
+      if (!resultado.success) {
+        alert(resultado.error.issues.map((issue) => issue.message).join("\n"));
+        return;
+      }
+
+      setActionType(action);
+      mutateCartao(resultado.data);
+    };
+  };
+
   const handleSalvar = (action: "save" | "saveAndNew") => {
-    if (isParcelado) {
+    if (isCartaoMode) {
+      onSubmitCartaoWithAction(action)();
+    } else if (isParcelado) {
       onSubmitParceladoWithAction(action)();
     } else {
       onSubmitWithAction(action)();
@@ -240,45 +336,62 @@ export function CadastrarDespesa() {
                 <FieldError>{errors.description?.message}</FieldError>
               </div>
 
-              {/* Conta */}
-              {/* Achar select com pesquisa */}
+              {/* Pagar com (conta ou cartão) */}
               <div className="mb-3">
-                <label htmlFor="account_id" className="form-label">
-                  Conta <span className="text-danger">*</span>
+                <label htmlFor="payment_target" className="form-label">
+                  Pagar com <span className="text-danger">*</span>
                 </label>
                 <select
-                  id="account_id"
+                  id="payment_target"
                   className="form-select"
-                  {...register("account_id")}
+                  value={paymentTarget}
+                  onChange={(e) => handlePaymentTargetChange(e.target.value)}
                 >
-                  <option value="">Selecione uma conta</option>
-                  {contas.map((conta: Conta) => (
-                    <option key={conta.id} value={conta.id}>
-                      {conta.name}
-                    </option>
-                  ))}
+                  <option value="">Selecione...</option>
+                  <optgroup label="Contas">
+                    {contas.map((conta: Conta) => (
+                      <option key={`conta-${conta.id}`} value={`conta:${conta.id}`}>
+                        {conta.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                  {cartoes.length > 0 && (
+                    <optgroup label="Cartões">
+                      {cartoes.map((cartao: Cartao) => (
+                        <option key={`cartao-${cartao.id}`} value={`cartao:${cartao.id}`}>
+                          {cartao.name} · {cartao.conta_nome}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
                 <FieldError>{errors.account_id?.message}</FieldError>
               </div>
 
               {/* Parcelar */}
-              <div className="mb-3">
-                <div className="form-check form-switch">
-                  <input
-                    id="isParcelado"
-                    type="checkbox"
-                    role="switch"
-                    className="form-check-input"
-                    checked={isParcelado}
-                    onChange={(e) => setIsParcelado(e.target.checked)}
-                  />
-                  <label htmlFor="isParcelado" className="form-check-label">
-                    Parcelar essa despesa?
-                  </label>
+              {!isCartaoMode && (
+                <div className="mb-3">
+                  <div className="form-check form-switch">
+                    <input
+                      id="isParcelado"
+                      type="checkbox"
+                      role="switch"
+                      className="form-check-input"
+                      checked={isParcelado}
+                      onChange={(e) => setIsParcelado(e.target.checked)}
+                    />
+                    <label htmlFor="isParcelado" className="form-check-label">
+                      Parcelar essa despesa?
+                    </label>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {!isParcelado && (
+              {isCartaoMode && (
+                <DespesaCartaoCampos despesaCartao={despesaCartao} cartao={cartaoSelecionado} />
+              )}
+
+              {!isCartaoMode && !isParcelado && (
                 <>
                   {/* Valor */}
                   <div className="mb-3">
@@ -423,7 +536,7 @@ export function CadastrarDespesa() {
             </div>
           </div>
 
-          {isParcelado && (
+          {!isCartaoMode && isParcelado && (
             <div className="row">
               <div className="col-12">
                 <ParcelamentoCampos parcelamento={parcelamento} />
@@ -454,7 +567,7 @@ export function CadastrarDespesa() {
                   type="button"
                   className="btn btn-secondary text-white"
                   onClick={() => navigate("/despesas")}
-                  disabled={isPending || isPendingParcelado}
+                  disabled={isPending || isPendingParcelado || isPendingCartao}
                 >
                   <i className="bi bi-x-circle me-2"></i>
                   Cancelar
@@ -465,9 +578,9 @@ export function CadastrarDespesa() {
                   type="button"
                   className="btn btn-primary"
                   onClick={() => handleSalvar("saveAndNew")}
-                  disabled={isPending || isPendingParcelado}
+                  disabled={isPending || isPendingParcelado || isPendingCartao}
                 >
-                  {(isPending || isPendingParcelado) && actionType === "saveAndNew" ? (
+                  {(isPending || isPendingParcelado || isPendingCartao) && actionType === "saveAndNew" ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2"></span>
                       Salvando...
@@ -485,9 +598,9 @@ export function CadastrarDespesa() {
                   type="button"
                   className="btn btn-success"
                   onClick={() => handleSalvar("save")}
-                  disabled={isPending || isPendingParcelado}
+                  disabled={isPending || isPendingParcelado || isPendingCartao}
                 >
-                  {(isPending || isPendingParcelado) && actionType === "save" ? (
+                  {(isPending || isPendingParcelado || isPendingCartao) && actionType === "save" ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2"></span>
                       Salvando...

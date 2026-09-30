@@ -10,6 +10,10 @@ import { LancamentosFluxoCaixa } from "./LancamentosFluxoCaixa";
 import { LancamentoDrawer } from "./LancamentoDrawer";
 import type { AgrupamentoRelatorio, FiltrosFluxoCaixaParams } from "../../../types/relatorio";
 import type { Transacao } from "../../../types/transacao";
+import { textoContas } from "../periodoPresets";
+import { useImprimirRelatorio } from "../../../hooks/useImprimirRelatorio";
+import { BotaoImprimirRelatorio } from "../../../components/Relatorio/BotaoImprimirRelatorio";
+import { RelatorioImprimivel } from "../../../components/Relatorio/RelatorioImprimivel";
 
 const ABAS = ["resumo", "tabela", "graficos", "lancamentos"] as const;
 type Aba = (typeof ABAS)[number];
@@ -39,11 +43,15 @@ export function FluxoCaixaPage() {
 
   const relatorio = data?.data;
 
+  const { contentRef, imprimir } = useImprimirRelatorio(
+    filtros ? `Fluxo de Caixa ${filtros.data_inicial} a ${filtros.data_final}` : "Fluxo de Caixa"
+  );
+
   const resumoTexto = filtros
     ? `${filtros.data_inicial.split("-").reverse().join("/")} – ${filtros.data_final
         .split("-")
         .reverse()
-        .join("/")} · ${filtros.conta_id ? "Conta selecionada" : "Todas as contas"} · ${
+        .join("/")} · ${textoContas(filtros.conta_ids)} · ${
         LABEL_REGIME[filtros.regime ?? "CAIXA"]
       }`
     : null;
@@ -68,6 +76,10 @@ export function FluxoCaixaPage() {
 
       {relatorio && !isFetching && (
         <>
+          <div className="d-flex justify-content-end mb-3">
+            <BotaoImprimirRelatorio onClick={imprimir} />
+          </div>
+
           <ul className="nav nav-tabs mb-4">
             {ABAS.map((valor) => (
               <li className="nav-item" key={valor}>
@@ -104,6 +116,19 @@ export function FluxoCaixaPage() {
             />
           )}
         </>
+      )}
+
+      {relatorio && !isFetching && (
+        <RelatorioImprimivel
+          contentRef={contentRef}
+          titulo="Fluxo de Caixa"
+          filtrosTexto={resumoTexto}
+          resumo={<ResumoFluxoCaixa resumo={relatorio.resumo} compararCom={filtros?.comparar_com} />}
+          tabelas={
+            <TabelaFluxoCaixa serie={relatorio.serie} agrupamento={filtros?.agrupamento ?? "DAILY"} modoImpressao />
+          }
+          graficos={<GraficosFluxoCaixa serie={relatorio.serie} modoImpressao />}
+        />
       )}
 
       <LancamentoDrawer transacao={transacaoSelecionada} onClose={() => setTransacaoSelecionada(null)} />

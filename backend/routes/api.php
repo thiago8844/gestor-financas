@@ -27,6 +27,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/indicadores',          [\App\Http\Controllers\DashboardController::class, 'indicadores']);
         Route::get('/saldo-contas',         [\App\Http\Controllers\DashboardController::class, 'saldoContas']);
         Route::get('/transacoes-categoria', [\App\Http\Controllers\DashboardController::class, 'transacoesCategoria']);
+        Route::get('/fatura-atual', [\App\Http\Controllers\DashboardController::class, 'faturaAtual']);
     });
 
 
@@ -41,13 +42,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/contas/atualizar/{conta}', [ContaController::class, 'update']);
     Route::delete('/contas/deletar/{conta}', [ContaController::class, 'destroy']);
 
+    //CARTOES
+    Route::get('/cartoes', [\App\Http\Controllers\CartaoController::class, 'index']);
+    Route::get('/cartoes/{cartao}', [\App\Http\Controllers\CartaoController::class, 'show']);
+    Route::post('/cartoes/criar', [\App\Http\Controllers\CartaoController::class, 'store']);
+    Route::put('/cartoes/atualizar/{cartao}', [\App\Http\Controllers\CartaoController::class, 'update']);
+    Route::delete('/cartoes/deletar/{cartao}', [\App\Http\Controllers\CartaoController::class, 'destroy']);
+    Route::get('/cartoes/{cartao}/faturas', [\App\Http\Controllers\FaturaController::class, 'porCartao']);
+
+    //FATURAS
+    Route::post('/faturas/{fatura}/pagar', [\App\Http\Controllers\FaturaController::class, 'pagar']);
+    Route::post('/faturas/{fatura}/reverter', [\App\Http\Controllers\FaturaController::class, 'reverter']);
+
     //TRANSACOES
     Route::get('/transacoes', [\App\Http\Controllers\TransacaoController::class, 'index']);
     Route::get('/transacoes/grupos-parcelados', [\App\Http\Controllers\TransacaoController::class, 'gruposParcelados']);
     Route::get('/transacoes/{id}', [\App\Http\Controllers\TransacaoController::class, 'show']);
     Route::post('/transacoes/criar', [\App\Http\Controllers\TransacaoController::class, 'store']);
     Route::post('/transacoes/parceladas', [\App\Http\Controllers\TransacaoController::class, 'storeParcelado']);
+    Route::post('/transacoes/cartao', [\App\Http\Controllers\TransacaoController::class, 'storeCartao']);
     Route::put('/transacoes/atualizar/{transacao}', [\App\Http\Controllers\TransacaoController::class, 'update']);
+    Route::put('/transacoes/{transacao}/valor', [\App\Http\Controllers\TransacaoController::class, 'atualizarValor']);
     Route::delete('/transacoes/deletar-multiplas', [\App\Http\Controllers\TransacaoController::class, 'destroyMultiplas']);
     Route::delete('/transacoes/deletar/{transacao}', [\App\Http\Controllers\TransacaoController::class, 'destroy']);
 
@@ -93,6 +108,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/notificacoes', [\App\Http\Controllers\NotificacaoController::class, 'index']);
     Route::patch('/notificacoes/marcar-todas-lidas', [\App\Http\Controllers\NotificacaoController::class, 'marcarTodasComoLidas']);
     Route::patch('/notificacoes/{id}/marcar-lida', [\App\Http\Controllers\NotificacaoController::class, 'marcarComoLida']);
+
+    //CONFIGURACOES
+    Route::get('/configuracoes', [\App\Http\Controllers\ConfiguracaoController::class, 'show']);
+    Route::put('/configuracoes', [\App\Http\Controllers\ConfiguracaoController::class, 'update']);
 
     //CATEGORIAS
     Route::get('/categorias', [\App\Http\Controllers\CategoriaController::class, 'index']);

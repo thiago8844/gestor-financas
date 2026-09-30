@@ -23,7 +23,7 @@ class GerarRelatorioFluxoCaixa
             $filtros->dataInicial,
             $filtros->dataFinal,
             $filtros->regime,
-            $filtros->contaId
+            $filtros->contaIds
         );
 
         $resumo['comparacao'] = self::calcularComparacao($userId, $filtros, $compararCom, $resumo['resultado_liquido']);
@@ -64,7 +64,7 @@ class GerarRelatorioFluxoCaixa
             $periodoAnterior['inicio'],
             $periodoAnterior['fim'],
             $filtros->regime,
-            $filtros->contaId
+            $filtros->contaIds
         );
 
         $resultadoAnterior = $resumoAnterior['resultado_liquido'];

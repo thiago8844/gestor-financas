@@ -2,6 +2,7 @@ import { api } from "../api-client";
 import type { DespesaForm } from "../schemas/despesa";
 import type { ReceitaForm } from "../schemas/receita";
 import type { ParcelamentoForm } from "../schemas/parcelamento";
+import type { DespesaCartaoForm } from "../schemas/despesaCartao";
 import type { GrupoParceladoResponse, TransacaoResponse } from "../types/transacao";
 
 
@@ -13,6 +14,7 @@ export async function getTransacoes(filtros: {
   data_final?: string;
   categoria_id?: number;
   conta_id?: number;
+  cartao_id?: number;
   periodo?: string; //TODO: TIPAR DPS
   order_by?: string; //TODO: TIPAR DPS
   apenas_parceladas?: boolean;
@@ -48,6 +50,11 @@ export async function criarTransacaoParcelada(data: ParcelamentoForm) {
   return response.status;
 }
 
+export async function criarDespesaCartao(data: DespesaCartaoForm) {
+  const response = await api.post("/transacoes/cartao", { ...data });
+  return response.status;
+}
+
 export async function getTransacao(id: number) {
   const response = await api.get(`/transacoes/${id}`);
   return response.data;
@@ -67,6 +74,12 @@ export async function deletarTransacoesMultiplas(ids: number[]) {
 
 export async function updateTransacao(id: number, data: DespesaForm|ReceitaForm) {
   const response = await api.put(`/transacoes/atualizar/${id}`, data);
+  return response.data;
+}
+
+// Despesa de cartão: só o valor pode ser editado (os demais campos pertencem ao grupo/fatura).
+export async function atualizarValorDespesa(id: number, amount: number) {
+  const response = await api.put(`/transacoes/${id}/valor`, { amount });
   return response.data;
 }
 

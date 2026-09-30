@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Cartoes\CriarDespesaCartao;
 use App\Enums\TransactionStatus;
+use App\Models\Cartao;
 use App\Models\Categoria;
 use App\Models\Conta;
 use App\Models\Transacao;
@@ -47,6 +49,33 @@ class JonilsonSeeder extends Seeder
             'status' => 'PAID',
             'is_initial_balance' => true,
         ]);
+
+        // Cartão de crédito, pra ter faturas/parcelas de verdade nos relatórios
+        $cartaoJonilson = Cartao::create([
+            'user_id' => $jonilson->id,
+            'account_id' => $contaJonilson->id,
+            'name' => 'Cartão Banco do Brasil',
+            'closing_day' => 28,
+            'due_day' => 5,
+            'active' => true,
+        ]);
+
+        // Cria a despesa no cartão e já marca como paga qualquer parcela cujo vencimento já
+        // passou (simula histórico real); parcelas futuras ficam pendentes, como de verdade.
+        $criarDespesaCartaoJonilson = function (array $dados) use ($jonilson, $cartaoJonilson) {
+            $resultado = CriarDespesaCartao::executar($jonilson->id, $cartaoJonilson, $dados);
+
+            foreach ($resultado['transacoes'] as $transacao) {
+                if ($transacao->due_date->lte(now())) {
+                    $transacao->update([
+                        'status' => TransactionStatus::PAID,
+                        'date' => $transacao->due_date,
+                    ]);
+                }
+            }
+
+            return $resultado;
+        };
 
         // Categorias Jonilson
         $categoriasJonilson = [
@@ -163,13 +192,25 @@ class JonilsonSeeder extends Seeder
                 $despesasJonilson[] = ['categoria' => 'IMPOSTOS', 'valor' => rand(3000, 6000), 'descricao' => 'ITR e outros impostos', 'dia' => rand(15, 25)];
             }
 
-            // Equipamentos (esporádico)
+            // Equipamentos no cartão (esporádico), às vezes parcelado — bom caso pra testar
+            // parcelamento atravessando várias faturas.
             if (rand(1, 100) <= 20) {
-                $despesasJonilson[] = ['categoria' => 'EQUIPAMENTOS', 'valor' => rand(5000, 15000), 'descricao' => ['Novo implemento', 'Peças trator', 'Equipamento ordenha'][rand(0, 2)], 'dia' => rand(5, 25)];
+                $criarDespesaCartaoJonilson([
+                    'description' => ['Novo implemento', 'Peças trator', 'Equipamento ordenha'][rand(0, 2)],
+                    'amount' => rand(5000, 15000),
+                    'purchase_date' => $mesAtual->copy()->day(rand(5, 25))->toDateString(),
+                    'installment_total' => [1, 3, 6][rand(0, 2)],
+                    'category_id' => Categoria::where('name', 'EQUIPAMENTOS')->where('user_id', $jonilson->id)->first()->id,
+                ]);
             }
 
-            // Lazer
-            $despesasJonilson[] = ['categoria' => 'LAZER', 'valor' => rand(500, 2000), 'descricao' => 'Churrasco/Festa', 'dia' => rand(20, 28)];
+            // Lazer no cartão
+            $criarDespesaCartaoJonilson([
+                'description' => 'Churrasco/Festa',
+                'amount' => rand(500, 2000),
+                'purchase_date' => $mesAtual->copy()->day(rand(20, 28))->toDateString(),
+                'category_id' => Categoria::where('name', 'LAZER')->where('user_id', $jonilson->id)->first()->id,
+            ]);
 
             foreach ($despesasJonilson as $despesa) {
                 Transacao::create([

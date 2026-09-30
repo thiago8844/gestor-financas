@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getContas } from "../api/conta";
+import { getCartoes } from "../api/cartao";
 import { getCategorias, type CategoriasResponse } from "../api/categoria";
 import { getOrcamentos } from "../api/orcamentos";
 
@@ -12,6 +13,20 @@ export function useFormularioTransacao() {
   } = useQuery({
     queryKey: ["contas", "active"],
     queryFn: () => getContas({ active: true, tipo: "INCOME" }),
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+  });
+
+  //Cartões
+  const {
+    data: cartoes,
+    isLoading: isLoadingCartoes,
+    isError: isErrorCartoes,
+  } = useQuery({
+    queryKey: ["cartoes", "active"],
+    queryFn: () => getCartoes({ active: true }),
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
@@ -48,10 +63,11 @@ export function useFormularioTransacao() {
 
   return {
     contas: contas?.data || [],
+    cartoes: cartoes?.data || [],
     categorias: categorias?.data ?? [],
     orcamentos: orcamentos?.data || [],
-    isLoading: isLoadingContas || isLoadingCategorias || isLoadingOrcamentos,
-    isError: isErrorContas || isErrorCategorias || isErrorOrcamentos,
-    isReady: !isLoadingContas && !isLoadingCategorias && !isLoadingOrcamentos,
+    isLoading: isLoadingContas || isLoadingCartoes || isLoadingCategorias || isLoadingOrcamentos,
+    isError: isErrorContas || isErrorCartoes || isErrorCategorias || isErrorOrcamentos,
+    isReady: !isLoadingContas && !isLoadingCartoes && !isLoadingCategorias && !isLoadingOrcamentos,
   };
 }

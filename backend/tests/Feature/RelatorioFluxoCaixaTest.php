@@ -44,7 +44,7 @@ class RelatorioFluxoCaixaTest extends TestCase
         $response = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
             'data_inicial' => '2026-06-01',
             'data_final' => '2026-06-30',
-            'conta_id' => $conta->id,
+            'conta_ids' => [$conta->id],
         ]));
 
         $response->assertStatus(200);
@@ -67,12 +67,12 @@ class RelatorioFluxoCaixaTest extends TestCase
         ]);
 
         $caixa = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_id' => $conta->id, 'regime' => 'CAIXA',
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$conta->id], 'regime' => 'CAIXA',
         ]));
         $caixa->assertJsonPath('data.resumo.saidas', 0);
 
         $competencia = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_id' => $conta->id, 'regime' => 'COMPETENCIA',
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$conta->id], 'regime' => 'COMPETENCIA',
         ]));
         $competencia->assertJsonPath('data.resumo.saidas', 999);
     }
@@ -87,7 +87,7 @@ class RelatorioFluxoCaixaTest extends TestCase
         $this->criarTransacao($conta, ['type' => 'EXPENSE', 'amount' => 150, 'description' => 'Mercado', 'date' => '2026-06-05', 'due_date' => '2026-06-05']);
 
         $response = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_id' => $conta->id, 'agrupamento' => 'DAILY',
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$conta->id], 'agrupamento' => 'DAILY',
         ]));
 
         $response->assertStatus(200);
@@ -116,7 +116,7 @@ class RelatorioFluxoCaixaTest extends TestCase
         $this->criarTransacao($conta, ['type' => 'EXPENSE', 'amount' => 100, 'date' => '2026-07-03', 'due_date' => '2026-07-03']);
 
         $semanal = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-07-31', 'conta_id' => $conta->id, 'agrupamento' => 'WEEKLY',
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-07-31', 'conta_ids' => [$conta->id], 'agrupamento' => 'WEEKLY',
         ]));
         $semanal->assertStatus(200);
         $serieSemanal = $semanal->json('data.serie');
@@ -126,7 +126,7 @@ class RelatorioFluxoCaixaTest extends TestCase
         $this->assertEquals(700, $serieSemanal[1]['entradas']);
 
         $mensal = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-07-31', 'conta_id' => $conta->id, 'agrupamento' => 'MONTHLY',
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-07-31', 'conta_ids' => [$conta->id], 'agrupamento' => 'MONTHLY',
         ]));
         $mensal->assertStatus(200);
         $serieMensal = $mensal->json('data.serie');
@@ -150,7 +150,7 @@ class RelatorioFluxoCaixaTest extends TestCase
         $this->criarTransacao($conta, ['type' => 'EXPENSE', 'amount' => 300, 'category_id' => $transporte->id, 'date' => '2026-06-06', 'due_date' => '2026-06-06']);
 
         $response = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_id' => $conta->id, 'category_id' => $alimentacao->id,
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$conta->id], 'category_id' => $alimentacao->id,
         ]));
 
         $response->assertStatus(200);
@@ -176,7 +176,7 @@ class RelatorioFluxoCaixaTest extends TestCase
         $this->criarTransacao($conta, ['type' => 'INCOME', 'amount' => 200, 'date' => '2026-06-15', 'due_date' => '2026-06-15']);
 
         $response = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
-            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_id' => $conta->id, 'comparar_com' => 'PERIODO_ANTERIOR',
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$conta->id], 'comparar_com' => 'PERIODO_ANTERIOR',
         ]));
 
         $response->assertStatus(200);
@@ -195,5 +195,37 @@ class RelatorioFluxoCaixaTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['data_inicial', 'data_final']);
+    }
+
+    #[Test]
+    public function filtra_por_multiplas_contas_e_ignora_as_nao_selecionadas(): void
+    {
+        $contaA = Conta::factory()->create();
+        Sanctum::actingAs($contaA->user);
+        $contaB = Conta::factory()->create(['user_id' => $contaA->user_id]);
+        $contaC = Conta::factory()->create(['user_id' => $contaA->user_id]);
+
+        $this->criarTransacao($contaA, ['type' => 'INCOME', 'amount' => 100]);
+        $this->criarTransacao($contaB, ['type' => 'INCOME', 'amount' => 200]);
+        $this->criarTransacao($contaC, ['type' => 'INCOME', 'amount' => 400]);
+
+        $response = $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$contaA->id, $contaB->id],
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.resumo.entradas', 300);
+    }
+
+    #[Test]
+    public function rejeita_conta_de_outro_usuario_no_filtro(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+        $contaDeOutro = Conta::factory()->create();
+
+        $this->getJson('/api/relatorios/fluxo-de-caixa?' . http_build_query([
+            'data_inicial' => '2026-06-01', 'data_final' => '2026-06-30', 'conta_ids' => [$contaDeOutro->id],
+        ]))->assertStatus(422);
     }
 }

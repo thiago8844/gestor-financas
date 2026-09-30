@@ -11,4 +11,6 @@ Artisan::command('inspire', function () {
 // TODO: em produção (Railway), garantir que algo dispare isso todo dia (revisão separada).
 Schedule::command('recorrencias:gerar')->dailyAt('06:00');
 
+// Antes das notificações: fatura quitada automaticamente não deve gerar aviso de atraso.
+Schedule::command('faturas:quitar-automaticamente')->hourly();
 Schedule::command('notificacoes:gerar')->hourly();

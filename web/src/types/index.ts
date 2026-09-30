@@ -12,6 +12,8 @@ export type {
   AtualizarConta,
 } from "./conta";
 
+export type { Cartao, CriarCartao, AtualizarCartao } from "./cartao";
+
 export type PaginationLink = {
   url: string | null;
   label: string;

@@ -45,9 +45,11 @@ function TooltipCustom({ active, payload, label }: { active?: boolean; payload?:
 
 type Props = {
   serie: PontoFluxoCaixa[];
+  /** PDF: sem animação, para o snapshot sair com os gráficos completos. */
+  modoImpressao?: boolean;
 };
 
-export function GraficosFluxoCaixa({ serie }: Props) {
+export function GraficosFluxoCaixa({ serie, modoImpressao }: Props) {
   if (serie.length === 0) {
     return (
       <div className="text-center text-muted py-5">
@@ -81,6 +83,7 @@ export function GraficosFluxoCaixa({ serie }: Props) {
               />
               <Tooltip content={<TooltipCustom />} />
               <Area
+                isAnimationActive={!modoImpressao}
                 type="monotone"
                 dataKey="saldo_acumulado"
                 name="Saldo acumulado"
@@ -111,8 +114,8 @@ export function GraficosFluxoCaixa({ serie }: Props) {
               />
               <Tooltip content={<TooltipCustom />} />
               <Legend />
-              <Bar dataKey="entradas" name="Entradas" fill={COR_ENTRADAS} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="saidas" name="Saídas" fill={COR_SAIDAS} radius={[4, 4, 0, 0]} />
+              <Bar isAnimationActive={!modoImpressao} dataKey="entradas" name="Entradas" fill={COR_ENTRADAS} radius={[4, 4, 0, 0]} />
+              <Bar isAnimationActive={!modoImpressao} dataKey="saidas" name="Saídas" fill={COR_SAIDAS} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

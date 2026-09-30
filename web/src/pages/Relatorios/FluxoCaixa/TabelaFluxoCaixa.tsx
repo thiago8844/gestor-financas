@@ -6,8 +6,10 @@ import type { Transacao } from "../../../types/transacao";
 type Props = {
   serie: PontoFluxoCaixa[];
   agrupamento: AgrupamentoRelatorio;
-  onAgrupamentoChange: (agrupamento: AgrupamentoRelatorio) => void;
-  onSelecionarTransacao: (transacao: Transacao) => void;
+  onAgrupamentoChange?: (agrupamento: AgrupamentoRelatorio) => void;
+  onSelecionarTransacao?: (transacao: Transacao) => void;
+  /** PDF: todos os períodos já expandidos, sem controles de interação. */
+  modoImpressao?: boolean;
 };
 
 const LABEL_AGRUPAMENTO: Record<AgrupamentoRelatorio, string> = {
@@ -20,7 +22,13 @@ function formatarPeriodo(periodo: string): string {
   return periodo.split("-").reverse().join("/");
 }
 
-export function TabelaFluxoCaixa({ serie, agrupamento, onAgrupamentoChange, onSelecionarTransacao }: Props) {
+export function TabelaFluxoCaixa({
+  serie,
+  agrupamento,
+  onAgrupamentoChange,
+  onSelecionarTransacao,
+  modoImpressao,
+}: Props) {
   const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
 
   const alternar = (periodo: string) => {
@@ -37,14 +45,14 @@ export function TabelaFluxoCaixa({ serie, agrupamento, onAgrupamentoChange, onSe
 
   return (
     <div>
-      <div className="d-flex justify-content-end mb-2">
+      <div className="d-flex justify-content-end mb-2 d-print-none">
         <div className="btn-group btn-group-sm" role="group">
           {(Object.keys(LABEL_AGRUPAMENTO) as AgrupamentoRelatorio[]).map((valor) => (
             <button
               key={valor}
               type="button"
               className={`btn btn-outline-secondary ${agrupamento === valor ? "active" : ""}`}
-              onClick={() => onAgrupamentoChange(valor)}
+              onClick={() => onAgrupamentoChange?.(valor)}
             >
               {LABEL_AGRUPAMENTO[valor]}
             </button>
@@ -75,7 +83,7 @@ export function TabelaFluxoCaixa({ serie, agrupamento, onAgrupamentoChange, onSe
             )}
 
             {serie.map((ponto) => {
-              const expandido = expandidos.has(ponto.periodo);
+              const expandido = modoImpressao || expandidos.has(ponto.periodo);
               const saldoInicialLinha = ponto.saldo_acumulado - ponto.saldo_periodo;
               const receitas = ponto.transacoes.filter((t) => t.type === "INCOME");
               const despesas = ponto.transacoes.filter((t) => t.type === "EXPENSE");
@@ -84,7 +92,7 @@ export function TabelaFluxoCaixa({ serie, agrupamento, onAgrupamentoChange, onSe
                 <Fragment key={ponto.periodo}>
                   <tr role="button" onClick={() => alternar(ponto.periodo)}>
                     <td>
-                      <i className={`bi bi-chevron-${expandido ? "down" : "right"}`}></i>
+                      <i className={`bi bi-chevron-${expandido ? "down" : "right"} d-print-none`}></i>
                     </td>
                     <td>{formatarPeriodo(ponto.periodo)}</td>
                     <td>{convertNumberToCurrencyMask(saldoInicialLinha)}</td>
@@ -111,7 +119,7 @@ export function TabelaFluxoCaixa({ serie, agrupamento, onAgrupamentoChange, onSe
                                   className="d-flex justify-content-between py-1 border-bottom"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    onSelecionarTransacao(transacao);
+                                    onSelecionarTransacao?.(transacao);
                                   }}
                                 >
                                   <span>{transacao.description || "Sem descrição"}</span>
@@ -133,7 +141,7 @@ export function TabelaFluxoCaixa({ serie, agrupamento, onAgrupamentoChange, onSe
                                   className="d-flex justify-content-between py-1 border-bottom"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    onSelecionarTransacao(transacao);
+                                    onSelecionarTransacao?.(transacao);
                                   }}
                                 >
                                   <span>{transacao.description || "Sem descrição"}</span>

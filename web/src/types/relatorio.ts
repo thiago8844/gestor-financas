@@ -42,7 +42,7 @@ export type RelatorioFluxoCaixaResponse = {
 export type FiltrosFluxoCaixaParams = {
   data_inicial: string;
   data_final: string;
-  conta_id?: number;
+  conta_ids?: number[];
   regime?: RegimeRelatorio;
   comparar_com?: ComparacaoRelatorio;
   agrupamento?: AgrupamentoRelatorio;
@@ -102,7 +102,7 @@ export type RelatorioResultadoFinanceiroResponse = {
 export type FiltrosResultadoFinanceiroParams = {
   data_inicial: string;
   data_final: string;
-  conta_id?: number;
+  conta_ids?: number[];
   regime?: RegimeRelatorio;
   comparar_com?: ComparacaoRelatorio;
 };

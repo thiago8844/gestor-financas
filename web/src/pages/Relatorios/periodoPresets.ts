@@ -88,3 +88,8 @@ export function sugerirAgrupamento(dataInicial: string, dataFinal: string): "DAI
   if (diffDias <= 120) return "WEEKLY";
   return "MONTHLY";
 }
+
+export function textoContas(contaIds?: number[]): string {
+  if (!contaIds?.length) return "Todas as contas";
+  return contaIds.length === 1 ? "1 conta selecionada" : `${contaIds.length} contas selecionadas`;
+}

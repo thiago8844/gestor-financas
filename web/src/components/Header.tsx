@@ -67,6 +67,10 @@ export default function Header() {
               <Dropdown.Menu>
                 <Dropdown.Header>Minha Conta</Dropdown.Header>
                 <Dropdown.Divider />
+                <Dropdown.Item as={Link} to="/configuracoes">
+                  <i className="bi bi-gear me-2"></i>
+                  Configurações
+                </Dropdown.Item>
                 <Dropdown.Item onClick={logoutUser}>
                   <i className="bi bi-box-arrow-right me-2"></i>
                   Sair

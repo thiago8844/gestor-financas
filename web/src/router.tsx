@@ -10,6 +10,11 @@ import { ContaRoutes } from "./pages/Contas/ContaRoutes";
 import Cadastrar from "./pages/Contas/Cadastrar";
 import Editar from "./pages/Contas/Editar";
 
+import { CartaoRoutes } from "./pages/Cartoes/CartaoRoutes";
+import { ListagemCartoes } from "./pages/Cartoes/ListagemCartoes";
+import CadastrarCartao from "./pages/Cartoes/Cadastrar";
+import EditarCartao from "./pages/Cartoes/Editar";
+
 import { EditarDespesa } from "./pages/Despesa/EditarDespesa";
 import { DespesaRoute } from "./pages/Despesa/DespesaRoute";
 import { ListagemDespesa } from "./pages/Despesa/ListagemDespesa";
@@ -44,6 +49,7 @@ import { RelatoriosRoute } from "./pages/Relatorios/RelatoriosRoute";
 import { ListagemRelatorios } from "./pages/Relatorios/ListagemRelatorios";
 import { FluxoCaixaPage } from "./pages/Relatorios/FluxoCaixa/FluxoCaixaPage";
 import { ResultadoFinanceiroPage } from "./pages/Relatorios/ResultadoFinanceiro/ResultadoFinanceiroPage";
+import { Configuracoes } from "./pages/Configuracoes/Configuracoes";
 
 export const router = createBrowserRouter([
   {
@@ -61,6 +67,15 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemContas /> },
           { path: "cadastrar", element: <Cadastrar /> },
           { path: "editar/:id", element: <Editar /> },
+        ],
+      },
+      {
+        path: "cartoes",
+        element: <CartaoRoutes />,
+        children: [
+          { path: "", element: <ListagemCartoes /> },
+          { path: "cadastrar", element: <CadastrarCartao /> },
+          { path: "editar/:id", element: <EditarCartao /> },
         ],
       },
       {
@@ -124,6 +139,10 @@ export const router = createBrowserRouter([
           { path: "fluxo-de-caixa", element: <FluxoCaixaPage /> },
           { path: "resultado-financeiro", element: <ResultadoFinanceiroPage /> },
         ],
+      },
+      {
+        path: "configuracoes",
+        element: <Configuracoes />,
       },
       {
         path: "consultor",

@@ -7,6 +7,9 @@ import type { Notificacao } from "../../types/notificacao";
 const LIMIAR_DIGEST = 5;
 
 const TITULOS_DIGEST: Record<string, string> = {
+  pagamento_a_vencer: "Pagamentos a vencer",
+  despesa_vencida: "Despesas vencidas",
+  fatura_quitada_automaticamente: "Faturas quitadas automaticamente",
   fatura_vencida: "Faturas vencidas",
 };
 

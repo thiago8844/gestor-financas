@@ -16,7 +16,7 @@ import { RecorrenciaFormFields } from "./RecorrenciaFormFields";
 export function EditarRecorrencia() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { contas, isLoading: isLoadingForm, isError: isErrorForm } = useFormularioTransacao();
+  const { contas, cartoes, isLoading: isLoadingForm, isError: isErrorForm } = useFormularioTransacao();
 
   const {
     data: recorrencia,
@@ -49,6 +49,7 @@ export function EditarRecorrencia() {
         type: recorrencia.type,
         description: recorrencia.description,
         account_id: recorrencia.account_id?.toString() || "",
+        card_id: recorrencia.card_id?.toString() ?? null,
         category_id: recorrencia.categoria?.id?.toString() || null,
         category_name: recorrencia.categoria?.name || "",
         valorFixo: recorrencia.amount !== null,
@@ -104,6 +105,7 @@ export function EditarRecorrencia() {
             watch={watch}
             setValue={setValue}
             contas={contas}
+            cartoes={cartoes}
             mostrarAtivo
           />
 

@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Cartoes\CriarDespesaCartao;
 use App\Enums\TransactionStatus;
+use App\Models\Cartao;
 use App\Models\Categoria;
 use App\Models\Conta;
 use App\Models\Transacao;
@@ -48,6 +50,32 @@ class CltSeeder extends Seeder
             'is_initial_balance' => true,
         ]);
 
+        // Cartão de crédito, pra ter faturas/parcelas de verdade nos relatórios
+        $cartaoCLT = Cartao::create([
+            'user_id' => $clt->id,
+            'account_id' => $contaCLT->id,
+            'name' => 'Cartão Nubank',
+            'closing_day' => 20,
+            'due_day' => 27,
+            'active' => true,
+        ]);
+
+        // Cria a despesa no cartão e já marca como paga qualquer parcela cujo vencimento já
+        // passou (simula histórico real); parcelas futuras ficam pendentes, como de verdade.
+        $criarDespesaCartaoCLT = function (array $dados) use ($clt, $cartaoCLT) {
+            $resultado = CriarDespesaCartao::executar($clt->id, $cartaoCLT, $dados);
+
+            foreach ($resultado['transacoes'] as $transacao) {
+                if ($transacao->due_date->lte(now())) {
+                    $transacao->update([
+                        'status' => TransactionStatus::PAID,
+                        'date' => $transacao->due_date,
+                    ]);
+                }
+            }
+
+            return $resultado;
+        };
 
         // Categorias CLT
         $categoriasCLT = [
@@ -127,7 +155,8 @@ class CltSeeder extends Seeder
                 ['categoria' => 'EDUCAÇÃO', 'valor' => rand(300, 500), 'descricao' => 'Mensalidade Faculdade', 'dia' => 8],
             ];
 
-            // Supermercado (4 compras no mês)
+            // Supermercado no cartão (4 compras no mês)
+            $categoriaSupermercado = Categoria::where('name', 'SUPERMERCADO')->where('user_id', $clt->id)->first()->id;
             $totalSupermercado = rand(300, 500);
             $compras = 4;
             for ($j = 0; $j < $compras; $j++) {
@@ -136,28 +165,50 @@ class CltSeeder extends Seeder
                     : rand(50, $totalSupermercado * 0.4);
                 $totalSupermercado -= $valor;
 
-                $despesasCLT[] = [
-                    'categoria' => 'SUPERMERCADO',
-                    'valor' => $valor,
-                    'descricao' => ['Mercado Extra', 'Supermercado Zona Sul', 'Atacadão', 'Carrefour'][rand(0, 3)],
-                    'dia' => rand(1, 28)
-                ];
+                $criarDespesaCartaoCLT([
+                    'description' => ['Mercado Extra', 'Supermercado Zona Sul', 'Atacadão', 'Carrefour'][rand(0, 3)],
+                    'amount' => $valor,
+                    'purchase_date' => $mesAtual->copy()->day(rand(1, 28))->toDateString(),
+                    'category_id' => $categoriaSupermercado,
+                ]);
             }
 
-            // Lazer esporádico
-            $despesasCLT[] = ['categoria' => 'LAZER', 'valor' => rand(50, 150), 'descricao' => ['Cinema', 'Lanchonete', 'Pizza', 'Bar'][rand(0, 3)], 'dia' => rand(5, 25)];
+            // Lazer no cartão
+            $categoriaLazer = Categoria::where('name', 'LAZER')->where('user_id', $clt->id)->first()->id;
+            $criarDespesaCartaoCLT([
+                'description' => ['Cinema', 'Lanchonete', 'Pizza', 'Bar'][rand(0, 3)],
+                'amount' => rand(50, 150),
+                'purchase_date' => $mesAtual->copy()->day(rand(5, 25))->toDateString(),
+                'category_id' => $categoriaLazer,
+            ]);
             if (rand(1, 100) <= 50) {
-                $despesasCLT[] = ['categoria' => 'LAZER', 'valor' => rand(30, 80), 'descricao' => 'Delivery', 'dia' => rand(10, 28)];
+                $criarDespesaCartaoCLT([
+                    'description' => 'Delivery',
+                    'amount' => rand(30, 80),
+                    'purchase_date' => $mesAtual->copy()->day(rand(10, 28))->toDateString(),
+                    'category_id' => $categoriaLazer,
+                ]);
             }
 
-            // Farmácia esporádica
+            // Farmácia esporádica no cartão
             if (rand(1, 100) <= 40) {
-                $despesasCLT[] = ['categoria' => 'FARMÁCIA', 'valor' => rand(30, 120), 'descricao' => 'Remédios', 'dia' => rand(1, 28)];
+                $criarDespesaCartaoCLT([
+                    'description' => 'Remédios',
+                    'amount' => rand(30, 120),
+                    'purchase_date' => $mesAtual->copy()->day(rand(1, 28))->toDateString(),
+                    'category_id' => Categoria::where('name', 'FARMÁCIA')->where('user_id', $clt->id)->first()->id,
+                ]);
             }
 
-            // Vestuário esporádico
+            // Vestuário esporádico no cartão, às vezes parcelado
             if (rand(1, 100) <= 25) {
-                $despesasCLT[] = ['categoria' => 'VESTUÁRIO', 'valor' => rand(80, 200), 'descricao' => ['Roupa', 'Tênis', 'Calça'][rand(0, 2)], 'dia' => rand(1, 28)];
+                $criarDespesaCartaoCLT([
+                    'description' => ['Roupa', 'Tênis', 'Calça'][rand(0, 2)],
+                    'amount' => rand(80, 200),
+                    'purchase_date' => $mesAtual->copy()->day(rand(1, 28))->toDateString(),
+                    'installment_total' => [1, 1, 2, 3][rand(0, 3)],
+                    'category_id' => Categoria::where('name', 'VESTUÁRIO')->where('user_id', $clt->id)->first()->id,
+                ]);
             }
 
             foreach ($despesasCLT as $despesa) {

@@ -10,6 +10,7 @@ import { getContas } from "../../api/conta";
 import { useAuthStore } from "../../stores/auth";
 
 import IndicadoresMes from "./components/IndicadoresMes";
+import { FaturaAtualCard } from "./components/FaturaAtualCard";
 import { SaldoPorContaPeriodo } from "./components/SaldoPorContaPeriodo";
 import { TransacaoCategoria } from "./components/TransacaoCategoria";
 import type { SaldoFiltroParams } from "./components/SaldoPorContaPeriodo";
@@ -65,6 +66,9 @@ export function Dashboard() {
     <PageLayout title={`Bem-Vindo ${user?.name}`} loading={isLoading}>
       {/* Cards de indicadores do mês */}
       {indicadores && <IndicadoresMes {...indicadores} />}
+
+      {/* Fatura do cartão no mês atual (só quando há exatamente 1 cartão cadastrado) */}
+      <FaturaAtualCard />
 
       <div className="container py-2">
         {/* Saldo por conta ao longo do tempo */}

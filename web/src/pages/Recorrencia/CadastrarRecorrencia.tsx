@@ -12,7 +12,7 @@ import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { RecorrenciaFormFields } from "./RecorrenciaFormFields";
 
 export function CadastrarRecorrencia() {
-  const { contas, isLoading, isError } = useFormularioTransacao();
+  const { contas, cartoes, isLoading, isError } = useFormularioTransacao();
   const navigate = useNavigate();
 
   const {
@@ -30,6 +30,7 @@ export function CadastrarRecorrencia() {
       type: "EXPENSE",
       description: "",
       account_id: "",
+      card_id: null,
       category_id: null,
       category_name: "",
       valorFixo: false,
@@ -77,6 +78,7 @@ export function CadastrarRecorrencia() {
             watch={watch}
             setValue={setValue}
             contas={contas}
+            cartoes={cartoes}
           />
 
           <div className="row mt-4">

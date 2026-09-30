@@ -18,6 +18,7 @@ class RecorrenciaTransacaoResource extends JsonResource
             'id' => $this->id,
             'user_id' => $this->user_id,
             'account_id' => $this->account_id,
+            'card_id' => $this->card_id,
             'category_id' => $this->category_id,
             'type' => $this->type,
             'description' => $this->description,
@@ -37,6 +38,7 @@ class RecorrenciaTransacaoResource extends JsonResource
             'updated_at' => $this->updated_at,
             'categoria' => $this->whenLoaded('categoria'),
             'conta' => $this->whenLoaded('conta'),
+            'cartao' => $this->whenLoaded('cartao'),
         ];
     }
 }

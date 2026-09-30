@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class ResumoFluxoCaixaQuery
 {
     /**
-     * Saldo inicial, entradas, saídas e saldo final "reais" da conta(s) no período.
+     * Saldo inicial, entradas, saídas e saldo final "reais" das contas no período.
      *
      * Propositalmente calculado só com data/conta/regime — sem os filtros secundários
      * do relatório (categoria, orçamento, valor, descrição etc.), porque "saldo da conta
@@ -23,7 +23,7 @@ class ResumoFluxoCaixaQuery
         Carbon $dataInicial,
         Carbon $dataFinal,
         RegimeRelatorio $regime,
-        ?int $contaId = null
+        array $contaIds = []
     ): array {
         // Regime de caixa: só o que já foi efetivamente pago/recebido, na data em que isso ocorreu.
         // Regime de competência: tudo (pago + pendente), na data do compromisso (vencimento quando ainda não pago).
@@ -34,7 +34,7 @@ class ResumoFluxoCaixaQuery
             ->where('user_id', $userId)
             ->where('is_initial_balance', false)
             ->whereIn('status', $statuses)
-            ->when($contaId, fn ($q) => $q->where('account_id', $contaId))
+            ->when($contaIds, fn ($q) => $q->whereIn('account_id', $contaIds))
             ->whereRaw("DATE({$colunaData}) BETWEEN ? AND ?", [$dataInicial->toDateString(), $dataFinal->toDateString()])
             ->selectRaw("
                 SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) AS entradas,
@@ -50,7 +50,7 @@ class ResumoFluxoCaixaQuery
         $saldoAbertura = DB::table('transactions')
             ->where('user_id', $userId)
             ->whereIn('status', $statuses)
-            ->when($contaId, fn ($q) => $q->where('account_id', $contaId))
+            ->when($contaIds, fn ($q) => $q->whereIn('account_id', $contaIds))
             ->whereRaw("DATE({$colunaData}) < ?", [$dataInicial->toDateString()])
             ->selectRaw("SUM(CASE WHEN type = 'INCOME' THEN amount ELSE -amount END) AS saldo")
             ->value('saldo');

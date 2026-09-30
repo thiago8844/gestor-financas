@@ -1,4 +1,5 @@
 import type { Conta } from ".";
+import type { Cartao } from "./cartao";
 import type { Categoria } from "./transacao";
 
 export type FrequenciaRecorrencia = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
@@ -7,6 +8,7 @@ export type RecorrenciaTransacao = {
   id: number;
   user_id: number;
   account_id: number;
+  card_id: number | null;
   category_id: number | null;
   type: "EXPENSE" | "INCOME";
   description: string;
@@ -26,6 +28,7 @@ export type RecorrenciaTransacao = {
   updated_at: string;
   categoria: Categoria | null;
   conta: Conta | null;
+  cartao: Cartao | null;
 };
 
 export type RecorrenciaTransacaoResponse = {

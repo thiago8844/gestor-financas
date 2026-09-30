@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Relatorios;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ResultadoFinanceiroRelatorioRequest extends FormRequest
 {
@@ -22,7 +23,8 @@ class ResultadoFinanceiroRelatorioRequest extends FormRequest
         return [
             'data_inicial' => 'required|date',
             'data_final' => 'required|date|after_or_equal:data_inicial',
-            'conta_id' => 'nullable|integer|exists:accounts,id',
+            'conta_ids' => 'nullable|array',
+            'conta_ids.*' => ['integer', Rule::exists('accounts', 'id')->where('user_id', $this->user()->id)],
             'regime' => 'nullable|in:CAIXA,COMPETENCIA',
             'comparar_com' => 'nullable|in:NENHUM,PERIODO_ANTERIOR,MESMO_PERIODO_ANO_ANTERIOR',
         ];
@@ -37,7 +39,8 @@ class ResultadoFinanceiroRelatorioRequest extends FormRequest
             'data_inicial.required' => 'A data inicial é obrigatória.',
             'data_final.required' => 'A data final é obrigatória.',
             'data_final.after_or_equal' => 'A data final não pode ser antes da data inicial.',
-            'conta_id.exists' => 'A conta selecionada não existe.',
+            'conta_ids.array' => 'As contas devem ser enviadas como uma lista.',
+            'conta_ids.*.exists' => 'Uma das contas selecionadas não existe.',
         ];
     }
 }

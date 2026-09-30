@@ -41,6 +41,11 @@ class TransacaoResource extends JsonResource
             'is_recurring' => !is_null($this->recurring_transaction_id),
             'budget_id' => $this->budget_id,
             'orcamento' => $this->whenLoaded('orcamento'),
+            'card_id' => $this->card_id,
+            'invoice_id' => $this->invoice_id,
+            'purchase_date' => $this->purchase_date,
+            'cartao' => $this->whenLoaded('cartao'),
+            'fatura' => $this->whenLoaded('fatura'),
         ];
     }
 }
