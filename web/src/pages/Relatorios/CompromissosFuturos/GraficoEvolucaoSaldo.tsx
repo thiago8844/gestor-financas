@@ -3,6 +3,7 @@ import {
   Area,
   Bar,
   CartesianGrid,
+  Cell,
   ComposedChart,
   Legend,
   Line,
@@ -14,17 +15,30 @@ import {
   YAxis,
 } from "recharts";
 import { brl, formatarDataBR, formatarDiaMes, mesCurto, nomeMes } from "./formatadores";
-import type { MesProjecao, PontoSaldoDiario, ResumoCompromissosFuturos } from "../../../types/relatorio";
+import type { MesProjecao, PontoSaldoDiario, ResumoCompromissosFuturos, TipoProjecao } from "../../../types/relatorio";
 
-// Mesma paleta dos demais relatórios: entrada = verde, saída = vermelho, saldo = azul primário.
-const COR_ENTRADAS = "#198754";
-const COR_SAIDAS = "#dc3545";
+// Verde = sobra no mês, vermelho = faltou dinheiro no mês, azul = saldo acumulado.
+const COR_POSITIVO = "#198754";
+const COR_NEGATIVO = "#dc3545";
 const COR_SALDO = "#0d6efd";
 
 const compacto = (v: number) =>
   new Intl.NumberFormat("pt-BR", { notation: "compact", compactDisplay: "short" }).format(v);
 
+const TITULO_MENSAL: Record<TipoProjecao, string> = {
+  AMBOS: "Quanto sobra por mês",
+  DESPESAS: "Quanto fica se pagar as despesas",
+  RECEITAS: "Quanto entra por mês",
+};
+
+const ROTULO_RESULTADO: Record<TipoProjecao, string> = {
+  AMBOS: "Sobra no mês",
+  DESPESAS: "Gasto no mês",
+  RECEITAS: "Entrada no mês",
+};
+
 type Props = {
+  tipos: TipoProjecao;
   meses: MesProjecao[];
   serieDiaria: PontoSaldoDiario[];
   resumo: ResumoCompromissosFuturos;
@@ -45,14 +59,29 @@ function Marcador({ cor, texto }: { cor: string; texto: string }) {
   );
 }
 
-type PayloadMensal = { rotulo: string; chave: string; inicial?: boolean; saldo: number; mes?: MesProjecao };
+type PontoMensal = {
+  rotulo: string;
+  chave: string;
+  inicial: boolean;
+  saldo: number;
+  resultado: number | null;
+  faixa: [number, number];
+  mes: MesProjecao | null;
+};
 
-function TooltipMensal({ active, payload }: { active?: boolean; payload?: { payload: PayloadMensal }[] }) {
+function TooltipMensal({
+  active,
+  payload,
+  tipos,
+}: {
+  active?: boolean;
+  payload?: { payload: PontoMensal }[];
+  tipos: TipoProjecao;
+}) {
   if (!active || !payload?.length) return null;
   const ponto = payload[0].payload;
-  const mes = ponto.mes;
 
-  if (ponto.inicial || !mes) {
+  if (ponto.inicial || !ponto.mes) {
     return (
       <div className="card shadow-sm border-0 p-2" style={{ minWidth: 200 }}>
         <div className="fw-semibold small mb-1">Hoje</div>
@@ -61,11 +90,18 @@ function TooltipMensal({ active, payload }: { active?: boolean; payload?: { payl
     );
   }
 
+  const mes = ponto.mes;
+  const resultado = mes.resultado;
+
   return (
-    <div className="card shadow-sm border-0 p-2" style={{ minWidth: 220 }}>
+    <div className="card shadow-sm border-0 p-2" style={{ minWidth: 240 }}>
       <div className="fw-semibold small mb-1">{nomeMes(mes.mes)}</div>
-      <Marcador cor={COR_ENTRADAS} texto={`Entradas: ${brl(mes.entradas)}`} />
-      <Marcador cor={COR_SAIDAS} texto={`Saídas: ${brl(mes.saidas)}`} />
+      <Marcador
+        cor={resultado >= 0 ? COR_POSITIVO : COR_NEGATIVO}
+        texto={`${ROTULO_RESULTADO[tipos]}: ${resultado >= 0 ? "+ " : "− "}${brl(Math.abs(resultado))}`}
+      />
+      {tipos !== "DESPESAS" && <Marcador cor={COR_POSITIVO} texto={`Entradas: ${brl(mes.entradas)}`} />}
+      {tipos !== "RECEITAS" && <Marcador cor={COR_NEGATIVO} texto={`Saídas: ${brl(mes.saidas)}`} />}
       <Marcador cor={COR_SALDO} texto={`Saldo ao final: ${brl(mes.saldo_final)}`} />
       <div className="text-muted small mt-1">
         Menor saldo no mês: {brl(mes.saldo_minimo)}
@@ -75,29 +111,35 @@ function TooltipMensal({ active, payload }: { active?: boolean; payload?: { payl
   );
 }
 
-export function GraficoEvolucaoSaldo({ meses, serieDiaria, resumo, dataInicial, mostrarFaixa, modoImpressao }: Props) {
+export function GraficoEvolucaoSaldo({
+  tipos,
+  meses,
+  serieDiaria,
+  resumo,
+  dataInicial,
+  mostrarFaixa,
+  modoImpressao,
+}: Props) {
   const [visao, setVisao] = useState<Visao>("MENSAL");
 
-  const dadosMensais = useMemo(() => {
-    const inicio = {
+  const dadosMensais = useMemo<PontoMensal[]>(() => {
+    const inicio: PontoMensal = {
       rotulo: "Hoje",
       chave: "hoje",
       inicial: true,
       saldo: resumo.saldo_atual,
-      entradas: null as number | null,
-      saidas: null as number | null,
-      faixa: [resumo.saldo_atual, resumo.saldo_atual] as [number, number],
-      mes: undefined as MesProjecao | undefined,
+      resultado: null,
+      faixa: [resumo.saldo_atual, resumo.saldo_atual],
+      mes: null,
     };
 
-    const porMes = meses.map((mes) => ({
+    const porMes = meses.map<PontoMensal>((mes) => ({
       rotulo: mesCurto(mes.mes),
       chave: mes.mes,
       inicial: false,
       saldo: mes.saldo_final,
-      entradas: mes.entradas as number | null,
-      saidas: mes.saidas as number | null,
-      faixa: [mes.saldo_final - mes.incerteza, mes.saldo_final + mes.incerteza] as [number, number],
+      resultado: mes.resultado,
+      faixa: [mes.saldo_final - mes.incerteza, mes.saldo_final + mes.incerteza],
       mes,
     }));
 
@@ -124,7 +166,7 @@ export function GraficoEvolucaoSaldo({ meses, serieDiaria, resumo, dataInicial, 
         <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
           <h6 className="fw-bold mb-0">
             <i className="bi bi-graph-up-arrow me-2 text-primary"></i>
-            Evolução do saldo
+            {visao === "MENSAL" || modoImpressao ? TITULO_MENSAL[tipos] : "Saldo dia a dia"}
           </h6>
 
           {!modoImpressao && (
@@ -135,7 +177,7 @@ export function GraficoEvolucaoSaldo({ meses, serieDiaria, resumo, dataInicial, 
                 aria-pressed={visao === "MENSAL"}
                 onClick={() => setVisao("MENSAL")}
               >
-                Fim de cada mês
+                Por mês
               </button>
               <button
                 type="button"
@@ -160,9 +202,9 @@ export function GraficoEvolucaoSaldo({ meses, serieDiaria, resumo, dataInicial, 
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
               <XAxis dataKey="rotulo" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={compacto} width={52} />
-              <Tooltip content={<TooltipMensal />} cursor={{ fill: "rgba(13,110,253,0.05)" }} />
+              <Tooltip content={<TooltipMensal tipos={tipos} />} cursor={{ fill: "rgba(13,110,253,0.05)" }} />
               <Legend verticalAlign="top" height={32} iconType="circle" iconSize={8} />
-              <ReferenceLine y={0} stroke="#6c757d" strokeDasharray="4 4" />
+              <ReferenceLine y={0} stroke="#6c757d" strokeWidth={1.5} />
               {mostrarFaixa && (
                 <Area
                   dataKey="faixa"
@@ -174,8 +216,21 @@ export function GraficoEvolucaoSaldo({ meses, serieDiaria, resumo, dataInicial, 
                   legendType="square"
                 />
               )}
-              <Bar dataKey="entradas" name="Entradas" fill={COR_ENTRADAS} radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={animar} />
-              <Bar dataKey="saidas" name="Saídas" fill={COR_SAIDAS} radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={animar} />
+              <Bar
+                dataKey="resultado"
+                name={ROTULO_RESULTADO[tipos]}
+                fill={COR_POSITIVO}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={40}
+                isAnimationActive={animar}
+              >
+                {dadosMensais.map((ponto) => (
+                  <Cell
+                    key={ponto.chave}
+                    fill={(ponto.resultado ?? 0) >= 0 ? COR_POSITIVO : COR_NEGATIVO}
+                  />
+                ))}
+              </Bar>
               <Line
                 dataKey="saldo"
                 name="Saldo ao final do mês"
@@ -212,7 +267,7 @@ export function GraficoEvolucaoSaldo({ meses, serieDiaria, resumo, dataInicial, 
                   );
                 }}
               />
-              <ReferenceLine y={0} stroke="#6c757d" strokeDasharray="4 4" />
+              <ReferenceLine y={0} stroke="#6c757d" strokeWidth={1.5} />
               <Area
                 dataKey="saldo"
                 type="stepAfter"
@@ -228,7 +283,7 @@ export function GraficoEvolucaoSaldo({ meses, serieDiaria, resumo, dataInicial, 
                 x={new Date(`${menor.data}T12:00:00`).getTime()}
                 y={menor.valor}
                 r={5}
-                fill={menor.valor < 0 ? COR_SAIDAS : COR_SALDO}
+                fill={menor.valor < 0 ? COR_NEGATIVO : COR_SALDO}
                 stroke="#fff"
                 strokeWidth={2}
               />
@@ -241,6 +296,8 @@ export function GraficoEvolucaoSaldo({ meses, serieDiaria, resumo, dataInicial, 
             {visao === "DIARIA" && !modoImpressao
               ? `O ponto destacado é o menor saldo previsto: ${brl(menor.valor)} em ${formatarDataBR(menor.data)}. `
               : ""}
+            {tipos === "AMBOS" &&
+              "Barras: quanto sobra (ou falta) em cada mês. Linha: saldo acumulado ao fim do mês. "}
             Considera só o que já está cadastrado (incluindo recorrências futuras); gastos novos, como compras
             ainda não feitas no cartão, não entram na projeção.
           </p>

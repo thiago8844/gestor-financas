@@ -224,7 +224,7 @@ export const DespesaEditavelCard = forwardRef<TransacaoEditavelCardHandle, Props
                   control={control}
                   render={({ field }) => (
                     <CategoriaAutocomplete
-                      value={field.value || despesa.categoria?.name || ""}
+                      value={field.value || ""}
                       onChange={(categoryName, categoryId) => {
                         field.onChange(categoryName);
                         setValue("category_id", categoryId ? categoryId.toString() : null);

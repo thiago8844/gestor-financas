@@ -35,6 +35,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/relatorios/fluxo-de-caixa', [\App\Http\Controllers\RelatorioController::class, 'fluxoCaixa']);
     Route::get('/relatorios/resultado-financeiro', [\App\Http\Controllers\RelatorioController::class, 'resultadoFinanceiro']);
     Route::get('/relatorios/compromissos-futuros', [\App\Http\Controllers\RelatorioController::class, 'compromissosFuturos']);
+    // POST: o cenário (ajustes e eventos hipotéticos) é um JSON aninhado; nada é gravado.
+    Route::post('/relatorios/simulador-financeiro', [\App\Http\Controllers\RelatorioController::class, 'simuladorFinanceiro']);
+    Route::get('/relatorios/simulador-financeiro/cenarios', [\App\Http\Controllers\CenarioSimuladorController::class, 'index']);
+    Route::post('/relatorios/simulador-financeiro/cenarios', [\App\Http\Controllers\CenarioSimuladorController::class, 'store']);
+    Route::put('/relatorios/simulador-financeiro/cenarios/{cenario}', [\App\Http\Controllers\CenarioSimuladorController::class, 'update']);
+    Route::delete('/relatorios/simulador-financeiro/cenarios/{cenario}', [\App\Http\Controllers\CenarioSimuladorController::class, 'destroy']);
 
     //CONTAS
     Route::get('/contas', [ContaController::class, 'index']);
@@ -85,6 +91,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/recorrencias/criar', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'store']);
     Route::put('/recorrencias/atualizar/{id}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'update']);
     Route::patch('/recorrencias/{id}/alternar-ativo', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'alternarAtivo']);
+    Route::get('/recorrencias/{recorrencia}/lancamentos-candidatos', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'lancamentosCandidatos']);
+    Route::get('/recorrencias/{recorrencia}/lancamentos', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'lancamentosVinculados']);
+    Route::post('/recorrencias/{recorrencia}/lancamentos', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'vincularLancamentos']);
+    Route::delete('/recorrencias/{recorrencia}/lancamentos/{transacao}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'desvincularLancamento']);
     Route::delete('/recorrencias/deletar/{recorrencia}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'destroy']);
 
     //ORCAMENTOS

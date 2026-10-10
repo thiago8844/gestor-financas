@@ -39,3 +39,18 @@ export type RecorrenciaTransacaoResponse = {
 export type RecorrenciasResponse = {
   data: RecorrenciaTransacao[];
 };
+
+/** Lançamento passado que pode ser vinculado a uma recorrência (forma de TransacaoResource). */
+export type LancamentoVinculavel = {
+  id: number;
+  description: string | null;
+  amount: number;
+  type: "EXPENSE" | "INCOME";
+  status: "PENDING" | "PAID";
+  date_raw: string | null;
+  due_date_raw: string | null;
+  purchase_date: string | null;
+  categoria: Categoria | null;
+  conta: Conta | null;
+  cartao: Cartao | null;
+};

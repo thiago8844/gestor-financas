@@ -2,8 +2,27 @@ import { useFormularioTransacao } from "../../../hooks/useFormularioDespesa";
 import { SelectMultiplo } from "../../../components/SelectMultiplo";
 import { mascararData } from "../periodoPresets";
 import type { Conta } from "../../../types";
+import type { TipoProjecao } from "../../../types/relatorio";
 
 export type Horizonte = 3 | 6 | 12 | "personalizado";
+
+const OPCOES_TIPO: { valor: TipoProjecao; label: string; ajuda: string }[] = [
+  {
+    valor: "AMBOS",
+    label: "Receitas e despesas",
+    ajuda: "Mostra quanto sobra livre em cada mês: a parte que você pode usar com os gastos variáveis.",
+  },
+  {
+    valor: "DESPESAS",
+    label: "Só despesas",
+    ajuda: "Simula pagar tudo que vence, sem contar receitas: mostra se seu saldo hoje aguenta todas as despesas.",
+  },
+  {
+    valor: "RECEITAS",
+    label: "Só receitas",
+    ajuda: "Simula só as entradas, sem pagar nada: mostra quanto o saldo cresceria.",
+  },
+];
 
 const OPCOES_HORIZONTE: { valor: Horizonte; label: string }[] = [
   { valor: 3, label: "3 meses" },
@@ -13,6 +32,8 @@ const OPCOES_HORIZONTE: { valor: Horizonte; label: string }[] = [
 ];
 
 type Props = {
+  tipos: TipoProjecao;
+  onTipos: (tipos: TipoProjecao) => void;
   horizonte: Horizonte;
   onHorizonte: (horizonte: Horizonte) => void;
   dataFinalBR: string;
@@ -29,6 +50,8 @@ type Props = {
  * e mexer no horizonte, nas contas ou na estimativa é a forma natural de explorar o cenário.
  */
 export function FiltrosCompromissosFuturos({
+  tipos,
+  onTipos,
   horizonte,
   onHorizonte,
   dataFinalBR,
@@ -44,6 +67,27 @@ export function FiltrosCompromissosFuturos({
   return (
     <div className="card shadow-sm border-0 mb-4">
       <div className="card-body">
+        <div className="mb-4">
+          <label className="form-label small">O que projetar</label>
+          <div className="btn-group w-100" role="group" aria-label="O que projetar">
+            {OPCOES_TIPO.map((opcao) => (
+              <button
+                key={opcao.valor}
+                type="button"
+                className={`btn ${tipos === opcao.valor ? "btn-primary" : "btn-outline-primary"}`}
+                aria-pressed={tipos === opcao.valor}
+                onClick={() => onTipos(opcao.valor)}
+              >
+                {opcao.label}
+              </button>
+            ))}
+          </div>
+          <div className="text-muted small mt-2">
+            <i className="bi bi-info-circle me-1"></i>
+            {OPCOES_TIPO.find((o) => o.valor === tipos)?.ajuda}
+          </div>
+        </div>
+
         <div className="row g-3 align-items-end">
           <div className="col-12 col-lg-5">
             <label className="form-label small">Projetar os próximos</label>

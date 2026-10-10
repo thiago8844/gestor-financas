@@ -46,9 +46,9 @@ export function CadastrarRecorrencia() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (data: RecorrenciaForm) => criarRecorrencia(data),
-    onSuccess: () => {
-      alert("Recorrência criada com sucesso!");
-      navigate("/recorrencias");
+    onSuccess: (response) => {
+      // Oferece já na sequência vincular os lançamentos passados desta recorrência.
+      navigate(`/recorrencias/editar/${response.data.id}?vincular=1`);
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
   });

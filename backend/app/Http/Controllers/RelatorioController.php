@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Actions\Relatorios\GerarRelatorioCompromissosFuturos;
 use App\Actions\Relatorios\GerarRelatorioFluxoCaixa;
 use App\Actions\Relatorios\GerarRelatorioResultadoFinanceiro;
+use App\Actions\Relatorios\GerarSimuladorFinanceiro;
 use App\Http\Requests\Relatorios\CompromissosFuturosRelatorioRequest;
 use App\Http\Requests\Relatorios\FluxoCaixaRelatorioRequest;
 use App\Http\Requests\Relatorios\ResultadoFinanceiroRelatorioRequest;
+use App\Http\Requests\Relatorios\SimuladorFinanceiroRequest;
 use Illuminate\Support\Facades\Auth;
 
 class RelatorioController extends Controller
@@ -47,6 +49,20 @@ class RelatorioController extends Controller
     public function compromissosFuturos(CompromissosFuturosRelatorioRequest $request)
     {
         $relatorio = GerarRelatorioCompromissosFuturos::executar(Auth::id(), $request->validated());
+
+        return response()->json(['data' => $relatorio]);
+    }
+
+    /**
+     * POST /relatorios/simulador-financeiro
+     *
+     * Projeção completa (compromissos + comportamento estimado pelo histórico) e os cenários base,
+     * otimista, pessimista e personalizado. É POST só porque o cenário é um JSON aninhado:
+     * nenhuma informação financeira é gravada.
+     */
+    public function simuladorFinanceiro(SimuladorFinanceiroRequest $request)
+    {
+        $relatorio = GerarSimuladorFinanceiro::executar(Auth::id(), $request->validated());
 
         return response()->json(['data' => $relatorio]);
     }

@@ -14,6 +14,13 @@ import { ProximosCompromissos } from "./ProximosCompromissos";
 import { TabelaResumoMensal } from "./TabelaResumoMensal";
 import { CompromissosDetalhados } from "./CompromissosDetalhados";
 import { erroDataFinal, fimDoHorizonte, formatarDataBR } from "./formatadores";
+import type { TipoProjecao } from "../../../types/relatorio";
+
+const LABEL_TIPO: Record<TipoProjecao, string> = {
+  AMBOS: "Receitas e despesas",
+  DESPESAS: "Só despesas",
+  RECEITAS: "Só receitas",
+};
 
 const ABAS = ["evolucao", "detalhes"] as const;
 type Aba = (typeof ABAS)[number];
@@ -34,6 +41,7 @@ const hojeISO = () => {
 };
 
 export function CompromissosFuturosPage() {
+  const [tipos, setTipos] = useState<TipoProjecao>("AMBOS");
   const [horizonte, setHorizonte] = useState<Horizonte>(6);
   const [dataFinalBR, setDataFinalBR] = useState("");
   const [contaIds, setContaIds] = useState<number[]>([]);
@@ -61,9 +69,10 @@ export function CompromissosFuturosPage() {
             data_final: dataFinal,
             conta_ids: contaIds.length ? contaIds : undefined,
             estimar_variaveis: estimar,
+            tipos,
           }
         : null,
-    [dataFinal, contaIds, estimar]
+    [dataFinal, contaIds, estimar, tipos]
   );
 
   const { data, isLoading, isFetching, isError } = useQuery({
@@ -81,13 +90,14 @@ export function CompromissosFuturosPage() {
   );
 
   const filtrosTexto = relatorio
-    ? `Hoje a ${formatarDataBR(relatorio.periodo.data_final)} · ${textoContas(filtros?.conta_ids)} · ${
-        relatorio.estimar_variaveis ? "Valores variáveis estimados pelo histórico" : "Valores variáveis fora dos totais"
-      }`
+    ? `Hoje a ${formatarDataBR(relatorio.periodo.data_final)} · ${LABEL_TIPO[relatorio.tipos]} · ${textoContas(
+        filtros?.conta_ids
+      )} · ${relatorio.estimar_variaveis ? "Valores variáveis estimados pelo histórico" : "Valores variáveis fora dos totais"}`
     : null;
 
   const alertasEResumo = relatorio && (
     <AlertasCompromissos
+      tipos={relatorio.tipos}
       alertas={relatorio.alertas}
       resumo={relatorio.resumo}
       estimando={relatorio.estimar_variaveis}
@@ -103,6 +113,8 @@ export function CompromissosFuturosPage() {
       </p>
 
       <FiltrosCompromissosFuturos
+        tipos={tipos}
+        onTipos={setTipos}
         horizonte={horizonte}
         onHorizonte={setHorizonte}
         dataFinalBR={dataFinalBR}
@@ -137,7 +149,12 @@ export function CompromissosFuturosPage() {
 
           {alertasEResumo}
 
-          <ResumoCompromissosFuturos resumo={relatorio.resumo} dataFinal={relatorio.periodo.data_final} />
+          <ResumoCompromissosFuturos
+            resumo={relatorio.resumo}
+            meses={relatorio.meses}
+            tipos={relatorio.tipos}
+            dataFinal={relatorio.periodo.data_final}
+          />
 
           <ul className="nav nav-tabs my-4">
             {ABAS.map((valor) => (
@@ -162,6 +179,7 @@ export function CompromissosFuturosPage() {
               <div className="row g-4 mb-4">
                 <div className="col-12 col-xl-8">
                   <GraficoEvolucaoSaldo
+                    tipos={relatorio.tipos}
                     meses={relatorio.meses}
                     serieDiaria={relatorio.serie_diaria}
                     resumo={relatorio.resumo}
@@ -190,7 +208,12 @@ export function CompromissosFuturosPage() {
           resumo={
             <>
               {alertasEResumo}
-              <ResumoCompromissosFuturos resumo={relatorio.resumo} dataFinal={relatorio.periodo.data_final} />
+              <ResumoCompromissosFuturos
+                resumo={relatorio.resumo}
+                meses={relatorio.meses}
+                tipos={relatorio.tipos}
+                dataFinal={relatorio.periodo.data_final}
+              />
             </>
           }
           tabelas={
@@ -203,6 +226,7 @@ export function CompromissosFuturosPage() {
           }
           graficos={
             <GraficoEvolucaoSaldo
+              tipos={relatorio.tipos}
               meses={relatorio.meses}
               serieDiaria={relatorio.serie_diaria}
               resumo={relatorio.resumo}

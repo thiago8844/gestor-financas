@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\AtualizarRecorrenciaTransacao;
 use App\Actions\CriarRecorrenciaTransacao;
+use App\Actions\Recorrencias\VincularLancamentosRecorrencia;
 use App\Http\Requests\RecorrenciaTransacaoRequest;
 use App\Http\Resources\RecorrenciaTransacaoResource;
+use App\Http\Resources\TransacaoResource;
+use App\Models\Transacao;
 use App\Models\RecorrenciaTransacao;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -114,5 +117,85 @@ class RecorrenciaTransacaoController extends Controller
         $recorrencia->delete();
 
         return response()->json(['message' => 'Recorrência deletada com sucesso'], 200);
+    }
+
+    /**
+     * Lançamentos passados que ainda não pertencem a nenhuma recorrência e podem ser vinculados a esta.
+     */
+    public function lancamentosCandidatos(Request $request, RecorrenciaTransacao $recorrencia)
+    {
+        if (Auth::id() !== $recorrencia->user_id) {
+            return response()->json(['message' => 'Acesso negado'], 403);
+        }
+
+        $query = VincularLancamentosRecorrencia::elegiveis($recorrencia)
+            ->with(['categoria:id,name', 'conta:id,name', 'cartao:id,name'])
+            ->orderByRaw('DATE(COALESCE(purchase_date, date, due_date)) DESC')
+            ->orderBy('id', 'desc');
+
+        if ($request->filled('busca')) {
+            $query->where('description', 'like', '%' . $request->string('busca') . '%');
+        }
+
+        return TransacaoResource::collection($query->limit(300)->get());
+    }
+
+    /**
+     * Lançamentos que já estão vinculados a esta recorrência (mais recentes primeiro).
+     */
+    public function lancamentosVinculados(RecorrenciaTransacao $recorrencia)
+    {
+        if (Auth::id() !== $recorrencia->user_id) {
+            return response()->json(['message' => 'Acesso negado'], 403);
+        }
+
+        $transacoes = Transacao::where('recurring_transaction_id', $recorrencia->id)
+            ->with(['categoria:id,name', 'conta:id,name', 'cartao:id,name'])
+            ->orderByRaw('DATE(COALESCE(purchase_date, date, due_date)) DESC')
+            ->get();
+
+        return TransacaoResource::collection($transacoes);
+    }
+
+    /**
+     * Vincula lançamentos já existentes à recorrência.
+     */
+    public function vincularLancamentos(Request $request, RecorrenciaTransacao $recorrencia)
+    {
+        if (Auth::id() !== $recorrencia->user_id) {
+            return response()->json(['message' => 'Acesso negado'], 403);
+        }
+
+        $dados = $request->validate([
+            'transacao_ids' => 'required|array|min:1',
+            'transacao_ids.*' => 'integer',
+        ]);
+
+        try {
+            $quantidade = VincularLancamentosRecorrencia::vincular($recorrencia, $dados['transacao_ids']);
+        } catch (\DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return RecorrenciaTransacaoResource::make($recorrencia->fresh())
+            ->additional(['message' => "{$quantidade} lançamento(s) vinculado(s) à recorrência"]);
+    }
+
+    /**
+     * Remove o vínculo de um lançamento com a recorrência (o lançamento continua existindo).
+     */
+    public function desvincularLancamento(RecorrenciaTransacao $recorrencia, Transacao $transacao)
+    {
+        if (Auth::id() !== $recorrencia->user_id || $transacao->user_id !== $recorrencia->user_id) {
+            return response()->json(['message' => 'Acesso negado'], 403);
+        }
+
+        if ($transacao->recurring_transaction_id !== $recorrencia->id) {
+            return response()->json(['message' => 'Este lançamento não pertence a esta recorrência'], 422);
+        }
+
+        VincularLancamentosRecorrencia::desvincular($recorrencia, $transacao);
+
+        return response()->json(['message' => 'Vínculo removido com sucesso'], 200);
     }
 }

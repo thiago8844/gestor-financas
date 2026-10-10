@@ -1,25 +1,30 @@
 import { brl, formatarDataExtensa } from "./formatadores";
-import type { AlertaSaldoNegativo, ResumoCompromissosFuturos } from "../../../types/relatorio";
+import type { AlertaSaldoNegativo, ResumoCompromissosFuturos, TipoProjecao } from "../../../types/relatorio";
 
 type Props = {
+  tipos: TipoProjecao;
   alertas: AlertaSaldoNegativo[];
   resumo: ResumoCompromissosFuturos;
   estimando: boolean;
   onEstimar: () => void;
 };
 
-function AlertaSaldo({ alerta }: { alerta: AlertaSaldoNegativo }) {
+function AlertaSaldo({ alerta, tipos }: { alerta: AlertaSaldoNegativo; tipos: TipoProjecao }) {
   const total = alerta.conta_id === null;
+
+  const titulo = (() => {
+    if (tipos === "DESPESAS" && total) {
+      return `Você não consegue pagar tudo que vence: a partir de ${formatarDataExtensa(alerta.data)} o saldo fica negativo`;
+    }
+    if (total) return `Seu saldo ficará negativo em ${formatarDataExtensa(alerta.data)}`;
+    return `A conta ${alerta.conta} ficará negativa em ${formatarDataExtensa(alerta.data)}`;
+  })();
 
   return (
     <div className="alert alert-danger d-flex gap-3 mb-3" role="alert">
       <i className="bi bi-exclamation-triangle-fill fs-4 flex-shrink-0"></i>
       <div>
-        <div className="fw-semibold">
-          {total
-            ? `Seu saldo ficará negativo em ${formatarDataExtensa(alerta.data)}`
-            : `A conta ${alerta.conta} ficará negativa em ${formatarDataExtensa(alerta.data)}`}
-        </div>
+        <div className="fw-semibold">{titulo}</div>
         <div className="small">
           Saldo previsto de {brl(alerta.saldo)}
           {alerta.evento && (
@@ -40,7 +45,7 @@ function AlertaSaldo({ alerta }: { alerta: AlertaSaldoNegativo }) {
   );
 }
 
-export function AlertasCompromissos({ alertas, resumo, estimando, onEstimar }: Props) {
+export function AlertasCompromissos({ tipos, alertas, resumo, estimando, onEstimar }: Props) {
   const temAlertaTotal = alertas.some((a) => a.conta_id === null);
   // Com o saldo total negativo, as contas individuais só repetiriam o mesmo recado.
   const visiveis = temAlertaTotal ? alertas.filter((a) => a.conta_id === null) : alertas;
@@ -51,7 +56,7 @@ export function AlertasCompromissos({ alertas, resumo, estimando, onEstimar }: P
   return (
     <>
       {visiveis.map((alerta) => (
-        <AlertaSaldo key={alerta.conta_id ?? "total"} alerta={alerta} />
+        <AlertaSaldo key={alerta.conta_id ?? "total"} alerta={alerta} tipos={tipos} />
       ))}
 
       {atrasados.quantidade > 0 && (

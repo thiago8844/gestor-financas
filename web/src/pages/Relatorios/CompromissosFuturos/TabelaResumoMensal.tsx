@@ -1,5 +1,17 @@
+import { OverlayTrigger, Popover } from "react-bootstrap";
 import { brl, formatarDiaMes, nomeMes } from "./formatadores";
 import type { MesProjecao } from "../../../types/relatorio";
+
+const EXPLICACAO_MENOR_SALDO = (
+  <Popover id="explicacao-menor-saldo">
+    <Popover.Header as="h6">Menor saldo</Popover.Header>
+    <Popover.Body className="small">
+      É o menor saldo que as contas selecionadas chegam a ter durante o mês, medido ao fim de cada dia com
+      movimentação. Começa no saldo inicial do mês, então nunca é maior que ele. Entradas e saídas do mesmo
+      dia se compensam antes de medir.
+    </Popover.Body>
+  </Popover>
+);
 
 type Props = {
   meses: MesProjecao[];
@@ -25,7 +37,18 @@ export function TabelaResumoMensal({ meses, saldoAtual }: Props) {
                 <th className="text-end">Saídas</th>
                 <th className="text-end">Resultado</th>
                 <th className="text-end">Saldo final</th>
-                <th className="text-end">Menor saldo</th>
+                <th className="text-end text-nowrap">
+                  Menor saldo
+                  <OverlayTrigger trigger={["hover", "focus"]} placement="top" overlay={EXPLICACAO_MENOR_SALDO}>
+                    <button
+                      type="button"
+                      className="btn btn-link p-0 ms-1 align-baseline text-muted"
+                      aria-label="O que é o menor saldo"
+                    >
+                      <i className="bi bi-info-circle"></i>
+                    </button>
+                  </OverlayTrigger>
+                </th>
               </tr>
             </thead>
             <tbody>

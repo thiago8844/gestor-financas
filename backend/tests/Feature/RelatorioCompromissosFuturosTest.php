@@ -294,4 +294,64 @@ class RelatorioCompromissosFuturosTest extends TestCase
         $resposta->assertJsonPath('data.resumo.saldo_atual', 0);
         $resposta->assertJsonCount(0, 'data.eventos');
     }
+
+    #[Test]
+    public function modo_somente_despesas_mostra_o_saldo_se_pagar_tudo_hoje(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+        $this->saldo($conta, 3000);
+        $this->transacao($conta, ['amount' => 1200, 'due_date' => '2026-10-20']);
+        $this->transacao($conta, ['amount' => 800, 'due_date' => '2026-11-05']);
+        $this->transacao($conta, ['type' => 'INCOME', 'amount' => 5000, 'due_date' => '2026-11-10']);
+
+        $resposta = $this->relatorio(['tipos' => 'DESPESAS'])->assertOk();
+
+        $resposta->assertJsonPath('data.tipos', 'DESPESAS');
+        $resposta->assertJsonPath('data.resumo.a_receber', 0);
+        $resposta->assertJsonPath('data.resumo.a_pagar', 2000);
+        // Sem receitas: 3000 − 2000 = 1000 sobrando se pagar tudo hoje.
+        $resposta->assertJsonPath('data.resumo.saldo_final', 1000);
+        $resposta->assertJsonCount(2, 'data.eventos');
+    }
+
+    #[Test]
+    public function modo_somente_receitas_mostra_o_saldo_sem_pagar_nada(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+        $this->saldo($conta, 3000);
+        $this->transacao($conta, ['amount' => 1200, 'due_date' => '2026-10-20']);
+        $this->transacao($conta, ['type' => 'INCOME', 'amount' => 5000, 'due_date' => '2026-11-10']);
+
+        $resposta = $this->relatorio(['tipos' => 'RECEITAS'])->assertOk();
+
+        $resposta->assertJsonPath('data.resumo.a_pagar', 0);
+        $resposta->assertJsonPath('data.resumo.saldo_final', 8000);
+    }
+
+    #[Test]
+    public function modo_ambos_calcula_o_resultado_mensal_livre(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+        $this->saldo($conta, 3000);
+        $this->transacao($conta, ['type' => 'INCOME', 'amount' => 5000, 'due_date' => '2026-11-10']);
+        $this->transacao($conta, ['amount' => 3900, 'due_date' => '2026-11-15']);
+
+        $resposta = $this->relatorio()->assertOk();
+
+        $resposta->assertJsonPath('data.tipos', 'AMBOS');
+        $meses = collect($resposta->json('data.meses'))->keyBy('mes');
+        $this->assertEquals(1100, $meses['2026-11']['resultado']); // 5000 − 3900 = livre do mês
+    }
+
+    #[Test]
+    public function rejeita_um_modo_de_projecao_desconhecido(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        $this->relatorio(['tipos' => 'TUDO'])->assertStatus(422);
+    }
 }

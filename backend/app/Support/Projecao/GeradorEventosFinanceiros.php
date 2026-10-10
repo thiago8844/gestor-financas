@@ -55,6 +55,28 @@ class GeradorEventosFinanceiros
      */
     public function gerar(): array
     {
+        $coleta = $this->coletar();
+
+        return [
+            'eventos' => [...$coleta['eventos'], ...$this->eventosDasFaturas($coleta['faturas'])],
+            'saldos_iniciais' => $coleta['saldos_iniciais'],
+            'contas' => $coleta['contas'],
+        ];
+    }
+
+    /**
+     * Mesma coleta do gerar(), mas com as faturas ainda "abertas" (itens soltos, sem virar evento):
+     * o Simulador acrescenta compras estimadas/hipotéticas nelas antes de fechar o valor de cada fatura.
+     *
+     * @return array{
+     *     eventos: array<int, array>,
+     *     faturas: array<string, array>,
+     *     saldos_iniciais: array<int, float>,
+     *     contas: array<int, string>
+     * }
+     */
+    public function coletar(): array
+    {
         $contas = Conta::where('user_id', $this->filtros->userId)->pluck('name', 'id')->all();
         $contaIds = $this->filtros->contaIds ?: array_keys($contas);
 
@@ -73,19 +95,33 @@ class GeradorEventosFinanceiros
             $this->projetarRecorrencia($recorrencia);
         }
 
-        foreach ($this->faturas as $fatura) {
-            $evento = $this->eventoDaFatura($fatura);
-
-            if ($evento !== null) {
-                $this->eventos[] = $evento;
-            }
-        }
-
         return [
             'eventos' => $this->eventos,
+            'faturas' => $this->faturas,
             'saldos_iniciais' => $this->saldosIniciais($contaIds),
             'contas' => $contas,
         ];
+    }
+
+    /**
+     * Um evento de saída por fatura que vence dentro do horizonte, com os itens como composição.
+     *
+     * @param  array<string, array>  $faturas  no formato de coletar()['faturas']
+     * @return array<int, array>
+     */
+    public function eventosDasFaturas(array $faturas): array
+    {
+        $eventos = [];
+
+        foreach ($faturas as $fatura) {
+            $evento = $this->eventoDaFatura($fatura);
+
+            if ($evento !== null) {
+                $eventos[] = $evento;
+            }
+        }
+
+        return $eventos;
     }
 
     // -=-=-=- FONTES -=-=-=-
@@ -163,6 +199,8 @@ class GeradorEventosFinanceiros
                     'transacao_id' => $transacao->id,
                     'descricao' => $transacao->description ?: 'Sem descrição',
                     'categoria' => $transacao->categoria?->name,
+                    'categoria_id' => $transacao->category_id,
+                    'recorrencia_id' => $transacao->recurring_transaction_id,
                     'data_compra' => $transacao->purchase_date?->toDateString(),
                     'parcela' => $this->rotuloParcela($transacao),
                     'recorrente' => $transacao->recurring_transaction_id !== null,
@@ -188,6 +226,8 @@ class GeradorEventosFinanceiros
             recorrenciaId: $transacao->recurring_transaction_id,
             projetado: false,
             valor: $valor,
+            categoriaId: $transacao->category_id,
+            transacaoId: $transacao->id,
         );
     }
 
@@ -233,6 +273,8 @@ class GeradorEventosFinanceiros
                     'transacao_id' => null,
                     'descricao' => $recorrencia->description,
                     'categoria' => $recorrencia->categoria?->name,
+                    'categoria_id' => $recorrencia->category_id,
+                    'recorrencia_id' => $recorrencia->id,
                     'data_compra' => $data->toDateString(),
                     'parcela' => null,
                     'recorrente' => true,
@@ -256,6 +298,7 @@ class GeradorEventosFinanceiros
             recorrenciaId: $recorrencia->id,
             projetado: true,
             valor: $valor,
+            categoriaId: $recorrencia->category_id,
         );
     }
 
@@ -434,6 +477,8 @@ class GeradorEventosFinanceiros
         ?int $recorrenciaId,
         bool $projetado,
         array $valor,
+        ?int $categoriaId = null,
+        ?int $transacaoId = null,
     ): array {
         // Vencido e ainda pendente continua sendo compromisso: pesa no saldo a partir de hoje.
         $atrasado = $dataOriginal->lt($this->filtros->hoje);
@@ -455,6 +500,8 @@ class GeradorEventosFinanceiros
             'projetado' => $projetado,
             'conta_id' => $contaId,
             'categoria' => $categoria,
+            'categoria_id' => $categoriaId,
+            'transacao_id' => $transacaoId,
             'parcela' => $parcela,
             'recorrencia_id' => $recorrenciaId,
             'fatura' => null,

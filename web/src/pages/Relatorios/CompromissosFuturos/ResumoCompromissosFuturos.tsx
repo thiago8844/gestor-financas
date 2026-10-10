@@ -1,8 +1,10 @@
 import { brl, COR_ORIGEM, formatarDataExtensa, formatarDiaMes, ICONE_ORIGEM, LABEL_ORIGEM } from "./formatadores";
-import type { ResumoCompromissosFuturos as ResumoTipo } from "../../../types/relatorio";
+import type { MesProjecao, ResumoCompromissosFuturos as ResumoTipo, TipoProjecao } from "../../../types/relatorio";
 
 type Props = {
   resumo: ResumoTipo;
+  meses: MesProjecao[];
+  tipos: TipoProjecao;
   dataFinal: string;
 };
 
@@ -39,22 +41,109 @@ function Kpi({
   );
 }
 
-export function ResumoCompromissosFuturos({ resumo, dataFinal }: Props) {
-  const saldoFinalNegativo = resumo.saldo_final < 0;
-  const estimadoTotal = resumo.estimado.a_pagar + resumo.estimado.a_receber;
+/** Média do resultado mensal. O primeiro mês é só o restante de hoje, então não entra quando há outros. */
+function mediaResultadoMensal(meses: MesProjecao[]): number | null {
+  const base = meses.length > 1 ? meses.slice(1) : meses;
+  if (base.length === 0) return null;
+  return base.reduce((soma, m) => soma + m.resultado, 0) / base.length;
+}
+
+export function ResumoCompromissosFuturos({ resumo, meses, tipos, dataFinal }: Props) {
   const menorNegativo = resumo.menor_saldo.valor < 0;
+  const menorSaldo = <span>em {formatarDataExtensa(resumo.menor_saldo.data)}</span>;
+  const saldoFinalNegativo = resumo.saldo_final < 0;
+  const saldoAtualNegativo = resumo.saldo_atual < 0;
+
+  const saldoHoje = (
+    <Kpi
+      icone="bi-wallet2"
+      corIcone="text-primary"
+      titulo="Saldo disponível hoje"
+      valor={brl(resumo.saldo_atual)}
+      corValor={saldoAtualNegativo ? "text-danger" : ""}
+      rodape="Nas contas selecionadas"
+    />
+  );
+
+  if (tipos === "DESPESAS") {
+    return (
+      <div>
+        <div className="row g-4 mb-4">
+          {saldoHoje}
+          <Kpi
+            icone="bi-arrow-up-circle-fill"
+            corIcone="text-danger"
+            titulo="Despesas a pagar"
+            valor={brl(resumo.a_pagar)}
+            corValor="text-danger"
+            rodape={resumo.estimado.a_pagar > 0 ? `Inclui ${brl(resumo.estimado.a_pagar)} estimados` : "Tudo que vence até a data final"}
+          />
+          <Kpi
+            icone={saldoFinalNegativo ? "bi-x-circle-fill" : "bi-check-circle-fill"}
+            corIcone={saldoFinalNegativo ? "text-danger" : "text-success"}
+            titulo="Sobra se pagar tudo hoje"
+            valor={brl(resumo.saldo_final)}
+            corValor={saldoFinalNegativo ? "text-danger" : "text-success"}
+            rodape={saldoFinalNegativo ? "Não cobre todas as despesas" : "Cobre todas as despesas"}
+          />
+          <Kpi
+            icone={menorNegativo ? "bi-exclamation-triangle-fill" : "bi-flag-fill"}
+            corIcone={menorNegativo ? "text-danger" : "text-primary"}
+            titulo="Menor saldo"
+            valor={brl(resumo.menor_saldo.valor)}
+            corValor={menorNegativo ? "text-danger" : ""}
+            rodape={menorSaldo}
+          />
+        </div>
+        <ComposicaoCompromissos resumo={resumo} />
+        <Rodape resumo={resumo} />
+      </div>
+    );
+  }
+
+  if (tipos === "RECEITAS") {
+    return (
+      <div>
+        <div className="row g-4 mb-4">
+          {saldoHoje}
+          <Kpi
+            icone="bi-arrow-down-circle-fill"
+            corIcone="text-success"
+            titulo="Receitas a entrar"
+            valor={brl(resumo.a_receber)}
+            corValor="text-success"
+            rodape={resumo.estimado.a_receber > 0 ? `Inclui ${brl(resumo.estimado.a_receber)} estimados` : "Sem contar nenhum pagamento"}
+          />
+          <Kpi
+            icone="bi-flag-fill"
+            corIcone="text-primary"
+            titulo={`Saldo em ${formatarDiaMes(dataFinal)}`}
+            valor={brl(resumo.saldo_final)}
+            corValor={saldoFinalNegativo ? "text-danger" : ""}
+            rodape="Se só entrasse dinheiro"
+          />
+          <Kpi
+            icone={menorNegativo ? "bi-exclamation-triangle-fill" : "bi-flag-fill"}
+            corIcone={menorNegativo ? "text-danger" : "text-primary"}
+            titulo="Menor saldo"
+            valor={brl(resumo.menor_saldo.valor)}
+            corValor={menorNegativo ? "text-danger" : ""}
+            rodape={menorSaldo}
+          />
+        </div>
+        <Rodape resumo={resumo} />
+      </div>
+    );
+  }
+
+  // AMBOS: o indicador principal é o quanto sobra livre por mês.
+  const livre = mediaResultadoMensal(meses);
+  const livreNegativo = livre !== null && livre < 0;
 
   return (
     <div>
       <div className="row g-4 mb-4">
-        <Kpi
-          icone="bi-wallet2"
-          corIcone="text-primary"
-          titulo="Saldo disponível hoje"
-          valor={brl(resumo.saldo_atual)}
-          corValor={resumo.saldo_atual < 0 ? "text-danger" : ""}
-          rodape="Nas contas selecionadas"
-        />
+        {saldoHoje}
         <Kpi
           icone="bi-arrow-down-circle-fill"
           corIcone="text-success"
@@ -72,30 +161,34 @@ export function ResumoCompromissosFuturos({ resumo, dataFinal }: Props) {
           rodape={resumo.estimado.a_pagar > 0 ? `Inclui ${brl(resumo.estimado.a_pagar)} estimados` : undefined}
         />
         <Kpi
-          icone="bi-flag-fill"
-          corIcone={saldoFinalNegativo ? "text-danger" : "text-primary"}
-          titulo={`Saldo em ${formatarDiaMes(dataFinal)}`}
-          valor={brl(resumo.saldo_final)}
-          corValor={saldoFinalNegativo ? "text-danger" : ""}
-          rodape={
-            <span className={menorNegativo ? "text-danger" : ""}>
-              {menorNegativo && <i className="bi bi-exclamation-triangle-fill me-1"></i>}
-              Menor saldo: {brl(resumo.menor_saldo.valor)} em {formatarDataExtensa(resumo.menor_saldo.data)}
-            </span>
-          }
+          icone="bi-piggy-bank-fill"
+          corIcone={livreNegativo ? "text-danger" : "text-success"}
+          titulo="Livre por mês (média)"
+          valor={livre === null ? "-" : brl(livre)}
+          corValor={livreNegativo ? "text-danger" : "text-success"}
+          rodape="Sobra de receitas depois de despesas, sem contar o mês atual"
         />
       </div>
 
       <ComposicaoCompromissos resumo={resumo} />
+      <Rodape resumo={resumo} />
+    </div>
+  );
+}
 
-      {estimadoTotal > 0 && (
+function Rodape({ resumo }: { resumo: ResumoTipo }) {
+  const temEstimado = resumo.estimado.a_receber + resumo.estimado.a_pagar > 0;
+
+  return (
+    <>
+      {temEstimado && (
         <p className="text-muted small mt-3 mb-0">
           <i className="bi bi-magic me-1"></i>
           Valores marcados como <em>estimado</em> são previsões calculadas com o histórico de cada recorrência —
           não são compromissos confirmados.
         </p>
       )}
-    </div>
+    </>
   );
 }
 

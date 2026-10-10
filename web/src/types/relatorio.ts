@@ -223,9 +223,13 @@ export type ResumoCompromissosFuturos = {
   composicao_saidas: ComposicaoSaidas[];
 };
 
+/** AMBOS = receitas e despesas (resultado livre); DESPESAS = pagar tudo hoje; RECEITAS = só entradas. */
+export type TipoProjecao = "AMBOS" | "DESPESAS" | "RECEITAS";
+
 export type RelatorioCompromissosFuturos = {
   periodo: { data_inicial: string; data_final: string };
   estimar_variaveis: boolean;
+  tipos: TipoProjecao;
   resumo: ResumoCompromissosFuturos;
   meses: MesProjecao[];
   serie_diaria: PontoSaldoDiario[];
@@ -242,4 +246,5 @@ export type FiltrosCompromissosFuturosParams = {
   data_final: string;
   conta_ids?: number[];
   estimar_variaveis?: boolean;
+  tipos?: TipoProjecao;
 };

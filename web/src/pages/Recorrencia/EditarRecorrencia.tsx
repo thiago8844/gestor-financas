@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { AxiosError } from "axios";
 
 import PageLayout from "../../layouts/PageLayout";
@@ -12,11 +12,15 @@ import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { RecorrenciaFormFields } from "./RecorrenciaFormFields";
+import { VincularLancamentosModal } from "./VincularLancamentosModal";
 
 export function EditarRecorrencia() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { contas, cartoes, isLoading: isLoadingForm, isError: isErrorForm } = useFormularioTransacao();
+  // Vindo da criação, abre direto a vinculação de lançamentos passados.
+  const [vinculoAberto, setVinculoAberto] = useState(searchParams.get("vincular") === "1");
 
   const {
     data: recorrencia,
@@ -109,6 +113,20 @@ export function EditarRecorrencia() {
             mostrarAtivo
           />
 
+          {recorrencia && (
+            <div className="card shadow-sm border-0 mt-4">
+              <div className="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div className="small text-muted">
+                  <i className="bi bi-link-45deg me-2"></i>
+                  Já lançou essa transação antes? Vincule os lançamentos passados para que a projeção use o histórico.
+                </div>
+                <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => setVinculoAberto(true)}>
+                  Vincular lançamentos passados
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="row mt-4">
             <div className="col-12">
               <div className="d-flex gap-2 justify-content-end">
@@ -139,6 +157,11 @@ export function EditarRecorrencia() {
           </div>
         </form>
       </div>
+
+      <VincularLancamentosModal
+        recorrencia={vinculoAberto ? recorrencia ?? null : null}
+        onClose={() => setVinculoAberto(false)}
+      />
     </PageLayout>
   );
 }

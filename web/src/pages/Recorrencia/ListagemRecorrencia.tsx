@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import PageLayout from "../../layouts/PageLayout";
 import { Listagem } from "../../components/Listagens/Listagem";
@@ -10,10 +11,13 @@ import {
   getRecorrencias,
 } from "../../api/recorrencias";
 import { formatarFrequencia } from "./formatarFrequencia";
+import { VincularLancamentosModal } from "./VincularLancamentosModal";
+import type { RecorrenciaTransacao } from "../../types/recorrencia";
 
 export function ListagemRecorrencia() {
   const queryClient = useQueryClient();
   const { openModal } = useConfirmModalStore();
+  const [vinculando, setVinculando] = useState<RecorrenciaTransacao | null>(null);
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["recorrencias"],
@@ -124,6 +128,14 @@ export function ListagemRecorrencia() {
               </td>
               <td>
                 <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setVinculando(recorrencia)}
+                    className="btn btn-sm btn-outline-primary"
+                    title="Vincular lançamentos passados"
+                  >
+                    <i className="bi bi-link-45deg"></i>
+                  </button>
                   <Link
                     to={`/recorrencias/editar/${recorrencia.id}`}
                     className="btn btn-sm btn-secondary"
@@ -150,6 +162,8 @@ export function ListagemRecorrencia() {
           ))}
         </Listagem.Tabela>
       </Listagem>
+
+      <VincularLancamentosModal recorrencia={vinculando} onClose={() => setVinculando(null)} />
     </PageLayout>
   );
 }

@@ -10,6 +10,15 @@ use Carbon\Carbon;
  */
 final class FiltrosProjecao
 {
+    /** Projeta receitas e despesas juntas: o resultado mostra quanto sobra. */
+    public const AMBOS = 'AMBOS';
+
+    /** Só despesas, sem receitas: o saldo final mostra se dá para pagar tudo hoje. */
+    public const DESPESAS = 'DESPESAS';
+
+    /** Só receitas, sem pagar nada: o saldo final mostra quanto entraria. */
+    public const RECEITAS = 'RECEITAS';
+
     public function __construct(
         public readonly int $userId,
         public readonly Carbon $hoje,
@@ -18,7 +27,17 @@ final class FiltrosProjecao
         public readonly array $contaIds = [],
         /** Valores variáveis (recorrência sem valor fixo) entram com uma estimativa do histórico. */
         public readonly bool $estimarVariaveis = false,
+        public readonly string $tipos = self::AMBOS,
     ) {
+    }
+
+    public function incluiTipo(string $tipoEvento): bool
+    {
+        return match ($this->tipos) {
+            self::DESPESAS => $tipoEvento === 'EXPENSE',
+            self::RECEITAS => $tipoEvento === 'INCOME',
+            default => true,
+        };
     }
 
     public static function fromArray(int $userId, array $dados, ?Carbon $hoje = null): self
@@ -29,6 +48,7 @@ final class FiltrosProjecao
             dataFinal: Carbon::parse($dados['data_final'])->startOfDay(),
             contaIds: array_map('intval', $dados['conta_ids'] ?? []),
             estimarVariaveis: filter_var($dados['estimar_variaveis'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            tipos: $dados['tipos'] ?? self::AMBOS,
         );
     }
 }

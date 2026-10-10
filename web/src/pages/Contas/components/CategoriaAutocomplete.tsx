@@ -38,6 +38,12 @@ export function CategoriaAutocomplete({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // O valor pode chegar depois da montagem (ex.: o form de edição só é preenchido com reset() após
+  // carregar os dados). Sem isso, o texto ficaria vazio mesmo com a categoria salva.
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
   // ✅ BUSCA CATEGORIAS DO BACKEND
   const {
     data: categorias = [],

@@ -178,7 +178,7 @@ export const ReceitaEditavelCard = forwardRef<TransacaoEditavelCardHandle, Props
                   control={control}
                   render={({ field }) => (
                     <CategoriaAutocomplete
-                      value={field.value || receita.categoria?.name || ""}
+                      value={field.value || ""}
                       onChange={(categoryName, categoryId) => {
                         field.onChange(categoryName);
                         setValue("category_id", categoryId ? categoryId.toString() : null);

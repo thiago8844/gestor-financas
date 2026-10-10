@@ -40,7 +40,7 @@ class RecorrenciaTransacaoRequest extends FormRequest
             // Com cartão, a conta é a vinculada a ele (definida no servidor).
             'account_id' => 'required_without:card_id|nullable|integer|exists:accounts,id',
             'card_id' => ['nullable', 'integer', Rule::exists('cards', 'id')->where('user_id', $this->user()->id)],
-            'category_id' => 'nullable|integer|exists:categories,id',
+            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('user_id', $this->user()->id)],
             'category_name' => 'nullable|string|max:100',
             'type' => 'required|in:INCOME,EXPENSE',
             'description' => 'required|string|max:255',

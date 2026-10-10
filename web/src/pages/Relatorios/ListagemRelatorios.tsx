@@ -33,6 +33,12 @@ const RELATORIOS: CardRelatorio[] = [
     icone: "bi-calendar-check",
     to: "/relatorios/compromissos-futuros",
   },
+  {
+    titulo: "Simulador Financeiro Futuro",
+    pergunta: "Como vai estar meu dinheiro nos próximos meses — e o que muda se eu decidir algo diferente?",
+    icone: "bi-stars",
+    to: "/relatorios/simulador-financeiro",
+  },
 ];
 
 export function ListagemRelatorios() {

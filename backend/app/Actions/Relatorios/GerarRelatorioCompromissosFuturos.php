@@ -15,6 +15,12 @@ class GerarRelatorioCompromissosFuturos
 
         $base = (new GeradorEventosFinanceiros($filtros))->gerar();
 
+        // Filtrar aqui (e não na consulta) mantém saldo, resultado e alertas coerentes com o modo escolhido.
+        $base['eventos'] = array_values(array_filter(
+            $base['eventos'],
+            fn (array $evento) => $filtros->incluiTipo($evento['tipo'])
+        ));
+
         $linhaDoTempo = LinhaDoTempoSaldo::calcular(
             $base['saldos_iniciais'],
             $base['eventos'],
@@ -34,6 +40,7 @@ class GerarRelatorioCompromissosFuturos
                 'data_final' => $filtros->dataFinal->toDateString(),
             ],
             'estimar_variaveis' => $filtros->estimarVariaveis,
+            'tipos' => $filtros->tipos,
             'resumo' => self::montarResumo($eventos, $linhaDoTempo, array_sum($base['saldos_iniciais'])),
             'meses' => $linhaDoTempo['meses'],
             'serie_diaria' => $linhaDoTempo['serie_diaria'],

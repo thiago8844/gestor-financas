@@ -79,29 +79,46 @@ final class EstimadorValorVariavel
      */
     private static function removerOutliers(array $valores): array
     {
-        if (count($valores) < self::MIN_AMOSTRAS_OUTLIER) {
+        $atipicos = self::indicesAtipicos($valores);
+
+        if ($atipicos === [] || count($atipicos) === count($valores)) {
             return $valores;
+        }
+
+        return array_values(array_diff_key($valores, array_flip($atipicos)));
+    }
+
+    /**
+     * Posições dos valores que o estimador descarta como atípicos — exposto para outras
+     * análises (Simulador) marcarem os mesmos meses excepcionais, com o mesmo critério.
+     *
+     * @param  float[]  $valores
+     * @return int[]
+     */
+    public static function indicesAtipicos(array $valores): array
+    {
+        $valores = array_values(array_map('floatval', $valores));
+
+        if (count($valores) < self::MIN_AMOSTRAS_OUTLIER) {
+            return [];
         }
 
         $mediana = self::mediana($valores);
         $mad = self::mad($valores);
+        $atipicos = [];
 
-        if ($mad == 0.0) {
-            // Maioria idêntica: o que diverge muito da mediana é exceção.
-            $filtrados = array_values(array_filter(
-                $valores,
-                fn (float $v) => abs($v - $mediana) <= $mediana * 0.5
-            ));
+        foreach ($valores as $i => $v) {
+            // MAD = 0 (maioria idêntica): o que diverge muito da mediana é exceção.
+            $atipico = $mad == 0.0
+                ? abs($v - $mediana) > $mediana * 0.5
+                : abs(0.6745 * ($v - $mediana) / $mad) > self::LIMITE_OUTLIER;
 
-            return $filtrados === [] ? $valores : $filtrados;
+            if ($atipico) {
+                $atipicos[] = $i;
+            }
         }
 
-        $filtrados = array_values(array_filter(
-            $valores,
-            fn (float $v) => abs(0.6745 * ($v - $mediana) / $mad) <= self::LIMITE_OUTLIER
-        ));
-
-        return $filtrados === [] ? $valores : $filtrados;
+        return $atipicos;
     }
 
     /** @param float[] $valores mais recente primeiro */

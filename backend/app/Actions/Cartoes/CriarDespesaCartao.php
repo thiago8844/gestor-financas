@@ -73,7 +73,7 @@ class CriarDespesaCartao
      *
      * @return array<int, float>
      */
-    protected static function dividirValor(float $valorTotal, int $total): array
+    public static function dividirValor(float $valorTotal, int $total): array
     {
         $centavosTotal = (int) round($valorTotal * 100);
         $base = intdiv($centavosTotal, $total);
