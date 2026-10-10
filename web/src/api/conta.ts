@@ -4,6 +4,7 @@ import type { ContaForm } from "../schemas/conta";
 export const getContas = async (filtros: {
   active?: boolean;
   tipo?: "EXPENSE" | "INCOME";
+  per_page?: number;
 }) => {
   const response = await api.get("/contas", { params: filtros });
   console.log(response.data);

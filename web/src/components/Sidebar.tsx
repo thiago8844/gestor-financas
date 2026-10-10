@@ -42,6 +42,10 @@ export default function Sidebar({
             <i className="bi bi-arrow-up-circle"></i> Receitas
           </NavLink>
 
+          <NavLink to="/transferencias" onClick={handleClose} className={linkClass}>
+            <i className="bi bi-arrow-left-right"></i> Transferências
+          </NavLink>
+
           <NavLink to="/recorrencias" onClick={handleClose} className={linkClass}>
             <i className="bi bi-arrow-repeat"></i> Recorrências
           </NavLink>

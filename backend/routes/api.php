@@ -42,6 +42,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/contas/atualizar/{conta}', [ContaController::class, 'update']);
     Route::delete('/contas/deletar/{conta}', [ContaController::class, 'destroy']);
 
+    //TRANSFERENCIAS
+    Route::get('/transferencias', [\App\Http\Controllers\TransferenciaController::class, 'index']);
+    Route::get('/transferencias/{transferencia}', [\App\Http\Controllers\TransferenciaController::class, 'show']);
+    Route::post('/transferencias/criar', [\App\Http\Controllers\TransferenciaController::class, 'store']);
+    Route::put('/transferencias/atualizar/{transferencia}', [\App\Http\Controllers\TransferenciaController::class, 'update']);
+    Route::delete('/transferencias/deletar/{transferencia}', [\App\Http\Controllers\TransferenciaController::class, 'destroy']);
+
     //CARTOES
     Route::get('/cartoes', [\App\Http\Controllers\CartaoController::class, 'index']);
     Route::get('/cartoes/{cartao}', [\App\Http\Controllers\CartaoController::class, 'show']);

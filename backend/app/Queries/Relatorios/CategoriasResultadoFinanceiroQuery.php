@@ -21,6 +21,7 @@ class CategoriasResultadoFinanceiroQuery
         $transacoes = Transacao::query()
             ->where('user_id', $filtros->userId)
             ->where('is_initial_balance', false)
+            ->whereNull('transfer_id')
             ->where('type', $tipo)
             ->whereIn('status', $filtros->statuses())
             ->when($filtros->contaIds, fn ($q) => $q->whereIn('account_id', $filtros->contaIds))

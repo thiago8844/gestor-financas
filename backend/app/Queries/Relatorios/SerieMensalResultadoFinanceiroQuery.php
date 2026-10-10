@@ -25,6 +25,7 @@ class SerieMensalResultadoFinanceiroQuery
         $linhas = DB::table('transactions')
             ->where('user_id', $filtros->userId)
             ->where('is_initial_balance', false)
+            ->whereNull('transfer_id')
             ->whereIn('status', $filtros->statuses())
             ->when($filtros->contaIds, fn ($q) => $q->whereIn('account_id', $filtros->contaIds))
             ->whereRaw("DATE({$colunaData}) BETWEEN ? AND ?", [

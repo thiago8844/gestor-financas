@@ -26,6 +26,8 @@ class TransacaoController extends Controller
 
         $query = Transacao::with(['categoria', 'conta', 'cartao', 'fatura'])
             ->where('is_initial_balance', false)
+            // Transferências têm tela própria; aqui só entram receitas e despesas de verdade.
+            ->whereNull('transfer_id')
             ->where('user_id', Auth::id());
 
         if ($request->filled('categoria_id')) {
@@ -267,6 +269,10 @@ class TransacaoController extends Controller
             return response()->json(['message' => 'Acesso negado'], 403);
         }
 
+        if ($transacao->transfer_id !== null) {
+            return response()->json(['message' => 'Edite esta movimentação pela tela de transferências'], 403);
+        }
+
         // Despesa de cartão: pertence a um grupo de parcelas/fatura, então só o valor pode
         // mudar por aqui. Pra alterar outra coisa, o fluxo é excluir e recriar (ver rota
         // dedicada /transacoes/{id}/valor, usada pela tela de edição pra esse caso).
@@ -311,6 +317,10 @@ class TransacaoController extends Controller
             return response()->json(['message' => 'Acesso negado'], 403);
         }
 
+        if ($transacao->transfer_id !== null) {
+            return response()->json(['message' => 'Edite esta movimentação pela tela de transferências'], 403);
+        }
+
         $transacao->update(['amount' => $request->amount]);
 
         return response()->json(['message' => 'Valor atualizado com sucesso'], 200);
@@ -324,6 +334,10 @@ class TransacaoController extends Controller
 
         if (Auth::id() !== $transacao->user_id) {
             return response()->json(['message' => 'Acesso negado'], 403);
+        }
+
+        if ($transacao->transfer_id !== null) {
+            return response()->json(['message' => 'Exclua esta movimentação pela tela de transferências'], 403);
         }
 
         if($transacao->is_initial_balance){
@@ -348,6 +362,7 @@ class TransacaoController extends Controller
         $excluidas = Transacao::whereIn('id', $request->input('ids'))
             ->where('user_id', Auth::id())
             ->where('is_initial_balance', false)
+            ->whereNull('transfer_id')
             ->delete();
 
         return response()->json([

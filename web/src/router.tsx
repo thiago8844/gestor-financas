@@ -49,6 +49,10 @@ import { RelatoriosRoute } from "./pages/Relatorios/RelatoriosRoute";
 import { ListagemRelatorios } from "./pages/Relatorios/ListagemRelatorios";
 import { FluxoCaixaPage } from "./pages/Relatorios/FluxoCaixa/FluxoCaixaPage";
 import { ResultadoFinanceiroPage } from "./pages/Relatorios/ResultadoFinanceiro/ResultadoFinanceiroPage";
+import { TransferenciaRoute } from "./pages/Transferencia/TransferenciaRoute";
+import { ListagemTransferencia } from "./pages/Transferencia/ListagemTransferencia";
+import { CadastrarTransferencia } from "./pages/Transferencia/CadastrarTransferencia";
+import { EditarTransferencia } from "./pages/Transferencia/EditarTransferencia";
 import { Configuracoes } from "./pages/Configuracoes/Configuracoes";
 
 export const router = createBrowserRouter([
@@ -96,6 +100,15 @@ export const router = createBrowserRouter([
           { path: "cadastrar", element: <CadastrarReceita /> },
           { path: "editar/:id", element: <EditarReceita /> },
           { path: "editar-multiplas", element: <EditarMultiplasReceitas /> },
+        ],
+      },
+      {
+        path: "transferencias",
+        element: <TransferenciaRoute />,
+        children: [
+          { path: "", element: <ListagemTransferencia /> },
+          { path: "cadastrar", element: <CadastrarTransferencia /> },
+          { path: "editar/:id", element: <EditarTransferencia /> },
         ],
       },
       {

@@ -15,6 +15,7 @@ class DesvioPadraoQuery
     $despesasMensais = DB::table('transactions')
       ->selectRaw("DATE_FORMAT(date, '%Y-%m') as mes, SUM(amount) as total")
       ->where('user_id', $user->id)
+      ->whereNull('transfer_id')
       ->where('type', $tipo)
       ->where('date', '>=', DB::raw("DATE_SUB(NOW(), INTERVAL 12 MONTH)"))
       ->groupBy('mes')

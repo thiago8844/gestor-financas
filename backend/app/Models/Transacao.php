@@ -39,6 +39,11 @@ class Transacao extends Model
         return $this->belongsTo(Categoria::class, 'category_id');
     }
 
+    public function transferencia(): BelongsTo
+    {
+        return $this->belongsTo(Transferencia::class, 'transfer_id');
+    }
+
     public function recorrencia(): BelongsTo
     {
         return $this->belongsTo(RecorrenciaTransacao::class, 'recurring_transaction_id');
