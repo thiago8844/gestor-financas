@@ -49,6 +49,7 @@ import { RelatoriosRoute } from "./pages/Relatorios/RelatoriosRoute";
 import { ListagemRelatorios } from "./pages/Relatorios/ListagemRelatorios";
 import { FluxoCaixaPage } from "./pages/Relatorios/FluxoCaixa/FluxoCaixaPage";
 import { ResultadoFinanceiroPage } from "./pages/Relatorios/ResultadoFinanceiro/ResultadoFinanceiroPage";
+import { CompromissosFuturosPage } from "./pages/Relatorios/CompromissosFuturos/CompromissosFuturosPage";
 import { TransferenciaRoute } from "./pages/Transferencia/TransferenciaRoute";
 import { ListagemTransferencia } from "./pages/Transferencia/ListagemTransferencia";
 import { CadastrarTransferencia } from "./pages/Transferencia/CadastrarTransferencia";
@@ -151,6 +152,7 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemRelatorios /> },
           { path: "fluxo-de-caixa", element: <FluxoCaixaPage /> },
           { path: "resultado-financeiro", element: <ResultadoFinanceiroPage /> },
+          { path: "compromissos-futuros", element: <CompromissosFuturosPage /> },
         ],
       },
       {

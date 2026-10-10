@@ -31,7 +31,7 @@ const RELATORIOS: CardRelatorio[] = [
     titulo: "Compromissos Futuros",
     pergunta: "Quanto do meu dinheiro já está comprometido?",
     icone: "bi-calendar-check",
-    to: null,
+    to: "/relatorios/compromissos-futuros",
   },
 ];
 

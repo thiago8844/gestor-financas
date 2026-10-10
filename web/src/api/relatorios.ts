@@ -1,7 +1,9 @@
 import { api } from "../api-client";
 import type {
+  FiltrosCompromissosFuturosParams,
   FiltrosFluxoCaixaParams,
   FiltrosResultadoFinanceiroParams,
+  RelatorioCompromissosFuturosResponse,
   RelatorioFluxoCaixaResponse,
   RelatorioResultadoFinanceiroResponse,
 } from "../types/relatorio";
@@ -17,6 +19,15 @@ export async function getRelatorioFluxoCaixa(filtros: FiltrosFluxoCaixaParams) {
 export async function getRelatorioResultadoFinanceiro(filtros: FiltrosResultadoFinanceiroParams) {
   const response = await api.get<RelatorioResultadoFinanceiroResponse>("/relatorios/resultado-financeiro", {
     params: filtros,
+  });
+
+  return response.data;
+}
+
+export async function getRelatorioCompromissosFuturos(filtros: FiltrosCompromissosFuturosParams) {
+  const response = await api.get<RelatorioCompromissosFuturosResponse>("/relatorios/compromissos-futuros", {
+    // O backend valida "boolean" (aceita 1/0, não "true"/"false").
+    params: { ...filtros, estimar_variaveis: filtros.estimar_variaveis ? 1 : 0 },
   });
 
   return response.data;

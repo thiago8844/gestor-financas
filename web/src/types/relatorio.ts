@@ -106,3 +106,140 @@ export type FiltrosResultadoFinanceiroParams = {
   regime?: RegimeRelatorio;
   comparar_com?: ComparacaoRelatorio;
 };
+
+// --- Compromissos Futuros ---
+
+export type OrigemCompromisso = "FATURA" | "PARCELA" | "RECORRENTE" | "LANCAMENTO";
+export type ConfiancaEstimativa = "ALTA" | "MEDIA" | "BAIXA";
+
+export type ItemFaturaProjetada = {
+  transacao_id: number | null;
+  descricao: string;
+  categoria: string | null;
+  data_compra: string | null;
+  parcela: string | null;
+  recorrente: boolean;
+  /** Ainda não existe como lançamento: veio de uma recorrência futura. */
+  projetado: boolean;
+  valor: number | null;
+  estimado: boolean;
+  desvio: number | null;
+  confianca: ConfiancaEstimativa | null;
+};
+
+export type EventoCompromisso = {
+  id: string;
+  /** Data considerada na projeção (vencidos aparecem em "hoje"). */
+  data: string;
+  data_original: string;
+  atrasado: boolean;
+  tipo: "INCOME" | "EXPENSE";
+  origem: OrigemCompromisso;
+  descricao: string;
+  /** null = recorrência de valor variável ainda sem valor. */
+  valor: number | null;
+  estimado: boolean;
+  desvio: number | null;
+  confianca: ConfiancaEstimativa | null;
+  sem_valor: boolean;
+  projetado: boolean;
+  conta_id: number;
+  conta: string | null;
+  categoria: string | null;
+  parcela: string | null;
+  recorrencia_id: number | null;
+  fatura: {
+    id: number | null;
+    cartao_id: number;
+    cartao: string;
+    referencia: string;
+    fechamento: string;
+    vencimento: string;
+  } | null;
+  itens: ItemFaturaProjetada[];
+  itens_sem_valor: number;
+  saldo_apos: number;
+};
+
+export type MesProjecao = {
+  mes: string;
+  saldo_inicial: number;
+  entradas: number;
+  saidas: number;
+  entradas_estimadas: number;
+  saidas_estimadas: number;
+  resultado: number;
+  saldo_final: number;
+  saldo_minimo: number;
+  data_saldo_minimo: string | null;
+  quantidade: number;
+  sem_valor: number;
+  /** Desvio acumulado das estimativas até o fim do mês (±). */
+  incerteza: number;
+};
+
+export type PontoSaldoDiario = { data: string; saldo: number };
+
+export type ContaProjecao = {
+  conta_id: number;
+  conta: string;
+  saldo_inicial: number;
+  saldo_final: number;
+  menor_saldo: number;
+  data_menor_saldo: string;
+  fica_negativa: boolean;
+};
+
+export type AlertaSaldoNegativo = {
+  /** null = saldo total das contas selecionadas. */
+  conta_id: number | null;
+  conta: string;
+  data: string;
+  saldo: number;
+  menor_saldo: number;
+  data_menor_saldo: string;
+  volta_ao_positivo_em: string | null;
+  evento: { descricao: string; valor: number } | null;
+};
+
+export type ComposicaoSaidas = {
+  origem: OrigemCompromisso;
+  total: number;
+  quantidade: number;
+};
+
+export type ResumoCompromissosFuturos = {
+  saldo_atual: number;
+  a_receber: number;
+  a_pagar: number;
+  resultado: number;
+  saldo_final: number;
+  menor_saldo: { valor: number; data: string };
+  comprometido_percentual: number | null;
+  estimado: { a_receber: number; a_pagar: number };
+  sem_valor: number;
+  atrasados: { quantidade: number; a_pagar: number; a_receber: number };
+  quantidade: number;
+  composicao_saidas: ComposicaoSaidas[];
+};
+
+export type RelatorioCompromissosFuturos = {
+  periodo: { data_inicial: string; data_final: string };
+  estimar_variaveis: boolean;
+  resumo: ResumoCompromissosFuturos;
+  meses: MesProjecao[];
+  serie_diaria: PontoSaldoDiario[];
+  contas: ContaProjecao[];
+  alertas: AlertaSaldoNegativo[];
+  eventos: EventoCompromisso[];
+};
+
+export type RelatorioCompromissosFuturosResponse = {
+  data: RelatorioCompromissosFuturos;
+};
+
+export type FiltrosCompromissosFuturosParams = {
+  data_final: string;
+  conta_ids?: number[];
+  estimar_variaveis?: boolean;
+};
