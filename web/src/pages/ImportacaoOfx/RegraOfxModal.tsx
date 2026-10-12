@@ -38,7 +38,7 @@ export function RegraOfxModal({ show, onClose, ofxImportId, categorias, orcament
   } = useForm<RegraOfxForm>({
     // @ts-expect-error TS não entende Zod transform string->number
     resolver: zodResolver(RegraOfxSchema),
-    values: { aplicar_ao_lote: true, ...valoresIniciais },
+    defaultValues: { aplicar_ao_lote: true, ...valoresIniciais },
   });
 
   const onSubmit = (dados: unknown) => {
@@ -46,7 +46,14 @@ export function RegraOfxModal({ show, onClose, ofxImportId, categorias, orcament
   };
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (dados: RegraOfxForm) => criarRegraOfx({ ...dados, ofx_import_id: ofxImportId }),
+    mutationFn: (dados: RegraOfxForm) =>
+      criarRegraOfx({
+        ...dados,
+        // "Sem categoria" / "Sem orçamento" chegam como 0 e precisam ser enviados como vazio
+        category_id: dados.category_id || undefined,
+        budget_id: dados.budget_id || undefined,
+        ofx_import_id: ofxImportId,
+      }),
     onSuccess: (resposta) => {
       queryClient.invalidateQueries({ queryKey: ["importacao-ofx", ofxImportId] });
       alert(
@@ -69,6 +76,7 @@ export function RegraOfxModal({ show, onClose, ofxImportId, categorias, orcament
       <Modal.Body>
         <form onSubmit={handleSubmit(onSubmit)}>
           {errors.root && <div className="alert alert-danger">{errors.root.message}</div>}
+          {errors.descricao && <div className="alert alert-warning">{errors.descricao.message}</div>}
 
           <p className="text-muted small">
             Da próxima vez que aparecer uma transação com a mesma descrição, ela já virá preenchida
@@ -121,7 +129,6 @@ export function RegraOfxModal({ show, onClose, ofxImportId, categorias, orcament
               ))}
             </select>
           </div>
-          <FieldError>{errors.descricao?.message}</FieldError>
 
           <div className="form-check form-switch mb-3">
             <input

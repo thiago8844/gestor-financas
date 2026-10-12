@@ -15,6 +15,17 @@ class CriarRegraOfxRequest extends FormRequest
     }
 
     /**
+     * Trata "0" (opção "Sem categoria/orçamento") como vazio.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'category_id' => $this->input('category_id') ?: null,
+            'budget_id' => $this->input('budget_id') ?: null,
+        ]);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
