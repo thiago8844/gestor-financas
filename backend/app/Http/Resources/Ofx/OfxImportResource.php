@@ -28,6 +28,7 @@ class OfxImportResource extends JsonResource
             'finalizada_at' => $this->finalizada_at,
             'undone_at' => $this->undone_at,
             'pode_desfazer' => $this->podeDesfazer(),
+            'pode_reabrir' => $this->podeReabrir(),
             'account_id' => $this->account_id,
             'conta' => $this->whenLoaded('conta'),
             'itens' => OfxImportItemResource::collection($this->whenLoaded('itens')),

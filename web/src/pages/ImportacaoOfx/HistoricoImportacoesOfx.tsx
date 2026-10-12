@@ -92,13 +92,13 @@ export function HistoricoImportacoesOfx() {
                 <td>{importacao.ignored_transactions}</td>
                 <td>
                   <div className="d-flex gap-2">
-                    {importacao.status === "STAGED" && (
+                    {(importacao.status === "STAGED" || importacao.status === "UNDONE") && (
                       <Link
                         to={`/importacoes-ofx/${importacao.id}`}
                         className="btn btn-sm btn-primary"
                       >
                         <i className="bi bi-eye me-1"></i>
-                        Revisar
+                        {importacao.status === "UNDONE" ? "Reabrir" : "Revisar"}
                       </Link>
                     )}
                     {importacao.pode_desfazer && (
@@ -108,7 +108,7 @@ export function HistoricoImportacoesOfx() {
                           openModal({
                             title: "Desfazer importação",
                             message:
-                              "As transações criadas por esta importação serão apagadas. Tem certeza?",
+                              "As transações criadas por esta importação serão apagadas, mas a importação continuará salva e poderá ser reaberta para revisão. Tem certeza?",
                             callback: () => desfazer({ id: importacao.id }),
                             autoClose: true,
                           })

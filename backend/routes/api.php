@@ -111,6 +111,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/importacoes-ofx/{id}', [\App\Http\Controllers\ImportacaoOfxController::class, 'show']);
     Route::post('/importacoes-ofx/{id}/confirmar', [\App\Http\Controllers\ImportacaoOfxController::class, 'confirmar']);
     Route::post('/importacoes-ofx/{id}/desfazer', [\App\Http\Controllers\ImportacaoOfxController::class, 'desfazer']);
+    Route::post('/importacoes-ofx/{id}/reabrir', [\App\Http\Controllers\ImportacaoOfxController::class, 'reabrir']);
     Route::delete('/importacoes-ofx/{id}/cancelar', [\App\Http\Controllers\ImportacaoOfxController::class, 'cancelar']);
     Route::patch('/importacoes-ofx/{importacao}/itens/em-massa', [\App\Http\Controllers\ImportacaoOfxController::class, 'atualizarItensEmMassa']);
     Route::patch('/importacoes-ofx/{importacao}/itens/{item}', [\App\Http\Controllers\ImportacaoOfxController::class, 'atualizarItem']);

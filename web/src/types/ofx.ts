@@ -43,6 +43,7 @@ export type OfxImport = {
   finalizada_at: string | null;
   undone_at: string | null;
   pode_desfazer: boolean;
+  pode_reabrir: boolean;
   account_id: number | null;
   conta: Conta | null;
   itens: OfxImportItem[];
@@ -53,6 +54,8 @@ export type OfxImportResponse = {
   data: OfxImport;
   message?: string;
 };
+
+export type OfxModoReabertura = "manter" | "zerar";
 
 export type OfxImportsResponse = {
   data: OfxImport[];

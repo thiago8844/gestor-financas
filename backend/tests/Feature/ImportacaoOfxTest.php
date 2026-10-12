@@ -271,6 +271,90 @@ class ImportacaoOfxTest extends TestCase
     }
 
     #[Test]
+    public function importacao_desfeita_continua_salva_e_pode_ser_reaberta_mantendo_como_ficou(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        $importacao = $this->criarImportacao($conta);
+        $ids = $importacao->itens()->pluck('id')->all();
+        $this->postJson("/api/importacoes-ofx/{$importacao->id}/confirmar", ['ids' => $ids])->assertStatus(200);
+        $this->postJson("/api/importacoes-ofx/{$importacao->id}/desfazer")->assertStatus(200);
+
+        $this->assertDatabaseHas('ofx_imports', ['id' => $importacao->id, 'status' => 'UNDONE']);
+        $this->assertDatabaseCount('ofx_import_items', $importacao->itens()->count());
+
+        $response = $this->postJson("/api/importacoes-ofx/{$importacao->id}/reabrir", ['modo' => 'manter']);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.status', 'STAGED');
+        $response->assertJsonPath('data.pode_reabrir', false);
+        $this->assertDatabaseCount('transactions', 0);
+
+        $confirmar = $this->postJson("/api/importacoes-ofx/{$importacao->id}/confirmar", ['ids' => $ids]);
+        $confirmar->assertStatus(200);
+        $this->assertDatabaseCount('transactions', 2);
+    }
+
+    #[Test]
+    public function reabrir_come_do_zero_restaura_descricao_e_recalcula_duplicadas(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        $importacao = $this->criarImportacao($conta);
+        $ids = $importacao->itens()->pluck('id')->all();
+        $this->postJson("/api/importacoes-ofx/{$importacao->id}/confirmar", ['ids' => $ids])->assertStatus(200);
+
+        $item = $importacao->itens()->first();
+        $this->patchJson("/api/importacoes-ofx/{$importacao->id}/itens/{$item->id}", ['descricao' => 'Editada'])->assertStatus(422);
+        $this->postJson("/api/importacoes-ofx/{$importacao->id}/desfazer")->assertStatus(200);
+
+        $item->refresh()->forceFill(['descricao' => 'Editada'])->save();
+
+        $response = $this->postJson("/api/importacoes-ofx/{$importacao->id}/reabrir", ['modo' => 'zerar']);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('ofx_import_items', [
+            'id' => $item->id,
+            'descricao' => $item->descricao_original,
+            'status' => OfxImportItemStatus::PENDENTE->value,
+            'selecionada' => true,
+        ]);
+    }
+
+    #[Test]
+    public function reabrir_so_funciona_em_importacao_desfeita(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        $importacao = $this->criarImportacao($conta);
+
+        $this->postJson("/api/importacoes-ofx/{$importacao->id}/reabrir", ['modo' => 'manter'])->assertStatus(422);
+    }
+
+    #[Test]
+    public function reenviar_arquivo_de_importacao_desfeita_aponta_para_ela(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        $importacao = $this->criarImportacao($conta);
+        $ids = $importacao->itens()->pluck('id')->all();
+        $this->postJson("/api/importacoes-ofx/{$importacao->id}/confirmar", ['ids' => $ids])->assertStatus(200);
+        $this->postJson("/api/importacoes-ofx/{$importacao->id}/desfazer")->assertStatus(200);
+
+        $response = $this->postJson('/api/importacoes-ofx', [
+            'arquivo' => $this->arquivoFake('checking_sgml_v1.ofx'),
+            'conta_id' => $conta->id,
+        ]);
+
+        $response->assertStatus(409);
+        $response->assertJsonPath('importacao_existente.id', $importacao->id);
+    }
+
+    #[Test]
     public function usuario_nao_pode_acessar_importacao_de_outro_usuario(): void
     {
         $conta = Conta::factory()->create();

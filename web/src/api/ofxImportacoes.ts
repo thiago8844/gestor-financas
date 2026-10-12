@@ -1,5 +1,5 @@
 import { api } from "../api-client";
-import type { OfxImportResponse, OfxImportsResponse } from "../types/ofx";
+import type { OfxImportResponse, OfxImportsResponse, OfxModoReabertura } from "../types/ofx";
 
 export async function getImportacoesOfx() {
   const response = await api.get<OfxImportsResponse>("/importacoes-ofx");
@@ -54,6 +54,11 @@ export async function confirmarImportacaoOfx(importacaoId: number, ids: number[]
 
 export async function desfazerImportacaoOfx(importacaoId: number, forcar = false) {
   const response = await api.post<OfxImportResponse>(`/importacoes-ofx/${importacaoId}/desfazer`, { forcar });
+  return response.data;
+}
+
+export async function reabrirImportacaoOfx(importacaoId: number, modo: OfxModoReabertura) {
+  const response = await api.post<OfxImportResponse>(`/importacoes-ofx/${importacaoId}/reabrir`, { modo });
   return response.data;
 }
 

@@ -8,11 +8,12 @@ import {
   atualizarItensOfxEmMassa,
   confirmarImportacaoOfx,
   getImportacaoOfx,
+  reabrirImportacaoOfx,
 } from "../../api/ofxImportacoes";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { ItemOfxRow } from "./ItemOfxRow";
 import { RegraOfxModal } from "./RegraOfxModal";
-import type { OfxImportItem } from "../../types/ofx";
+import type { OfxImportItem, OfxModoReabertura } from "../../types/ofx";
 import type { Conta } from "../../types";
 
 const FILTROS = ["todas", "pendentes", "duplicadas", "nao_selecionadas"] as const;
@@ -72,6 +73,15 @@ export function RevisarImportacaoOfx() {
     onError: () => alert("Erro ao aplicar alteração em massa. Tente novamente."),
   });
 
+  const { mutate: reabrir, isPending: reabrindo } = useMutation({
+    mutationFn: (modo: OfxModoReabertura) => reabrirImportacaoOfx(importacaoId, modo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["importacoes-ofx"] });
+      invalidar();
+    },
+    onError: () => alert("Erro ao reabrir importação. Tente novamente."),
+  });
+
   const { mutate: confirmar, isPending: confirmando } = useMutation({
     mutationFn: (ids: number[]) => confirmarImportacaoOfx(importacaoId, ids),
     onSuccess: () => {
@@ -98,12 +108,48 @@ export function RevisarImportacaoOfx() {
     );
   }
 
+  if (importacao.status === "UNDONE") {
+    return (
+      <PageLayout title="Reabrir Importação" backTo="/importacoes-ofx">
+        <div className="card mt-3">
+          <div className="card-body">
+            <h5 className="card-title">Esta importação foi desfeita</h5>
+            <p className="text-muted">
+              As transações dela foram apagadas, mas a importação continua salva. Como você quer revisá-la de novo?
+            </p>
+            <div className="d-flex flex-column flex-sm-row gap-2">
+              <button
+                className="btn btn-primary"
+                disabled={reabrindo}
+                onClick={() => reabrir("manter")}
+              >
+                <i className="bi bi-arrow-repeat me-2"></i>
+                Manter como ficou
+              </button>
+              <button
+                className="btn btn-outline-secondary"
+                disabled={reabrindo}
+                onClick={() => reabrir("zerar")}
+              >
+                <i className="bi bi-eraser me-2"></i>
+                Começar do zero
+              </button>
+            </div>
+            <small className="text-muted d-block mt-2">
+              <strong>Manter:</strong> volta com as mesmas seleções e edições da confirmação.{" "}
+              <strong>Começar do zero:</strong> volta como foi importado, com regras reaplicadas.
+            </small>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
   if (importacao.status !== "STAGED") {
     return (
       <PageLayout title="Revisar Importação" backTo="/importacoes-ofx">
         <div className="alert alert-info">
-          Esta importação já foi {importacao.status === "CONFIRMED" ? "confirmada" : "desfeita"}. Consulte
-          o histórico de importações.
+          Esta importação já foi confirmada. Consulte o histórico de importações.
         </div>
       </PageLayout>
     );

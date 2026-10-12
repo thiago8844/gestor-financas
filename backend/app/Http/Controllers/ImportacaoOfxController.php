@@ -9,6 +9,8 @@ use App\Actions\Ofx\Exceptions\OfxContaNaoInformadaException;
 use App\Actions\Ofx\Exceptions\OfxDesfazerBloqueadoException;
 use App\Actions\Ofx\Exceptions\OfxImportacaoJaFinalizadaException;
 use App\Actions\Ofx\ImportarArquivoOfx;
+use App\Actions\Ofx\ReabrirImportacaoOfx;
+use App\Actions\Ofx\Exceptions\OfxReabrirBloqueadoException;
 use App\Enums\OfxImportItemStatus;
 use App\Enums\OfxImportStatus;
 use App\Http\Requests\Ofx\AtualizarItemOfxRequest;
@@ -170,6 +172,30 @@ class ImportacaoOfxController extends Controller
         }
 
         return OfxImportResource::make($importacao)->additional(['message' => 'Importação desfeita com sucesso']);
+    }
+
+    /**
+     * Reabre uma importação desfeita para nova revisão (manter ou começar do zero).
+     */
+    public function reabrir(Request $request, string $id)
+    {
+        $importacao = OfxImport::find($id);
+
+        if (!$importacao || Auth::id() !== $importacao->user_id) {
+            return response()->json(['message' => 'Acesso negado'], 403);
+        }
+
+        $dados = $request->validate([
+            'modo' => ['required', 'in:' . ReabrirImportacaoOfx::MANTER . ',' . ReabrirImportacaoOfx::ZERAR],
+        ]);
+
+        try {
+            $importacao = ReabrirImportacaoOfx::executar($importacao, $dados['modo']);
+        } catch (OfxReabrirBloqueadoException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return OfxImportResource::make($importacao)->additional(['message' => 'Importação reaberta para revisão']);
     }
 
     /**

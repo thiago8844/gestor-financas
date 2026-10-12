@@ -44,4 +44,9 @@ class OfxImport extends Model
     {
         return $this->status === OfxImportStatus::CONFIRMED;
     }
+
+    public function podeReabrir(): bool
+    {
+        return $this->status === OfxImportStatus::UNDONE;
+    }
 }
