@@ -1,5 +1,5 @@
 // src/components/Listagens/Listagem.tsx
-import { Children, type ReactNode } from "react";
+import { Children, useEffect, useState, type ReactNode } from "react";
 import { Dropdown } from "react-bootstrap";
 
 // ✅ COMPONENTE PRINCIPAL
@@ -40,6 +40,49 @@ interface ControlesProps {
 
 Listagem.Controles = function Controles({ children }: ControlesProps) {
   return <div className="d-flex gap-2">{children}</div>;
+};
+
+// ✅ CAMPO DE BUSCA (aplica após uma pausa na digitação)
+interface BuscaProps {
+  value: string;
+  onChange: (texto: string) => void;
+  placeholder?: string;
+  delay?: number;
+}
+
+Listagem.Busca = function Busca({
+  value,
+  onChange,
+  placeholder = "Buscar por nome...",
+  delay = 400,
+}: BuscaProps) {
+  const [texto, setTexto] = useState(value);
+
+  // Mantém o campo sincronizado quando o filtro é limpo de fora (ex: botão Limpar)
+  useEffect(() => {
+    setTexto(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (texto === value) return;
+    const timer = setTimeout(() => onChange(texto), delay);
+    return () => clearTimeout(timer);
+  }, [texto, value, onChange, delay]);
+
+  return (
+    <div className="input-group input-group-sm" style={{ width: "240px" }}>
+      <span className="input-group-text">
+        <i className="bi bi-search"></i>
+      </span>
+      <input
+        type="search"
+        className="form-control"
+        placeholder={placeholder}
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+      />
+    </div>
+  );
 };
 
 // ✅ SELECT DE LIMITE (0 = todos os registros)

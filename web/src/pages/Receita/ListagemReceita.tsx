@@ -24,6 +24,7 @@ const filtrosOriginais = {
   type: "INCOME" as const,
   page: 1,
   limit: 25,
+  descricao: "",
   // Outros filtros que você quiser adicionar
   data_inicial: "",
   data_final: "",
@@ -121,6 +122,12 @@ export function ListagemReceita() {
     setFiltrosModificados(filtrosOriginais);
   };
 
+  // A busca é aplicada direto (sem o botão Aplicar do dropdown) e mantém o rascunho dos filtros em dia
+  const buscarDescricao = (descricao: string) => {
+    setFiltros((prev) => ({ ...prev, descricao, page: 1 }));
+    setFiltrosModificados((prev) => ({ ...prev, descricao }));
+  };
+
   const aplicarFiltros = () => {
     setFiltros({ ...filtrosModificados, page: 1 });
   };
@@ -164,6 +171,13 @@ export function ListagemReceita() {
 
           {/* ✅ CONTROLES À DIREITA */}
           <Listagem.Controles>
+            {/* BUSCA POR NOME */}
+            <Listagem.Busca
+              value={filtros.descricao}
+              onChange={buscarDescricao}
+              placeholder="Buscar receita..."
+            />
+
             {/* SELECT DE LIMITE */}
             <Listagem.LimiteSelector
               value={filtros.limit}

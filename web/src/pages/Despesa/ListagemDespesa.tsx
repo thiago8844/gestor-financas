@@ -26,6 +26,7 @@ const filtrosOriginais = {
   type: "EXPENSE" as const,
   page: 1,
   limit: 25,
+  descricao: "",
   // Outros filtros que você quiser adicionar
   data_inicial: "",
   data_final: "",
@@ -132,6 +133,12 @@ export function ListagemDespesa() {
     setFiltrosModificados(filtrosOriginais);
   };
 
+  // A busca é aplicada direto (sem o botão Aplicar do dropdown) e mantém o rascunho dos filtros em dia
+  const buscarDescricao = (descricao: string) => {
+    setFiltros((prev) => ({ ...prev, descricao, page: 1 }));
+    setFiltrosModificados((prev) => ({ ...prev, descricao }));
+  };
+
   const aplicarFiltros = () => {
     setFiltros({ ...filtrosModificados, page: 1 });
   };
@@ -175,6 +182,12 @@ export function ListagemDespesa() {
           </Listagem.Acoes>
 
           <Listagem.Controles>
+            <Listagem.Busca
+              value={filtros.descricao}
+              onChange={buscarDescricao}
+              placeholder="Buscar despesa..."
+            />
+
             <Listagem.LimiteSelector
               value={filtros.limit}
               onChange={(limit) => setFiltros((prev) => ({ ...prev, limit }))}
