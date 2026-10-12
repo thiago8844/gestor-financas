@@ -42,7 +42,7 @@ Listagem.Controles = function Controles({ children }: ControlesProps) {
   return <div className="d-flex gap-2">{children}</div>;
 };
 
-// ✅ SELECT DE LIMITE
+// ✅ SELECT DE LIMITE (0 = todos os registros)
 interface LimiteSelectorProps {
   value: number;
   onChange: (limit: number) => void;
@@ -52,18 +52,18 @@ interface LimiteSelectorProps {
 Listagem.LimiteSelector = function LimiteSelector({
   value,
   onChange,
-  options = [25, 50, 75, 100],
+  options = [25, 50, 75, 100, 0],
 }: LimiteSelectorProps) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(Number(e.target.value))}
       className="form-select form-select-sm"
-      style={{ width: "80px" }}
+      style={{ width: "90px" }}
     >
       {options.map((opt) => (
         <option key={opt} value={opt}>
-          {opt}
+          {opt === 0 ? "Todos" : opt}
         </option>
       ))}
     </select>

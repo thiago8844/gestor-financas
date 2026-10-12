@@ -34,7 +34,14 @@ class TransferenciaController extends Controller
 
         $query->orderByDesc('date')->orderByDesc('id');
 
-        return TransferenciaResource::collection($query->paginate($request->input('limit', 25)));
+        // limit = 0 significa "todos": pagina com o total de registros.
+        $limit = (int) $request->input('limit', 25);
+
+        if ($limit <= 0) {
+            $limit = max(1, (clone $query)->count());
+        }
+
+        return TransferenciaResource::collection($query->paginate($limit));
     }
 
     public function show(Transferencia $transferencia)

@@ -115,7 +115,12 @@ class TransacaoController extends Controller
             }
         }
 
-        $limit = $request->input('limit', 25);
+        $limit = (int) $request->input('limit', 25);
+
+        // limit = 0 significa "todos": pagina com o total de registros.
+        if ($limit <= 0) {
+            $limit = max(1, (clone $query)->count());
+        }
 
         $transacoes = $query->paginate($limit);
         $total = $transacoes->sum('amount');
