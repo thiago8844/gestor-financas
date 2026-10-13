@@ -122,3 +122,40 @@ export const getTransacoesCategoria = async ({
     receitas_por_categoria: import("../pages/Dashboard/components/TransacaoCategoria").CategoriaPonto[];
   };
 };
+
+// ---------------------------------------------------------------------------
+// GET /dashboard/despesas-futuras
+// Quanto ainda vai sair de hoje até `dataFinal`, separado em parcelas,
+// recorrências e outras (só valores já garantidos; sem estimativas).
+// ---------------------------------------------------------------------------
+export interface TotalDespesasFuturas {
+  total: number;
+  quantidade: number;
+}
+
+export interface DespesasFuturasDashboard {
+  periodo: { data_inicial: string; data_final: string };
+  total: number;
+  quantidade: number;
+  parcelas: TotalDespesasFuturas;
+  recorrencias: TotalDespesasFuturas;
+  outras: TotalDespesasFuturas;
+  /** Itens sem valor definido (não entram no total). */
+  sem_valor: number;
+  faturas: { cartao: string; vencimento: string; total: number }[];
+  meses: {
+    mes: string;
+    parcelas: number;
+    recorrencias: number;
+    outras: number;
+    total: number;
+  }[];
+}
+
+export const getDespesasFuturasDashboard = async (dataFinal: string) => {
+  const response = await api.get<DespesasFuturasDashboard>(
+    "/dashboard/despesas-futuras",
+    { params: { data_final: dataFinal } },
+  );
+  return response.data;
+};

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Dashboard\ObterDespesasFuturasDashboardAction;
 use App\Actions\Dashboard\ObterDespesasPorCategoriaAction;
 use App\Actions\Dashboard\ObterFaturaAtualDashboardAction;
 use App\Actions\Dashboard\ObterReceitasPorCategoriaAction;
@@ -10,6 +11,7 @@ use App\Actions\Dashboard\ObterSaldoContasPeriodoDashboardAction;
 use App\Enums\TimeIntervals;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 
 class DashboardController extends Controller
@@ -89,5 +91,23 @@ class DashboardController extends Controller
             'despesas_por_categoria' => ObterDespesasPorCategoriaAction::execute($despesasInicial, $despesasFinal, $contaId),
             'receitas_por_categoria' => ObterReceitasPorCategoriaAction::execute($receitasInicial, $receitasFinal, $contaId),
         ], 200);
+    }
+
+    // ---------------------------------------------------------------
+    // GET /dashboard/despesas-futuras
+    // Quanto ainda vai sair de hoje até data_final, separado em parcelas, recorrências e outras.
+    // Query params:
+    //   data_final (date) — hoje ou futura, até 5 anos à frente
+    // ---------------------------------------------------------------
+    public function despesasFuturas(Request $request)
+    {
+        $dados = $request->validate([
+            'data_final' => 'required|date|after_or_equal:today|before_or_equal:' . now()->addYears(5)->toDateString(),
+        ]);
+
+        return response()->json(
+            ObterDespesasFuturasDashboardAction::execute(Auth::id(), Carbon::parse($dados['data_final'])),
+            200
+        );
     }
 }

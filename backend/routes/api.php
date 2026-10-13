@@ -28,6 +28,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/saldo-contas',         [\App\Http\Controllers\DashboardController::class, 'saldoContas']);
         Route::get('/transacoes-categoria', [\App\Http\Controllers\DashboardController::class, 'transacoesCategoria']);
         Route::get('/fatura-atual', [\App\Http\Controllers\DashboardController::class, 'faturaAtual']);
+        Route::get('/despesas-futuras',     [\App\Http\Controllers\DashboardController::class, 'despesasFuturas']);
     });
 
 

@@ -11,6 +11,7 @@ import { useAuthStore } from "../../stores/auth";
 
 import IndicadoresMes from "./components/IndicadoresMes";
 import { FaturaAtualCard } from "./components/FaturaAtualCard";
+import { DespesasFuturasCard } from "./components/DespesasFuturasCard";
 import { SaldoPorContaPeriodo } from "./components/SaldoPorContaPeriodo";
 import { TransacaoCategoria } from "./components/TransacaoCategoria";
 import type { SaldoFiltroParams } from "./components/SaldoPorContaPeriodo";
@@ -69,6 +70,9 @@ export function Dashboard() {
 
       {/* Fatura do cartão no mês atual (só quando há exatamente 1 cartão cadastrado) */}
       <FaturaAtualCard />
+
+      {/* Quanto ainda vai sair: parcelas, recorrências e outras despesas */}
+      <DespesasFuturasCard />
 
       <div className="container py-2">
         {/* Saldo por conta ao longo do tempo */}
