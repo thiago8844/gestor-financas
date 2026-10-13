@@ -80,10 +80,7 @@ export const getSaldoContas = async ({
     saldos_contas_periodo_final: dataFinal ?? ultimoDiaMesAtual(),
   };
   const response = await api.get("/dashboard/saldo-contas", { params });
-  return response.data as Record<
-    string,
-    import("../pages/Dashboard/components/SaldoPorContaPeriodo").SaldoPonto[]
-  >;
+  return response.data as import("../pages/Dashboard/components/SaldoPorContaPeriodo").SaldoPorContaData;
 };
 
 // ---------------------------------------------------------------------------

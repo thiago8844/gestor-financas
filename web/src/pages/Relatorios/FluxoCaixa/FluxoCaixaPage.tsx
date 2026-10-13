@@ -39,6 +39,8 @@ export function FluxoCaixaPage() {
     queryKey: ["relatorio-fluxo-caixa", filtros],
     queryFn: () => getRelatorioFluxoCaixa(filtros!),
     enabled: !!filtros,
+    // Relatório é pesado: não refaz a consulta ao voltar para a aba
+    refetchOnWindowFocus: false,
   });
 
   const relatorio = data?.data;

@@ -81,6 +81,8 @@ export function CompromissosFuturosPage() {
     enabled: !!filtros,
     // Trocar horizonte/estimativa não "pisca" a tela: o resultado anterior fica até chegar o novo.
     placeholderData: keepPreviousData,
+    // Relatório é pesado: não refaz a consulta ao voltar para a aba
+    refetchOnWindowFocus: false,
   });
 
   const relatorio = data?.data;

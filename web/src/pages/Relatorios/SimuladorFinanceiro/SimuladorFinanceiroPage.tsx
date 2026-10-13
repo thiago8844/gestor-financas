@@ -103,6 +103,8 @@ export function SimuladorFinanceiroPage() {
     enabled: !!paramsDebounced,
     placeholderData: keepPreviousData,
     staleTime: 30_000,
+    // Simulação é pesada: não refaz a consulta ao voltar para a aba
+    refetchOnWindowFocus: false,
   });
 
   const relatorio = data?.data;

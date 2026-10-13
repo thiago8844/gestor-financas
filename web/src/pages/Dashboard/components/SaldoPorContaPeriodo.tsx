@@ -20,7 +20,11 @@ export interface SaldoPonto {
   saldo_acumulado: number;
 }
 
-export type SaldoPorContaData = Record<string, SaldoPonto[]>;
+export interface SaldoPorContaData {
+  contas: Record<string, SaldoPonto[]>;
+  /** Série única com a soma das contas que entram no patrimônio. */
+  patrimonio: SaldoPonto[];
+}
 
 export interface SaldoFiltroParams {
   saldosContasAlltime?: boolean;
@@ -205,11 +209,13 @@ export function SaldoPorContaPeriodo({ data, onFiltroChange }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodo, dataInicialBR, dataFinalBR]);
 
-  const nomeContas = Object.keys(data ?? {});
+  // O backend devolve todas as séries com os mesmos buckets (sem buracos), então
+  // basta juntar por período.
+  const nomeContas = Object.keys(data?.contas ?? {});
   const pontosPorData: Record<string, Record<string, number>> = {};
 
   nomeContas.forEach((nomeConta) => {
-    (data?.[nomeConta] ?? []).forEach((ponto) => {
+    (data?.contas[nomeConta] ?? []).forEach((ponto) => {
       if (!pontosPorData[ponto.periodo]) pontosPorData[ponto.periodo] = {};
       pontosPorData[ponto.periodo][nomeConta || "Conta"] =
         ponto.saldo_acumulado;
@@ -217,15 +223,10 @@ export function SaldoPorContaPeriodo({ data, onFiltroChange }: Props) {
   });
 
   const chartData = unificarContas
-    ? Object.entries(pontosPorData)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([p, valores]) => ({
-          periodo: p,
-          [NOME_SERIE_UNIFICADA]: Object.values(valores).reduce(
-            (acc, v) => acc + v,
-            0,
-          ),
-        }))
+    ? (data?.patrimonio ?? []).map((ponto) => ({
+        periodo: ponto.periodo,
+        [NOME_SERIE_UNIFICADA]: ponto.saldo_acumulado,
+      }))
     : Object.entries(pontosPorData)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([p, valores]) => ({ periodo: p, ...valores }));

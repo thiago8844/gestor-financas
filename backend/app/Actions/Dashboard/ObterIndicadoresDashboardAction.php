@@ -2,10 +2,7 @@
 
 namespace App\Actions\Dashboard;
 
-use App\Enums\TransactionStatus;
-use App\Enums\TransactionType;
 use App\Models\Conta;
-use App\Models\Transacao;
 use App\Queries\Dashboard\IndicadoresMesDashboardQuery;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,16 +19,9 @@ class ObterIndicadoresDashboardAction
         $contasNoPatrimonio = Conta::where('user_id', $userId)->get()->filter(fn ($conta) => $conta->include_in_networth);
         $saldoDisponivel = $contasNoPatrimonio->sum(fn ($conta) => $conta->saldo);
 
-        // Despesas pendentes (ex.: parcelas de fatura ainda não paga) são dívida:
-        // já comprometem o patrimônio hoje, mesmo antes do dinheiro sair da conta.
-        $despesasPendentes = Transacao::whereIn('account_id', $contasNoPatrimonio->pluck('id'))
-            ->where('user_id', $userId)
-            ->where('type', TransactionType::EXPENSE)
-            ->where('status', TransactionStatus::PENDING)
-            ->where('is_initial_balance', false)
-            ->sum('amount');
-
-        $patrimonio = $saldoDisponivel - $despesasPendentes;
+        // Patrimônio = saldo realizado (só transações PAID) das contas que entram no patrimônio.
+        // Despesas ainda não pagas não reduzem o patrimônio.
+        $patrimonio = $saldoDisponivel;
 
         return [
           ...$indicadoresMes,
