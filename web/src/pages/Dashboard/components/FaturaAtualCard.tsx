@@ -93,7 +93,7 @@ export function FaturaAtualCard() {
               </h5>
             </div>
 
-            {fatura.pendente > 0 && fatura.id !== null ? (
+            {fatura.status !== "PAGA" && fatura.id !== null ? (
               <button
                 type="button"
                 className="btn btn-success btn-sm"
@@ -101,10 +101,12 @@ export function FaturaAtualCard() {
               >
                 Pagar fatura
               </button>
-            ) : fatura.total > 0 ? (
+            ) : fatura.parcelas.length > 0 ? (
               <span className="text-success small">
                 <i className="bi bi-check-circle me-1"></i>
                 Paga
+                {(fatura.levado_para_proxima ?? 0) > 0 &&
+                  ` · R$ ${convertNumberToCurrencyMask(fatura.levado_para_proxima)} p/ próxima`}
               </span>
             ) : (
               <span className="text-muted small">Nenhuma despesa lançada ainda</span>

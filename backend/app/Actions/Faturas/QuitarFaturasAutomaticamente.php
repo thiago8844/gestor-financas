@@ -50,7 +50,8 @@ class QuitarFaturasAutomaticamente
             $pendentes = Transacao::where('invoice_id', $fatura->id)
                 ->where('status', TransactionStatus::PENDING);
 
-            $valor = (float) (clone $pendentes)->sum('amount');
+            // Com sinal: crédito/estorno pendente abate do valor debitado.
+            $valor = round((float) (clone $pendentes)->get()->sum(fn (Transacao $t) => $t->valorNaFatura()), 2);
 
             $pendentes->update([
                 'status' => TransactionStatus::PAID,

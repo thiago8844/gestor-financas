@@ -3,6 +3,7 @@
 namespace App\Queries\Dashboard;
 
 use App\Enums\TimeIntervals;
+use App\Support\Relatorios\RolagemFaturaSql;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -37,12 +38,12 @@ class SaldoContaPorPeriodoQuery
         }
 
         $query = DB::table('transactions')
-            ->selectRaw("
-                account_id,
-                DATE(date) AS dia,
-                SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END)  AS entradas,
-                SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS saidas
-            ")
+            // Crédito da rolagem de fatura (pagamento parcial) abate da saída em vez de virar entrada.
+            ->selectRaw(
+                'account_id, DATE(date) AS dia, '
+                . RolagemFaturaSql::somaEntradas() . ' AS entradas, '
+                . RolagemFaturaSql::somaSaidas() . ' AS saidas'
+            )
             ->where('user_id', $userId)
             ->where('status', 'PAID')
             ->whereIn('account_id', $contaIds)

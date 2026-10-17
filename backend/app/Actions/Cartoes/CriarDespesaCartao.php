@@ -18,18 +18,22 @@ class CriarDespesaCartao
      * correspondente (criando a fatura se necessário) e nasce PENDING — a baixa acontece
      * futuramente pelo pagamento da fatura, não por parcela individual.
      *
+     * Com `type` = INCOME é um crédito/estorno: entra na fatura do mesmo jeito, mas abate do total
+     * (sempre à vista).
+     *
      * @return array{installment_group: ?string, transacoes: \Illuminate\Support\Collection<int, Transacao>}
      */
     public static function executar(int $userId, Cartao $cartao, array $dados): array
     {
         $dataCompra = Carbon::parse($dados['purchase_date'])->startOfDay();
-        $installmentTotal = max(1, (int) ($dados['installment_total'] ?? 1));
+        $tipo = TransactionType::tryFrom($dados['type'] ?? '') ?? TransactionType::EXPENSE;
+        $installmentTotal = $tipo === TransactionType::INCOME ? 1 : max(1, (int) ($dados['installment_total'] ?? 1));
         $valores = static::dividirValor(round((float) $dados['amount'], 2), $installmentTotal);
         $installmentGroup = $installmentTotal > 1 ? (string) Str::uuid() : null;
 
         $referenciaInicial = ResolverFaturaCompra::referenciaParaCompra($cartao, $dataCompra);
 
-        $transacoes = DB::transaction(function () use ($userId, $cartao, $dados, $dataCompra, $installmentTotal, $installmentGroup, $valores, $referenciaInicial) {
+        $transacoes = DB::transaction(function () use ($userId, $cartao, $dados, $dataCompra, $tipo, $installmentTotal, $installmentGroup, $valores, $referenciaInicial) {
             $criadas = collect();
             $referenciaAtual = $referenciaInicial->copy();
 
@@ -42,8 +46,9 @@ class CriarDespesaCartao
                     'card_id' => $cartao->id,
                     'invoice_id' => $fatura->id,
                     'category_id' => $dados['category_id'] ?? null,
-                    'budget_id' => $dados['budget_id'] ?? null,
-                    'type' => TransactionType::EXPENSE,
+                    // O cálculo do orçamento soma valores sem olhar o tipo: crédito não pode entrar nele.
+                    'budget_id' => $tipo === TransactionType::INCOME ? null : ($dados['budget_id'] ?? null),
+                    'type' => $tipo,
                     'description' => $dados['description'],
                     'amount' => $valores[$i],
                     'purchase_date' => $dataCompra->toDateString(),

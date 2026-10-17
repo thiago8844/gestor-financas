@@ -107,21 +107,25 @@ class ObterDespesasFuturasDashboardAction
         $pagas = $fonte === FiltrosProjecao::FONTE_RECORRENCIAS ? collect() : Transacao::query()
             ->with('fatura.cartao')
             ->where('user_id', $userId)
-            ->where('type', 'EXPENSE')
             ->where('status', TransactionStatus::PAID)
             ->where('is_initial_balance', false)
-            ->whereNull('transfer_id')
             ->whereNotNull('amount')
             ->where(function ($q) use ($inicio, $fim) {
+                // Fora do cartão: só despesa de verdade (transferência não é gasto).
                 $q->where(fn ($q) => $q->whereNull('card_id')
+                    ->where('type', 'EXPENSE')
+                    ->whereNull('transfer_id')
                     ->whereBetween('date', [$inicio->copy()->startOfDay(), $fim->copy()->endOfDay()]))
+                    // No cartão: tudo que pesa na fatura, com sinal. Estorno e "saldo levado para a próxima"
+                    // (pagamento parcial) abatem; o "saldo restante" vindo da fatura anterior soma. Assim o
+                    // "pago" da fatura é o que saiu da conta, e o saldo rolado não conta duas vezes.
                     ->orWhere(fn ($q) => $q->whereNotNull('card_id')
                         ->whereHas('fatura', fn ($f) => $f->whereBetween('due_date', [$inicio->toDateString(), $fim->toDateString()])));
             })
             ->get();
 
         foreach ($pagas as $transacao) {
-            $valor = (float) $transacao->amount;
+            $valor = $transacao->card_id && $transacao->fatura ? $transacao->valorNaFatura() : (float) $transacao->amount;
             $recorrente = $transacao->recurring_transaction_id !== null;
 
             if ($transacao->card_id && $transacao->fatura) {

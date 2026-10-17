@@ -3,6 +3,7 @@
 namespace App\Queries\Relatorios;
 
 use App\Enums\TimeIntervals;
+use App\Enums\TransactionType;
 use App\Models\Transacao;
 use App\Support\Relatorios\FiltrosFluxoCaixa;
 use Carbon\Carbon;
@@ -76,8 +77,10 @@ class SerieFluxoCaixaQuery
         $serie = [];
 
         foreach ($transacoesPorBucket as $periodo => $itens) {
-            $entradas = round((float) $itens->where('type', 'INCOME')->sum('amount'), 2);
-            $saidas = round((float) $itens->where('type', 'EXPENSE')->sum('amount'), 2);
+            // Crédito da rolagem de fatura (pagamento parcial) abate da saída em vez de virar entrada.
+            [$creditosRolagem, $demais] = $itens->partition(fn (Transacao $t) => $t->isRolagemDeFatura() && $t->type === TransactionType::INCOME);
+            $entradas = round((float) $demais->where('type', TransactionType::INCOME)->sum('amount'), 2);
+            $saidas = round((float) $demais->where('type', TransactionType::EXPENSE)->sum('amount') - (float) $creditosRolagem->sum('amount'), 2);
             $saldoPeriodo = round($entradas - $saidas, 2);
             $saldoAcumulado = round($saldoAcumulado + $saldoPeriodo, 2);
 

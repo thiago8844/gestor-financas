@@ -76,6 +76,18 @@ class OfxParserTest extends TestCase
     }
 
     #[Test]
+    public function le_o_saldo_final_do_extrato_quando_o_banco_informa(): void
+    {
+        $arquivo = (new OfxParser())->parse($this->fixture('checking_sgml_v1.ofx'));
+        $this->assertSame(2000.0, $arquivo->ledgerBalance);
+        $this->assertSame('2026-08-31', $arquivo->ledgerBalanceDate->toDateString());
+
+        $real = (new OfxParser())->parse($this->fixture('real_banco_inter_checking.ofx'));
+        $this->assertSame(1730.31, $real->ledgerBalance);
+        $this->assertSame('2026-09-13', $real->ledgerBalanceDate->toDateString());
+    }
+
+    #[Test]
     public function converte_charset_cp1252_declarado_no_cabecalho_para_utf8(): void
     {
         $arquivo = (new OfxParser())->parse($this->fixture('checking_sgml_cp1252.ofx'));

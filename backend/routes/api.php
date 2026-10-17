@@ -69,6 +69,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //FATURAS
     Route::post('/faturas/{fatura}/pagar', [\App\Http\Controllers\FaturaController::class, 'pagar']);
     Route::post('/faturas/{fatura}/reverter', [\App\Http\Controllers\FaturaController::class, 'reverter']);
+    Route::post('/faturas/{fatura}/lancamentos', [\App\Http\Controllers\FaturaController::class, 'lancar']);
+    Route::get('/faturas/{fatura}/auditorias', [\App\Http\Controllers\FaturaController::class, 'auditorias']);
+    Route::post('/faturas/{fatura}/auditorias', [\App\Http\Controllers\FaturaController::class, 'auditar']);
 
     //TRANSACOES
     Route::get('/transacoes', [\App\Http\Controllers\TransacaoController::class, 'index']);
@@ -117,6 +120,28 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/importacoes-ofx/{id}/cancelar', [\App\Http\Controllers\ImportacaoOfxController::class, 'cancelar']);
     Route::patch('/importacoes-ofx/{importacao}/itens/em-massa', [\App\Http\Controllers\ImportacaoOfxController::class, 'atualizarItensEmMassa']);
     Route::patch('/importacoes-ofx/{importacao}/itens/{item}', [\App\Http\Controllers\ImportacaoOfxController::class, 'atualizarItem']);
+
+    //CONCILIACAO BANCARIA
+    Route::prefix('conciliacoes')->controller(\App\Http\Controllers\ConciliacaoController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/painel', 'painel');
+        Route::post('/', 'store');
+        Route::get('/{conciliacao}', 'show');
+        Route::delete('/{conciliacao}', 'destroy');
+        Route::post('/{conciliacao}/reconferir', 'reconferir');
+        Route::post('/{conciliacao}/aceitar-sugestoes', 'aceitarSugestoes');
+        Route::post('/{conciliacao}/finalizar', 'finalizar');
+        Route::post('/{conciliacao}/reabrir', 'reabrir');
+        Route::post('/{conciliacao}/so-no-app/manter', 'manterSoNoApp');
+        Route::post('/{conciliacao}/so-no-app/pendente', 'soNoAppPendente');
+        Route::post('/{conciliacao}/itens/{item}/vincular', 'vincular');
+        Route::post('/{conciliacao}/itens/{item}/lancar', 'lancar');
+        Route::post('/{conciliacao}/itens/{item}/pagamento-fatura', 'pagamentoFatura');
+        Route::post('/{conciliacao}/itens/{item}/transferencia', 'transferencia');
+        Route::post('/{conciliacao}/itens/{item}/adiar', 'adiar');
+        Route::post('/{conciliacao}/itens/{item}/ignorar', 'ignorar');
+        Route::post('/{conciliacao}/itens/{item}/desfazer', 'desfazer');
+    });
 
     //REGRAS DE IMPORTACAO OFX
     Route::get('/regras-importacao-ofx', [\App\Http\Controllers\RegraImportacaoOfxController::class, 'index']);

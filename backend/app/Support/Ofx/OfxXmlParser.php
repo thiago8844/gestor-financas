@@ -35,7 +35,7 @@ class OfxXmlParser
             throw new OfxParseException('Nenhum extrato de conta corrente/poupança ou cartão de crédito encontrado no OFX.');
         }
 
-        [$acctFrom, $tranlist, $acctTypePadrao] = $stmtrs;
+        [$acctFrom, $tranlist, $acctTypePadrao, $stmtrsNode] = $stmtrs;
 
         $bankId = isset($acctFrom->BANKID) ? trim((string) $acctFrom->BANKID) : null;
         $branchId = isset($acctFrom->BRANCHID) ? trim((string) $acctFrom->BRANCHID) : null;
@@ -53,6 +53,8 @@ class OfxXmlParser
             }
         }
 
+        [$saldo, $dataSaldo] = $this->parseSaldoFinal($stmtrsNode);
+
         return new OfxParsedFile(
             bankId: $bankId,
             branchId: $branchId,
@@ -62,27 +64,60 @@ class OfxXmlParser
             periodStart: $periodStart,
             periodEnd: $periodEnd,
             transactions: $transacoes,
+            ledgerBalance: $saldo,
+            ledgerBalanceDate: $dataSaldo,
         );
     }
 
     /**
-     * @return array{0: SimpleXMLElement, 1: SimpleXMLElement, 2: string}|null
+     * @return array{0: SimpleXMLElement, 1: SimpleXMLElement, 2: string, 3: SimpleXMLElement}|null
      */
     private function localizarStmtrs(SimpleXMLElement $doc): ?array
     {
         if (isset($doc->BANKMSGSRSV1->STMTTRNRS->STMTRS->BANKACCTFROM)) {
             $stmtrs = $doc->BANKMSGSRSV1->STMTTRNRS->STMTRS;
 
-            return [$stmtrs->BANKACCTFROM, $stmtrs->BANKTRANLIST, 'CHECKING'];
+            return [$stmtrs->BANKACCTFROM, $stmtrs->BANKTRANLIST, 'CHECKING', $stmtrs];
         }
 
         if (isset($doc->CREDITCARDMSGSRSV1->CCSTMTTRNRS->CCSTMTRS->CCACCTFROM)) {
             $stmtrs = $doc->CREDITCARDMSGSRSV1->CCSTMTTRNRS->CCSTMTRS;
 
-            return [$stmtrs->CCACCTFROM, $stmtrs->BANKTRANLIST, 'CREDITCARD'];
+            return [$stmtrs->CCACCTFROM, $stmtrs->BANKTRANLIST, 'CREDITCARD', $stmtrs];
         }
 
         return null;
+    }
+
+    /**
+     * Saldo final do extrato (LEDGERBAL). Opcional: vários bancos não mandam, ou mandam zerado;
+     * nesse caso a conciliação só não mostra a "prova do saldo".
+     *
+     * @return array{0: ?float, 1: ?Carbon}
+     */
+    private function parseSaldoFinal(SimpleXMLElement $stmtrs): array
+    {
+        if (!isset($stmtrs->LEDGERBAL->BALAMT)) {
+            return [null, null];
+        }
+
+        $bruto = trim((string) $stmtrs->LEDGERBAL->BALAMT);
+
+        if ($bruto === '' || !is_numeric(str_replace(',', '.', $bruto))) {
+            return [null, null];
+        }
+
+        $data = null;
+
+        if (isset($stmtrs->LEDGERBAL->DTASOF) && trim((string) $stmtrs->LEDGERBAL->DTASOF) !== '') {
+            try {
+                $data = $this->parseData((string) $stmtrs->LEDGERBAL->DTASOF);
+            } catch (OfxParseException) {
+                $data = null;
+            }
+        }
+
+        return [(float) str_replace(',', '.', $bruto), $data];
     }
 
     private function parseTransacao(SimpleXMLElement $trn): OfxParsedTransaction

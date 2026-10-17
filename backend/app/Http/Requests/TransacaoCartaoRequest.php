@@ -29,6 +29,8 @@ class TransacaoCartaoRequest extends FormRequest
                 'integer',
                 Rule::exists('cards', 'id')->where('user_id', Auth::id()),
             ],
+            // INCOME = crédito/estorno na fatura (abate do total). Sem o campo, continua sendo compra.
+            'type' => ['nullable', Rule::in(['EXPENSE', 'INCOME'])],
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:999999999.99'],
             'purchase_date' => ['required', 'date'],
@@ -53,6 +55,16 @@ class TransacaoCartaoRequest extends FormRequest
             'purchase_date.required' => 'A data da compra é obrigatória.',
             'installment_total.min' => 'O parcelamento deve ter pelo menos 1 parcela.',
             'installment_total.max' => 'O parcelamento não pode ter mais que 60 parcelas.',
+            'type.in' => 'O tipo deve ser compra (EXPENSE) ou crédito (INCOME).',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($this->input('type') === 'INCOME' && (int) $this->input('installment_total', 1) > 1) {
+                $validator->errors()->add('installment_total', 'Crédito/estorno no cartão não pode ser parcelado.');
+            }
+        });
     }
 }

@@ -42,7 +42,7 @@ class ObterFaturaAtualDashboardAction
         $referenceMonth = $dueDate->copy()->startOfMonth();
 
         $fatura = Fatura::where('card_id', $cartao->id)
-            ->where('reference_month', $referenceMonth->toDateString())
+            ->whereDate('reference_month', $referenceMonth->toDateString())
             ->with(['parcelas' => fn ($query) => $query->with('categoria')->orderBy('purchase_date')->orderBy('id')])
             ->first();
 

@@ -42,6 +42,17 @@ export const STATUS_COR: Record<StatusFatura, string> = {
   PAGA: "var(--bs-success)",
 };
 
+/** Quanto o lançamento pesa na fatura: compra soma, crédito (estorno, saldo levado para a próxima) subtrai. */
+export function valorNaFatura(p: Transacao) {
+  const valor = Number(p.amount ?? 0);
+  return p.type === "INCOME" ? -valor : valor;
+}
+
+/** Fatura que ainda pode ser paga (tem algo pendente, inclusive só crédito pendente). */
+export function faturaPagavel(f: Fatura) {
+  return f.id !== null && f.status !== "PAGA";
+}
+
 /** "YYYY-MM" de uma data (ou do mês de referência da fatura). */
 export function chaveMes(dataStr: string) {
   return dataStr.slice(0, 7);

@@ -43,6 +43,10 @@ export type Transacao = {
   created_at_fmt: string | null;
   cartao: Cartao | null;
   fatura: Fatura | null;
+  /** Lado da rolagem de um pagamento parcial de fatura (gerado pelo sistema). */
+  is_rolagem_fatura?: boolean;
+  /** Já conferido contra o extrato do banco (conciliação). */
+  conciliada?: boolean;
 };
 
 //FUTURAMENTE COLOCAR OS TIPOS DE PAGINAÇÃO NA RESPONSE TAMBÉM

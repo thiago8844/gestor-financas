@@ -280,7 +280,7 @@ class TransacaoController extends Controller
         }
 
         if ($transacao->transfer_id !== null) {
-            return response()->json(['message' => 'Edite esta movimentação pela tela de transferências'], 403);
+            return response()->json(['message' => $this->mensagemMovimentacaoInterna($transacao, 'Edite')], 403);
         }
 
         // Despesa de cartão: pertence a um grupo de parcelas/fatura, então só o valor pode
@@ -328,7 +328,7 @@ class TransacaoController extends Controller
         }
 
         if ($transacao->transfer_id !== null) {
-            return response()->json(['message' => 'Edite esta movimentação pela tela de transferências'], 403);
+            return response()->json(['message' => $this->mensagemMovimentacaoInterna($transacao, 'Edite')], 403);
         }
 
         $transacao->update(['amount' => $request->amount]);
@@ -347,7 +347,7 @@ class TransacaoController extends Controller
         }
 
         if ($transacao->transfer_id !== null) {
-            return response()->json(['message' => 'Exclua esta movimentação pela tela de transferências'], 403);
+            return response()->json(['message' => $this->mensagemMovimentacaoInterna($transacao, 'Exclua')], 403);
         }
 
         if($transacao->is_initial_balance){
@@ -379,5 +379,18 @@ class TransacaoController extends Controller
             'message' => 'Transações deletadas com sucesso',
             'excluidas' => $excluidas,
         ], 200);
+    }
+
+    /**
+     * Lançamentos com transfer_id são movimentação interna: transferência entre contas ou a rolagem
+     * de saldo do pagamento parcial de fatura. Nenhum dos dois se altera direto por aqui.
+     */
+    private function mensagemMovimentacaoInterna(Transacao $transacao, string $verbo): string
+    {
+        if ($transacao->isRolagemDeFatura()) {
+            return 'Este lançamento é o saldo de um pagamento parcial de fatura. Para desfazê-lo, reverta o pagamento da fatura.';
+        }
+
+        return "{$verbo} esta movimentação pela tela de transferências";
     }
 }

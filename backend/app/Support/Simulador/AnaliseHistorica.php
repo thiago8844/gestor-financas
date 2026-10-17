@@ -96,6 +96,8 @@ final class AnaliseHistorica
             ->whereIn('t.account_id', $contaIds)
             ->where('t.is_initial_balance', false)
             ->whereNotNull('t.amount')
+            // Rolagem de pagamento parcial de fatura não é consumo nem renda (e nem data histórico).
+            ->where(fn ($q) => $q->whereNull('t.transfer_id')->orWhereNull('t.card_id'))
             ->when($this->filtros->cartaoIds, fn ($q) => $q->where(fn ($w) => $w
                 ->whereNull('t.card_id')
                 ->orWhereIn('t.card_id', $this->filtros->cartaoIds)))

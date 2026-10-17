@@ -1,6 +1,8 @@
 <?php
 
+use App\Notificacoes\Regras\ConciliacaoPendenteRegra;
 use App\Notificacoes\Regras\DespesaVencidaRegra;
+use App\Notificacoes\Regras\FechamentoMensalRegra;
 use App\Notificacoes\Regras\PagamentoAVencerRegra;
 
 return [
@@ -13,5 +15,7 @@ return [
     'regras' => [
         PagamentoAVencerRegra::class,
         DespesaVencidaRegra::class,
+        ConciliacaoPendenteRegra::class,
+        FechamentoMensalRegra::class,
     ],
 ];

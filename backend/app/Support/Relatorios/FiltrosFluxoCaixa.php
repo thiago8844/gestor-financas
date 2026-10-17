@@ -74,7 +74,10 @@ final class FiltrosFluxoCaixa
             ->when($this->contaIds, fn ($q) => $q->whereIn('account_id', $this->contaIds))
             ->when($this->categoriaId, fn ($q) => $q->where('category_id', $this->categoriaId))
             ->when($this->orcamentoId, fn ($q) => $q->where('budget_id', $this->orcamentoId))
-            ->when($this->tipo, fn ($q) => $q->where('type', $this->tipo))
+            // O crédito da rolagem de fatura conta como redução de saída, então acompanha o filtro "saídas".
+            ->when($this->tipo === 'EXPENSE', fn ($q) => $q->where(fn ($w) => $w->where('type', 'EXPENSE')->orWhereRaw(RolagemFaturaSql::credito())))
+            ->when($this->tipo === 'INCOME', fn ($q) => $q->where('type', 'INCOME')->whereRaw('NOT ' . RolagemFaturaSql::credito()))
+            ->when($this->tipo && !in_array($this->tipo, ['EXPENSE', 'INCOME'], true), fn ($q) => $q->where('type', $this->tipo))
             ->when($this->valorMinimo !== null, fn ($q) => $q->where('amount', '>=', $this->valorMinimo))
             ->when($this->valorMaximo !== null, fn ($q) => $q->where('amount', '<=', $this->valorMaximo))
             ->when($this->descricao, fn ($q) => $q->where('description', 'like', '%' . $this->descricao . '%'));

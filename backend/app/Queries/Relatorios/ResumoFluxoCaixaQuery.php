@@ -3,6 +3,7 @@
 namespace App\Queries\Relatorios;
 
 use App\Enums\RegimeRelatorio;
+use App\Support\Relatorios\RolagemFaturaSql;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -36,10 +37,8 @@ class ResumoFluxoCaixaQuery
             ->whereIn('status', $statuses)
             ->when($contaIds, fn ($q) => $q->whereIn('account_id', $contaIds))
             ->whereRaw("DATE({$colunaData}) BETWEEN ? AND ?", [$dataInicial->toDateString(), $dataFinal->toDateString()])
-            ->selectRaw("
-                SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) AS entradas,
-                SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS saidas
-            ")
+            // Crédito da rolagem de fatura (pagamento parcial) abate da saída em vez de virar entrada.
+            ->selectRaw(RolagemFaturaSql::somaEntradas() . ' AS entradas, ' . RolagemFaturaSql::somaSaidas() . ' AS saidas')
             ->first();
 
         $entradas = (float) ($periodo->entradas ?? 0);

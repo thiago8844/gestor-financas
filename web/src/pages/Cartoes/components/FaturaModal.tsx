@@ -13,11 +13,14 @@ import {
   STATUS_LABEL,
   contarFiltrosAtivos,
   descreverFiltros,
+  faturaPagavel,
   filtrarParcelas,
   formatarDataBr,
   formatarMesAno,
+  valorNaFatura,
   type FiltrosFatura,
 } from "./faturaUtils";
+import { BadgeAuditoria } from "./AuditoriaFaturaModal";
 
 type Props = {
   fatura: Fatura;
@@ -25,9 +28,34 @@ type Props = {
   onClose: () => void;
   onPagar: (fatura: Fatura) => void;
   onReverter: (fatura: Fatura) => void;
+  onLancar?: (fatura: Fatura, tipo: "INCOME" | "EXPENSE") => void;
+  onAuditar?: (fatura: Fatura) => void;
 };
 
 const moeda = (v: number | null | undefined) => `R$ ${convertNumberToCurrencyMask(v ?? 0)}`;
+
+/** Valor como aparece na fatura: crédito com sinal de menos e em verde. */
+function ValorParcela({ p }: { p: Transacao }) {
+  if (p.type === "INCOME") {
+    return <span className="text-success">− {moeda(p.amount)}</span>;
+  }
+
+  return <>{moeda(p.amount)}</>;
+}
+
+function MarcadoresParcela({ p }: { p: Transacao }) {
+  return (
+    <>
+      {p.is_rolagem_fatura && (
+        <span className="badge text-bg-info ms-2" title="Gerado pelo pagamento parcial de fatura. Para desfazer, reverta o pagamento.">
+          saldo entre faturas
+        </span>
+      )}
+      {p.type === "INCOME" && !p.is_rolagem_fatura && <span className="badge text-bg-success ms-2">crédito</span>}
+      {p.conciliada && <i className="bi bi-patch-check-fill text-primary ms-2" title="Conferido com o extrato do banco"></i>}
+    </>
+  );
+}
 
 function Resumo({ rotulo, valor, classe = "" }: { rotulo: string; valor: string; classe?: string }) {
   return (
@@ -44,7 +72,7 @@ function ParcelaTexto({ p }: { p: Transacao }) {
   return <>{p.installment_total && p.installment_total > 1 ? `${p.installment_number}/${p.installment_total}` : "Única"}</>;
 }
 
-export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Props) {
+export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLancar, onAuditar }: Props) {
   const [filtros, setFiltros] = useState<FiltrosFatura>(FILTROS_FATURA_INICIAIS);
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
@@ -61,7 +89,8 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
   }, [fatura.parcelas]);
 
   const parcelas = useMemo(() => filtrarParcelas(fatura.parcelas, filtros), [fatura.parcelas, filtros]);
-  const totalFiltrado = parcelas.reduce((soma, p) => soma + Number(p.amount ?? 0), 0);
+  const totalFiltrado = parcelas.reduce((soma, p) => soma + valorNaFatura(p), 0);
+  const levado = fatura.levado_para_proxima ?? 0;
   const ativos = contarFiltrosAtivos(filtros);
   const filtrado = ativos > 0;
   const textoFiltros = descreverFiltros(
@@ -77,7 +106,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
         compra: p.purchase_date_fmt ?? "-",
         parcela: p.installment_total && p.installment_total > 1 ? `${p.installment_number}/${p.installment_total}` : "Única",
         status: p.status === "PAID" ? "Paga" : "Pendente",
-        valor: p.amount ?? 0,
+        valor: valorNaFatura(p),
       })),
       { descricao: "TOTAL", categoria: "", compra: "", parcela: "", status: "", valor: totalFiltrado },
     ];
@@ -117,14 +146,19 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
       <tbody>
         {parcelas.map((p) => (
           <tr key={p.id}>
-            <td>{p.description}</td>
+            <td>
+              {p.description}
+              <MarcadoresParcela p={p} />
+            </td>
             <td>{p.categoria?.name ?? "-"}</td>
             <td className="text-nowrap">{p.purchase_date_fmt ?? "-"}</td>
             <td>
               <ParcelaTexto p={p} />
             </td>
             <td>{p.status === "PAID" ? "Paga" : "Pendente"}</td>
-            <td className="text-end text-nowrap">{moeda(p.amount)}</td>
+            <td className="text-end text-nowrap">
+              <ValorParcela p={p} />
+            </td>
           </tr>
         ))}
       </tbody>
@@ -132,6 +166,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
         <tr className="fw-bold">
           <td colSpan={5} className="text-end">
             Total{filtrado ? " (filtrado)" : ""}
+            {levado > 0 && <span className="fw-normal text-muted small"> · já descontado o saldo levado p/ próxima</span>}
           </td>
           <td className="text-end text-nowrap">{moeda(totalFiltrado)}</td>
         </tr>
@@ -148,6 +183,11 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
             <i className="bi bi-credit-card me-2"></i>
             {cartao.name} · {formatarMesAno(fatura.reference_month)}
             <span className={`badge ms-2 ${STATUS_BADGE[fatura.status]}`}>{STATUS_LABEL[fatura.status]}</span>
+            {fatura.id !== null && (
+              <span className="ms-2 fs-6">
+                <BadgeAuditoria auditoria={fatura.auditoria} />
+              </span>
+            )}
           </Modal.Title>
           <div className="text-muted small">
             Fecha em {formatarDataBr(fatura.closing_date)} · Vence em {formatarDataBr(fatura.due_date)}
@@ -161,8 +201,20 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
           <Resumo rotulo="Total da fatura" valor={moeda(fatura.total)} />
           <Resumo rotulo="Pago" valor={moeda(fatura.pago)} classe="text-success" />
           <Resumo rotulo="Pendente" valor={moeda(fatura.pendente)} classe={fatura.pendente > 0 ? "text-danger" : ""} />
-          <Resumo rotulo="Lançamentos" valor={String(fatura.parcelas.length)} />
+          {levado > 0 ? (
+            <Resumo rotulo="Levado p/ próxima fatura" valor={moeda(levado)} classe="text-info" />
+          ) : (
+            <Resumo rotulo="Lançamentos" valor={String(fatura.parcelas.length)} />
+          )}
         </div>
+
+        {levado > 0 && (
+          <div className="alert alert-info small py-2">
+            <i className="bi bi-arrow-return-right me-1"></i>
+            Pagamento parcial: {moeda(fatura.pago)} saíram da conta e {moeda(levado)} foram para a fatura seguinte como
+            "Saldo restante". Para desfazer, reverta o pagamento.
+          </div>
+        )}
 
         {/* Barra de busca + ações */}
         <div className="d-flex flex-wrap gap-2 mb-2">
@@ -189,7 +241,25 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
             {ativos > 0 && <span className="badge rounded-pill text-bg-primary ms-2">{ativos}</span>}
           </button>
 
-          <div className="ms-md-auto d-flex gap-2">
+          <div className="ms-md-auto d-flex flex-wrap gap-2">
+            {fatura.id !== null && onLancar && (
+              <>
+                <button type="button" className="btn btn-sm btn-outline-success" onClick={() => onLancar(fatura, "INCOME")}>
+                  <i className="bi bi-arrow-counterclockwise me-1"></i>
+                  Crédito/estorno
+                </button>
+                <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => onLancar(fatura, "EXPENSE")}>
+                  <i className="bi bi-plus-circle me-1"></i>
+                  Despesa/ajuste
+                </button>
+              </>
+            )}
+            {fatura.id !== null && onAuditar && (
+              <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => onAuditar(fatura)}>
+                <i className="bi bi-shield-check me-1"></i>
+                Auditar
+              </button>
+            )}
             <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => imprimir()}>
               <i className="bi bi-file-earmark-pdf me-1"></i>
               PDF
@@ -289,8 +359,13 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
               {parcelas.map((p) => (
                 <div key={p.id} className="border rounded p-2">
                   <div className="d-flex justify-content-between gap-2">
-                    <div className="fw-semibold">{p.description}</div>
-                    <div className="fw-bold text-nowrap">{moeda(p.amount)}</div>
+                    <div className="fw-semibold">
+                      {p.description}
+                      <MarcadoresParcela p={p} />
+                    </div>
+                    <div className="fw-bold text-nowrap">
+                      <ValorParcela p={p} />
+                    </div>
                   </div>
                   <div className="d-flex flex-wrap gap-1 mt-1 align-items-center small text-muted">
                     <span>{p.purchase_date_fmt ?? "-"}</span>
@@ -319,7 +394,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
           Fechar
         </button>
         {fatura.id !== null &&
-          (fatura.pendente > 0 ? (
+          (faturaPagavel(fatura) ? (
             <button type="button" className="btn btn-success" onClick={() => onPagar(fatura)}>
               <i className="bi bi-cash-coin me-2"></i>
               Pagar fatura ({moeda(fatura.pendente)})
@@ -347,6 +422,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
             <span>Total da fatura: <strong>{moeda(fatura.total)}</strong></span>
             <span>Pago: <strong>{moeda(fatura.pago)}</strong></span>
             <span>Pendente: <strong>{moeda(fatura.pendente)}</strong></span>
+            {levado > 0 && <span>Levado p/ próxima: <strong>{moeda(levado)}</strong></span>}
           </div>
         }
         tabelas={<div className="table-responsive">{tabelaParcelas}</div>}

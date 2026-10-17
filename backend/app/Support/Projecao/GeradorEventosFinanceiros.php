@@ -4,6 +4,7 @@ namespace App\Support\Projecao;
 
 use App\Actions\Faturas\ResolverFaturaCompra;
 use App\Enums\TransactionStatus;
+use App\Enums\TransactionType;
 use App\Models\Cartao;
 use App\Models\Conta;
 use App\Models\RecorrenciaTransacao;
@@ -192,6 +193,11 @@ class GeradorEventosFinanceiros
 
         // Compra no cartão com fatura: vira item da fatura, não evento próprio.
         if ($transacao->card_id && $transacao->fatura) {
+            // Crédito/estorno na fatura entra negativo: abate do valor da fatura.
+            if ($transacao->type === TransactionType::INCOME && $valor['valor'] !== null) {
+                $valor['valor'] = -$valor['valor'];
+            }
+
             $this->adicionarItemNaFatura(
                 $transacao->fatura->cartao,
                 $transacao->fatura->reference_month,

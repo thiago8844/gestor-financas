@@ -57,6 +57,9 @@ import { ListagemTransferencia } from "./pages/Transferencia/ListagemTransferenc
 import { CadastrarTransferencia } from "./pages/Transferencia/CadastrarTransferencia";
 import { EditarTransferencia } from "./pages/Transferencia/EditarTransferencia";
 import { Configuracoes } from "./pages/Configuracoes/Configuracoes";
+import { ConciliacaoRoute } from "./pages/Conciliacao/ConciliacaoRoute";
+import { PainelFechamento } from "./pages/Conciliacao/PainelFechamento";
+import { RevisarConciliacao } from "./pages/Conciliacao/RevisarConciliacao";
 
 export const router = createBrowserRouter([
   {
@@ -145,6 +148,14 @@ export const router = createBrowserRouter([
           { path: "", element: <HistoricoImportacoesOfx /> },
           { path: "nova", element: <UploadOfx /> },
           { path: ":id", element: <RevisarImportacaoOfx /> },
+        ],
+      },
+      {
+        path: "conciliacao",
+        element: <ConciliacaoRoute />,
+        children: [
+          { path: "", element: <PainelFechamento /> },
+          { path: ":id", element: <RevisarConciliacao /> },
         ],
       },
       {

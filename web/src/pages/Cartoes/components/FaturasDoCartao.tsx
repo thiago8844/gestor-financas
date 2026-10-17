@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
 import { getFaturasDoCartao, reverterPagamentoFatura } from "../../../api/fatura";
-import { convertNumberToCurrencyMask } from "../../../utils";
+import { convertNumberToCurrencyMask, mensagemErroApi } from "../../../utils";
 import type { Fatura, FaturaPagavel } from "../../../types/fatura";
 import type { Cartao } from "../../../types/cartao";
 import { PagarFaturaModal } from "./PagarFaturaModal";
 import { FaturaModal } from "./FaturaModal";
+import { LancarNaFaturaModal } from "./LancarNaFaturaModal";
+import { AuditoriaFaturaModal, BadgeAuditoria } from "./AuditoriaFaturaModal";
 import { useConfirmModalStore } from "../../../stores/confirmModal";
 import { useCacheUtils } from "../../../hooks/useCacheUtils";
 import {
@@ -16,6 +19,7 @@ import {
   agruparFaturas,
   chaveMes,
   chaveMesAtual,
+  faturaPagavel,
   formatarDataBr,
   formatarMesAno,
 } from "./faturaUtils";
@@ -30,8 +34,10 @@ type CardProps = {
 };
 
 function FaturaCard({ fatura, atual, onAbrir, onPagar }: CardProps) {
-  const percentual = fatura.total > 0 ? Math.round((fatura.pago / fatura.total) * 100) : 0;
-  const pagavel = fatura.id !== null && fatura.pendente > 0;
+  // Pagamento parcial: o que foi levado para a próxima fatura também "resolve" esta.
+  const quitado = fatura.pago + (fatura.levado_para_proxima ?? 0);
+  const percentual = fatura.total > 0 ? Math.min(100, Math.round((quitado / fatura.total) * 100)) : 0;
+  const pagavel = faturaPagavel(fatura);
 
   return (
     <div className="col-12 col-md-6 col-xl-4">
@@ -49,6 +55,18 @@ function FaturaCard({ fatura, atual, onAbrir, onPagar }: CardProps) {
           </div>
 
           <div className="fs-4 fw-bold lh-1">{moeda(fatura.total)}</div>
+
+          {fatura.id !== null && (
+            <div className="d-flex flex-wrap gap-1 small">
+              <BadgeAuditoria auditoria={fatura.auditoria} />
+              {(fatura.levado_para_proxima ?? 0) > 0 && (
+                <span className="badge text-bg-info">
+                  <i className="bi bi-arrow-return-right me-1"></i>
+                  {moeda(fatura.levado_para_proxima ?? 0)} p/ próxima
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="progress" style={{ height: "6px" }} title={`${percentual}% pago`}>
             <div className="progress-bar bg-success" style={{ width: `${percentual}%` }}></div>
@@ -86,7 +104,7 @@ type Props = {
 
 export function FaturasDoCartao({ cartao }: Props) {
   const cartaoId = cartao.id;
-  const { data, isPending, isError } = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: ["cartao", cartaoId, "faturas"],
     queryFn: () => getFaturasDoCartao(cartaoId),
   });
@@ -95,6 +113,8 @@ export function FaturasDoCartao({ cartao }: Props) {
   const [mostrarPosteriores, setMostrarPosteriores] = useState(false);
   const [faturaAbertaMes, setFaturaAbertaMes] = useState<string | null>(null);
   const [faturaParaPagar, setFaturaParaPagar] = useState<FaturaPagavel | null>(null);
+  const [lancamento, setLancamento] = useState<{ fatura: FaturaPagavel; tipo: "INCOME" | "EXPENSE"; valor?: number } | null>(null);
+  const [faturaParaAuditar, setFaturaParaAuditar] = useState<FaturaPagavel | null>(null);
   const { openModal } = useConfirmModalStore();
   const queryClient = useQueryClient();
   const { invalidateContas } = useCacheUtils();
@@ -108,8 +128,8 @@ export function FaturasDoCartao({ cartao }: Props) {
       invalidateContas();
       alert("Pagamento revertido com sucesso!");
     },
-    onError: () => {
-      alert("Erro ao reverter pagamento. Tente novamente.");
+    onError: (error: AxiosError<{ message?: string }>) => {
+      alert(error.response?.data?.message || "Erro ao reverter pagamento. Tente novamente.");
     },
   });
 
@@ -120,7 +140,7 @@ export function FaturasDoCartao({ cartao }: Props) {
   }
 
   if (isError) {
-    return <div className="text-danger small py-2">Erro ao carregar as faturas desse cartão.</div>;
+    return <div className="text-danger small py-2">{mensagemErroApi(error, "Erro ao carregar as faturas desse cartão.")}</div>;
   }
 
   if (faturas.length === 0) {
@@ -140,9 +160,14 @@ export function FaturasDoCartao({ cartao }: Props) {
     openModal({
       callback: () => reverter(f.id as number),
       title: "Reverter pagamento da fatura",
-      message: `Tem certeza que deseja reverter todos os pagamentos da fatura de ${formatarMesAno(f.reference_month)}? Todas as despesas dela voltarão a ficar pendentes.`,
+      message:
+        `Tem certeza que deseja reverter todos os pagamentos da fatura de ${formatarMesAno(f.reference_month)}? Todas as despesas dela voltarão a ficar pendentes.` +
+        ((f.levado_para_proxima ?? 0) > 0 ? " O saldo levado para a próxima fatura também será desfeito." : ""),
       autoClose: true,
     });
+
+  // A fatura aberta no modal vem sempre da lista (atualizada pela query), não de uma cópia.
+  const atual = (f: FaturaPagavel) => (faturas.find((x) => x.id === f.id) as FaturaPagavel | undefined) ?? f;
 
   const renderCards = (lista: Fatura[]) => (
     <div className="row g-3">
@@ -214,6 +239,8 @@ export function FaturasDoCartao({ cartao }: Props) {
           onClose={() => setFaturaAbertaMes(null)}
           onPagar={pedirPagamento}
           onReverter={pedirReversao}
+          onLancar={(f, tipo) => setLancamento({ fatura: { ...f, id: f.id as number }, tipo })}
+          onAuditar={(f) => setFaturaParaAuditar({ ...f, id: f.id as number })}
         />
       )}
 
@@ -222,6 +249,27 @@ export function FaturasDoCartao({ cartao }: Props) {
           fatura={faturaParaPagar}
           contaNome={cartao.conta_nome}
           onClose={() => setFaturaParaPagar(null)}
+        />
+      )}
+
+      {lancamento && (
+        <LancarNaFaturaModal
+          fatura={atual(lancamento.fatura)}
+          tipoInicial={lancamento.tipo}
+          valorInicial={lancamento.valor}
+          descricaoInicial={lancamento.valor ? "Ajuste da auditoria da fatura" : undefined}
+          onClose={() => setLancamento(null)}
+        />
+      )}
+
+      {faturaParaAuditar && (
+        <AuditoriaFaturaModal
+          fatura={atual(faturaParaAuditar)}
+          cartaoNome={cartao.name}
+          onClose={() => setFaturaParaAuditar(null)}
+          onLancarDiferenca={(tipo, valor) => {
+            setLancamento({ fatura: atual(faturaParaAuditar), tipo, valor });
+          }}
         />
       )}
     </div>

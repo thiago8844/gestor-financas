@@ -8,6 +8,8 @@ final class OfxParsedFile
 {
     /**
      * @param OfxParsedTransaction[] $transactions
+     * @param ?float $ledgerBalance saldo final informado pelo banco (LEDGERBAL/BALAMT), quando houver
+     * @param ?Carbon $ledgerBalanceDate data a que esse saldo se refere (LEDGERBAL/DTASOF)
      */
     public function __construct(
         public readonly ?string $bankId,
@@ -18,6 +20,8 @@ final class OfxParsedFile
         public readonly ?Carbon $periodStart,
         public readonly ?Carbon $periodEnd,
         public readonly array $transactions,
+        public readonly ?float $ledgerBalance = null,
+        public readonly ?Carbon $ledgerBalanceDate = null,
     ) {
     }
 }

@@ -13,7 +13,9 @@ class TransferenciaController extends Controller
 {
     public function index(Request $request)
     {
+        // Rolagens de fatura (pagamento parcial) também moram em transfers, mas não são da tela de Transferências.
         $query = Transferencia::with(['contaOrigem', 'contaDestino'])
+            ->entreContas()
             ->where('user_id', Auth::id());
 
         // Filtra pelas transferências que envolvem a conta, de qualquer um dos lados.
@@ -46,7 +48,7 @@ class TransferenciaController extends Controller
 
     public function show(Transferencia $transferencia)
     {
-        if ($transferencia->user_id !== Auth::id()) {
+        if ($transferencia->user_id !== Auth::id() || $transferencia->isRolagemDeFatura()) {
             return response()->json(['message' => 'Acesso negado'], 403);
         }
 
@@ -65,7 +67,7 @@ class TransferenciaController extends Controller
 
     public function update(TransferenciaRequest $request, Transferencia $transferencia)
     {
-        if ($transferencia->user_id !== Auth::id()) {
+        if ($transferencia->user_id !== Auth::id() || $transferencia->isRolagemDeFatura()) {
             return response()->json(['message' => 'Acesso negado'], 403);
         }
 
@@ -77,7 +79,7 @@ class TransferenciaController extends Controller
 
     public function destroy(Transferencia $transferencia)
     {
-        if ($transferencia->user_id !== Auth::id()) {
+        if ($transferencia->user_id !== Auth::id() || $transferencia->isRolagemDeFatura()) {
             return response()->json(['message' => 'Acesso negado'], 403);
         }
 

@@ -51,9 +51,8 @@ class PendenciasPorVencimento
             ->with(['cartao', 'parcelas'])
             ->get()
             ->map(function (Fatura $fatura) {
-                $pendente = (float) $fatura->parcelas
-                    ->where('status', TransactionStatus::PENDING)
-                    ->sum('amount');
+                // Com sinal: crédito/estorno pendente abate do que falta pagar.
+                $pendente = $fatura->resumoValores()['pendente'];
 
                 return [
                     'chave' => "fatura:{$fatura->id}",

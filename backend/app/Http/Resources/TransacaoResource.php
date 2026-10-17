@@ -48,6 +48,10 @@ class TransacaoResource extends JsonResource
             'created_at_fmt' => $this->created_at?->format('d/m/Y H:i'),
             'cartao' => $this->whenLoaded('cartao'),
             'fatura' => $this->whenLoaded('fatura'),
+            // Lado da rolagem de um pagamento parcial de fatura: gerado pelo sistema, não se edita direto.
+            'is_rolagem_fatura' => $this->resource->isRolagemDeFatura(),
+            // Já conferido contra um extrato bancário (módulo de conciliação).
+            'conciliada' => $this->reconciliation_item_id !== null,
         ];
     }
 }

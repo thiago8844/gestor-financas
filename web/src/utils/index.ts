@@ -44,3 +44,9 @@ export function convertNumberToCurrencyMask(value?: number | null): string {
     const brazilTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
     return brazilTime.toISOString().slice(0, 16);
   };
+
+/** Mensagem que o servidor devolveu num erro do axios (ou o texto padrão, se não houver). */
+export function mensagemErroApi(error: unknown, padrao: string): string {
+  const resposta = (error as { response?: { data?: { message?: string } } } | null)?.response;
+  return resposta?.data?.message || padrao;
+}

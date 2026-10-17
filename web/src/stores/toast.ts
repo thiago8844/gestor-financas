@@ -5,7 +5,10 @@ type Toast = {
   id: number;
   title: string;
   message: string;
-  severity: SeveridadeNotificacao;
+  // "success" é só de toasts de confirmação da própria tela (notificações do servidor não usam).
+  severity: SeveridadeNotificacao | "success";
+  /** Tempo na tela em ms (padrão 8s). Confirmações rápidas de ação usam menos para não empilhar. */
+  delay?: number;
 };
 
 type ToastStore = {

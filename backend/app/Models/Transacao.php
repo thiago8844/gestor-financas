@@ -69,6 +69,33 @@ class Transacao extends Model
         return $this->belongsTo(Fatura::class, 'invoice_id');
     }
 
+    public function conciliacaoItem(): BelongsTo
+    {
+        return $this->belongsTo(ConciliacaoItem::class, 'reconciliation_item_id');
+    }
+
+    // -=-=-=- CARTÃO / FATURA -=-=-=-
+
+    /**
+     * Quanto este lançamento pesa no total da fatura: compra soma, crédito (estorno ou saldo
+     * levado para a próxima fatura) subtrai. Valor nulo (recorrência variável sem valor) conta zero.
+     */
+    public function valorNaFatura(): float
+    {
+        $valor = (float) ($this->amount ?? 0);
+
+        return $this->type === TransactionType::INCOME ? -$valor : $valor;
+    }
+
+    /**
+     * Um dos dois lados da rolagem de um pagamento parcial: o crédito "saldo levado para a
+     * próxima fatura" (INCOME) ou o débito "saldo restante da fatura anterior" (EXPENSE).
+     */
+    public function isRolagemDeFatura(): bool
+    {
+        return $this->transfer_id !== null && $this->card_id !== null;
+    }
+
     // -=-=-=- PARCELAMENTO -=-=-=-
 
     public function scopeParcelasDoGrupo($query, string $grupo_uuid)
