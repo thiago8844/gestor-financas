@@ -129,31 +129,37 @@ export const getTransacoesCategoria = async ({
 
 // ---------------------------------------------------------------------------
 // GET /dashboard/despesas-futuras
-// Quanto ainda vai sair de hoje até `dataFinal`, separado em parcelas,
-// recorrências e outras (só valores já garantidos; sem estimativas).
+// Despesas do início do mês atual até `dataFinal`, só em duas situações: já pagas e
+// a pagar. Cartão conta pelo vencimento da fatura; `recorrentes` é um recorte do total.
 // ---------------------------------------------------------------------------
-export interface TotalDespesasFuturas {
+export interface OrigemDespesasFuturas {
+  pago: number;
+  a_pagar: number;
   total: number;
-  quantidade: number;
+  /** Quanto do pago / a pagar vem de recorrências (já incluído nos valores acima). */
+  recorrentes_pago: number;
+  recorrentes_a_pagar: number;
 }
 
 export interface DespesasFuturasDashboard {
   periodo: { data_inicial: string; data_final: string };
+  pago: number;
+  a_pagar: number;
   total: number;
-  quantidade: number;
-  parcelas: TotalDespesasFuturas;
-  recorrencias: TotalDespesasFuturas;
-  outras: TotalDespesasFuturas;
-  /** Itens sem valor definido (não entram no total). */
+  /** Itens sem valor definido (não entram nos totais). */
   sem_valor: number;
-  faturas: { cartao: string; vencimento: string; total: number }[];
-  meses: {
-    mes: string;
-    parcelas: number;
-    recorrencias: number;
-    outras: number;
+  origens: { conta: OrigemDespesasFuturas; cartao: OrigemDespesasFuturas };
+  faturas: {
+    cartao: string;
+    vencimento: string;
+    /** Fatura que ainda não existe de verdade (só recorrências previstas). */
+    projetada: boolean;
+    pago: number;
+    a_pagar: number;
     total: number;
+    recorrentes: number;
   }[];
+  meses: { mes: string; pago: number; a_pagar: number; total: number }[];
 }
 
 export const getDespesasFuturasDashboard = async (dataFinal: string) => {
