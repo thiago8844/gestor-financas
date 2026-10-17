@@ -44,6 +44,8 @@ class TransacaoResource extends JsonResource
             'card_id' => $this->card_id,
             'invoice_id' => $this->invoice_id,
             'purchase_date' => $this->purchase_date,
+            'purchase_date_fmt' => $this->purchase_date?->format('d/m/Y'),
+            'created_at_fmt' => $this->created_at?->format('d/m/Y H:i'),
             'cartao' => $this->whenLoaded('cartao'),
             'fatura' => $this->whenLoaded('fatura'),
         ];

@@ -16,6 +16,7 @@ import { getContas } from "../../api/conta";
 import type { Conta } from "../../types";
 import { Listagem } from "../../components/Listagens/Listagem";
 import { AcoesEmMassa } from "../../components/Listagens/AcoesEmMassa";
+import { CampoDataSelect, DatasTransacao, SituacaoSelect } from "../../components/Listagens/CampoData";
 import { useSelecaoEmMassa } from "../../hooks/useSelecaoEmMassa";
 
 // TODO: COLOCAR O STATUS PENDENTE EM RECEITAS DEPOIS
@@ -32,6 +33,8 @@ const filtrosOriginais = {
   nomeCategoria: "",
   periodo: "",
   order_by: "date_desc",
+  campo_data: "",
+  status: "",
   conta_id: undefined as number | undefined,
   apenas_parceladas: false,
   installment_group: undefined as string | undefined,
@@ -188,6 +191,16 @@ export function ListagemReceita() {
             <Listagem.FiltrosDropdown
               onAplicar={aplicarFiltros}
               onLimpar={resetarFiltros}
+              ativos={
+                [
+                  filtros.categoria_id,
+                  filtros.conta_id,
+                  filtros.periodo,
+                  filtros.campo_data,
+                  filtros.status,
+                  filtros.apenas_parceladas,
+                ].filter(Boolean).length
+              }
             >
               {/* ✅ SEUS FILTROS CUSTOMIZADOS */}
               <div className="px-3 py-2">
@@ -205,7 +218,7 @@ export function ListagemReceita() {
                   onFocus={() => refetchCategorias()}
                   className="form-select form-select-sm"
                 >
-                  <option value="">Sem Categoria</option>
+                  <option value="">Todas as categorias</option>
                   {categorias?.data.map((categoria) => (
                     <option key={categoria.id} value={categoria.id}>
                       {categoria.name}
@@ -229,13 +242,36 @@ export function ListagemReceita() {
                   onFocus={() => refetchContas()}
                   className="form-select form-select-sm"
                 >
-                  <option value="">Todas</option>
+                  <option value="">Todas as contas</option>
                   {contas?.data.map((conta: Conta) => (
                     <option key={conta.id} value={conta.id}>
                       {conta.name}
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="px-3 py-2">
+                <label className="form-label small">Situação:</label>
+                <SituacaoSelect
+                  value={filtrosModificados.status}
+                  rotuloConcluidas="recebidas"
+                  onChange={(status) =>
+                    setFiltrosModificados({ ...filtrosModificados, status })
+                  }
+                />
+              </div>
+
+              <div className="px-3 py-2">
+                <label className="form-label small">Filtrar pela data de:</label>
+                <CampoDataSelect
+                  incluirCompra={false}
+                  incluirVencimento={false}
+                  value={filtrosModificados.campo_data}
+                  onChange={(campo_data) =>
+                    setFiltrosModificados({ ...filtrosModificados, campo_data })
+                  }
+                />
               </div>
 
               <div className="px-3 py-2">
@@ -338,6 +374,18 @@ export function ListagemReceita() {
             {/* DROPDOWN DE ORDENAR */}
             <Listagem.OrdenarDropdown>
               {/* ✅ SEUS RADIOS CUSTOMIZADOS */}
+              <div className="mb-2">
+                <label className="form-label small mb-1">Data usada:</label>
+                <CampoDataSelect
+                  incluirCompra={false}
+                  incluirVencimento={false}
+                  value={filtros.campo_data}
+                  onChange={(campo_data) => {
+                    setFiltros((prev) => ({ ...prev, campo_data, page: 1 }));
+                    setFiltrosModificados((prev) => ({ ...prev, campo_data }));
+                  }}
+                />
+              </div>
               <div className="form-check">
                 <input
                   type="radio"
@@ -425,9 +473,10 @@ export function ListagemReceita() {
             "ID",
             "Descrição",
             "Valor",
-            "Data Transação",
+            "Datas",
             "Conta",
             "Categoria",
+            "Status",
             "Parcela",
             "Ações",
           ]}
@@ -442,6 +491,93 @@ export function ListagemReceita() {
               </span>
             </div>
           }
+          mobile={receitas.map((receita) => (
+            <div key={receita.id} className="card shadow-sm">
+              <div className="card-body p-3">
+                <div className="d-flex justify-content-between align-items-start gap-2">
+                  <div className="d-flex gap-2 align-items-start">
+                    {selecao.ativo && (
+                      <input
+                        type="checkbox"
+                        className="form-check-input mt-1"
+                        checked={selecao.selecionados.has(receita.id)}
+                        onChange={() => selecao.alternar(receita.id)}
+                      />
+                    )}
+                    <div>
+                      <div className="fw-semibold">{receita.description}</div>
+                      <div className="small text-muted">
+                        #{receita.id} · {receita.conta?.name || "-"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-end text-success fw-bold text-nowrap">
+                    {receita.amount !== null ? (
+                      `R$ ${convertNumberToCurrencyMask(receita.amount)}`
+                    ) : (
+                      <span className="text-muted fw-normal">A definir</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="d-flex flex-wrap gap-1 mt-2">
+                  {receita.status === "PAID" ? (
+                    <span className="badge text-bg-success">RECEBIDA</span>
+                  ) : (
+                    <span className="badge text-bg-secondary">PENDENTE</span>
+                  )}
+                  {receita.categoria && (
+                    <span className="badge text-bg-secondary">
+                      {receita.categoria.name}
+                    </span>
+                  )}
+                  {receita.is_installment && (
+                    <span className="badge text-bg-info">
+                      {receita.installment_number}/{receita.installment_total}
+                    </span>
+                  )}
+                  {receita.is_recurring && (
+                    <Link
+                      to={`/recorrencias/editar/${receita.recurring_transaction_id}`}
+                      className="badge text-bg-light border text-decoration-none"
+                    >
+                      <i className="bi bi-arrow-repeat"></i> Recorrente
+                    </Link>
+                  )}
+                </div>
+
+                <div className="d-flex justify-content-between align-items-end mt-2">
+                  <DatasTransacao
+                    transacao={receita}
+                    campoAtivo={filtros.campo_data || "date"}
+                    mostrarVencimento={false}
+                  mostrarCompra={false}
+                  />
+                  <div className="d-flex gap-2">
+                    <Link
+                      to={`/receitas/editar/${receita.id}`}
+                      className="btn btn-sm btn-secondary"
+                    >
+                      <i className="bi bi-pencil"></i>
+                    </Link>
+                    <button
+                      onClick={() =>
+                        openModal({
+                          callback: () => mutate(receita.id),
+                          title: "Confirmar Exclusão",
+                          message: "Tem certeza que deseja excluir esta receita?",
+                          autoClose: true,
+                        })
+                      }
+                      className="btn btn-sm btn-danger"
+                    >
+                      <i className="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
           loading={isLoading || isFetching}
           emptyMessage="Nenhuma receita encontrada"
         >
@@ -477,7 +613,14 @@ export function ListagemReceita() {
                   <span className="text-muted fw-normal">A definir</span>
                 )}
               </td>
-              <td>{receita.date ?? "-"}</td>
+              <td>
+                <DatasTransacao
+                  transacao={receita}
+                  campoAtivo={filtros.campo_data || "date"}
+                  mostrarVencimento={false}
+                  mostrarCompra={false}
+                />
+              </td>
               <td>{receita.conta?.name || "-"}</td>
               <td>
                 {receita.categoria ? (
@@ -489,13 +632,13 @@ export function ListagemReceita() {
                 )}
               </td>
 
-              {/* <td>
-                {despesa.status === "PAID" ? (
-                  <span className="badge text-bg-success">PAGO</span>
+              <td>
+                {receita.status === "PAID" ? (
+                  <span className="badge text-bg-success">RECEBIDA</span>
                 ) : (
                   <span className="badge text-bg-secondary">PENDENTE</span>
                 )}
-              </td> */}
+              </td>
 
               <td>
                 {receita.is_installment && receita.installment_group ? (

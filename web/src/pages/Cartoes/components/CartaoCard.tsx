@@ -102,7 +102,7 @@ export function CartaoCard({ cartao }: { cartao: Cartao }) {
             </div>
           </div>
 
-          {expandido && <FaturasDoCartao cartaoId={cartao.id} contaNome={cartao.conta_nome} />}
+          {expandido && <FaturasDoCartao cartao={cartao} />}
         </div>
       </div>
     </div>

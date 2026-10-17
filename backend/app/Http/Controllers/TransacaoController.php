@@ -42,6 +42,17 @@ class TransacaoController extends Controller
             $query->where('card_id', $request->cartao_id);
         }
 
+        if (in_array($request->status, ['PENDING', 'PAID'], true)) {
+            $query->where('status', $request->status);
+        }
+
+        // Origem do lançamento: "conta" = débito/dinheiro direto na conta, "cartao" = compras no cartão.
+        if ($request->origem === 'cartao') {
+            $query->whereNotNull('card_id');
+        } elseif ($request->origem === 'conta') {
+            $query->whereNull('card_id');
+        }
+
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
@@ -58,63 +69,53 @@ class TransacaoController extends Controller
             $query->where('installment_group', $request->installment_group);
         }
 
+        // Coluna de data usada no filtro de período e na ordenação por data.
+        // Sem escolha, mantém o comportamento antigo (data > vencimento > cadastro).
+        $campoData = match ($request->input('campo_data')) {
+            'date' => 'date',
+            'purchase_date' => 'purchase_date',
+            'due_date' => 'due_date',
+            'created_at' => 'created_at',
+            default => 'COALESCE(date, due_date, created_at)',
+        };
+
         if ($request->filled('periodo')) {
-            switch ($request->periodo) {
-                case 'hoje':
-                    $query->whereRaw('DATE(COALESCE(date, due_date, created_at)) = DATE(?)', [now()->toDateString()]);
-                    break;
-                case "semana":
-                    $query->whereRaw(
-                        'DATE(COALESCE(date, due_date, created_at)) BETWEEN DATE(?) AND DATE(?)',
-                        [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()]
-                    );
-                    break;
-                case "mes":
-                    $startOfMonth = now()->startOfMonth()->toDateString();
-                    $endOfMonth = now()->endOfMonth()->toDateString();
-                    $query->whereRaw(
-                        'DATE(COALESCE(date, due_date, created_at)) BETWEEN DATE(?) AND DATE(?)',
-                        [$startOfMonth, $endOfMonth]
-                    );
-                    break;
-                case "ano":
-                    $startOfYear = now()->startOfYear()->toDateString();
-                    $endOfYear = now()->endOfYear()->toDateString();
-                    $query->whereRaw(
-                        'DATE(COALESCE(date, due_date, created_at)) BETWEEN DATE(?) AND DATE(?)',
-                        [$startOfYear, $endOfYear]
-                    );
-                    break;
+            $intervalo = match ($request->periodo) {
+                'hoje' => [now()->toDateString(), now()->toDateString()],
+                'semana' => [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()],
+                'mes' => [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()],
+                'ano' => [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()],
+                default => null,
+            };
+
+            if ($intervalo) {
+                $query->whereRaw("DATE({$campoData}) BETWEEN DATE(?) AND DATE(?)", $intervalo);
             }
         }
 
-
         if ($request->filled('data_inicial') && $request->periodo === 'custom') {
-            // $query->where('date', '>=', $request->data_inicial);
-            $query->whereRaw('COALESCE(date, due_date, created_at) >= ?', [$request->data_inicial]);
+            $query->whereRaw("DATE({$campoData}) >= DATE(?)", [$request->data_inicial]);
         }
 
         if ($request->filled('data_final') && $request->periodo === 'custom') {
-            //$query->where('date', '<=', $request->data_final);
-            $query->whereRaw('COALESCE(date, due_date, created_at) <= ?', [$request->data_final]);
+            $query->whereRaw("DATE({$campoData}) <= DATE(?)", [$request->data_final]);
         }
 
         if ($request->filled('order_by')) {
-
             switch ($request->order_by) {
                 case 'valor_asc':
                     $query->orderBy('amount', 'asc');
-                    $query->orderByRaw('COALESCE(date, due_date, created_at) desc');
+                    $query->orderByRaw("{$campoData} desc");
                     break;
                 case 'valor_desc':
                     $query->orderBy('amount', 'desc');
-                    $query->orderByRaw('COALESCE(date, due_date, created_at) desc');
+                    $query->orderByRaw("{$campoData} desc");
                     break;
                 case 'date_asc':
-                    $query->orderByRaw('COALESCE(date, due_date, created_at) asc');
+                    $query->orderByRaw("{$campoData} asc");
                     break;
                 case 'date_desc':
-                    $query->orderByRaw('COALESCE(date, due_date, created_at) desc');
+                    $query->orderByRaw("{$campoData} desc");
                     break;
             }
         }

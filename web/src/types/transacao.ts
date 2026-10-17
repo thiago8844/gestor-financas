@@ -39,6 +39,8 @@ export type Transacao = {
   card_id: number | null;
   invoice_id: number | null;
   purchase_date: string | null;
+  purchase_date_fmt: string | null;
+  created_at_fmt: string | null;
   cartao: Cartao | null;
   fatura: Fatura | null;
 };

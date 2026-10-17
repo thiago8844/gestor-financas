@@ -17,6 +17,9 @@ export async function getTransacoes(filtros: {
   cartao_id?: number;
   periodo?: string; //TODO: TIPAR DPS
   order_by?: string; //TODO: TIPAR DPS
+  campo_data?: string;
+  origem?: string;
+  status?: string;
   apenas_parceladas?: boolean;
   installment_group?: string;
   page?: number;

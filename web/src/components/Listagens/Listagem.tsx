@@ -18,7 +18,7 @@ interface HeaderProps {
 
 Listagem.Header = function Header({ children }: HeaderProps) {
   return (
-    <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="d-flex flex-column flex-lg-row justify-content-between align-items-stretch align-items-lg-center gap-2 mb-4">
       {children}
     </div>
   );
@@ -30,7 +30,7 @@ interface AcoesProps {
 }
 
 Listagem.Acoes = function Acoes({ children }: AcoesProps) {
-  return <div className="d-flex gap-2">{children}</div>;
+  return <div className="d-flex flex-wrap gap-2">{children}</div>;
 };
 
 // ✅ ÁREA DE CONTROLES (DIREITA: FILTROS, ORDENAR, ETC)
@@ -39,7 +39,7 @@ interface ControlesProps {
 }
 
 Listagem.Controles = function Controles({ children }: ControlesProps) {
-  return <div className="d-flex gap-2">{children}</div>;
+  return <div className="d-flex flex-wrap flex-lg-nowrap gap-2">{children}</div>;
 };
 
 // ✅ CAMPO DE BUSCA (aplica após uma pausa na digitação)
@@ -70,7 +70,10 @@ Listagem.Busca = function Busca({
   }, [texto, value, onChange, delay]);
 
   return (
-    <div className="input-group input-group-sm" style={{ width: "240px" }}>
+    <div
+      className="input-group input-group-sm flex-grow-1 flex-lg-grow-0"
+      style={{ minWidth: "180px", maxWidth: "320px", width: "240px" }}
+    >
       <span className="input-group-text">
         <i className="bi bi-search"></i>
       </span>
@@ -118,21 +121,31 @@ interface FiltrosDropdownProps {
   children: ReactNode;
   onAplicar: () => void;
   onLimpar: () => void;
+  /** Quantidade de filtros ativos, exibida como badge no botão */
+  ativos?: number;
 }
 
 Listagem.FiltrosDropdown = function FiltrosDropdown({
   children,
   onAplicar,
   onLimpar,
+  ativos = 0,
 }: FiltrosDropdownProps) {
   return (
     <Dropdown>
       <Dropdown.Toggle variant="outline-secondary" id="filtros-dropdown">
         <i className="bi bi-funnel me-2"></i>
         Filtros
+        {ativos > 0 && (
+          <span className="badge rounded-pill text-bg-primary ms-2">
+            {ativos}
+          </span>
+        )}
       </Dropdown.Toggle>
 
-      <Dropdown.Menu style={{ minWidth: "250px" }}>
+      <Dropdown.Menu
+        style={{ minWidth: "250px", maxHeight: "70vh", overflowY: "auto" }}
+      >
         <Dropdown.Header>Filtrar por:</Dropdown.Header>
 
         {/* ✅ CONTEÚDO CUSTOMIZÁVEL */}
@@ -185,12 +198,54 @@ Listagem.OrdenarDropdown = function OrdenarDropdown({
   );
 };
 
+// ✅ SELETOR SEGMENTADO (ex: Todas | Contas financeiras | Cartão), aplicado na hora
+interface SegmentadoOpcao {
+  value: string;
+  label: string;
+  icon?: string;
+}
+
+interface SegmentadoProps {
+  value: string;
+  onChange: (valor: string) => void;
+  opcoes: SegmentadoOpcao[];
+  ariaLabel?: string;
+}
+
+Listagem.Segmentado = function Segmentado({
+  value,
+  onChange,
+  opcoes,
+  ariaLabel,
+}: SegmentadoProps) {
+  return (
+    <div className="btn-group w-100 mb-3" role="group" aria-label={ariaLabel}>
+      {opcoes.map((opcao) => (
+        <button
+          key={opcao.value}
+          type="button"
+          className={`btn btn-sm ${
+            value === opcao.value ? "btn-primary" : "btn-outline-secondary"
+          }`}
+          aria-pressed={value === opcao.value}
+          onClick={() => onChange(opcao.value)}
+        >
+          {opcao.icon && <i className={`bi ${opcao.icon} me-1`}></i>}
+          {opcao.label}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 // ✅ TABELA
 interface TabelaProps {
   headers: string[];
   children: ReactNode;
   loading?: boolean;
   emptyMessage?: string;
+  /** Versão em cards para telas pequenas (< md). Se informada, a tabela só aparece a partir de md. */
+  mobile?: ReactNode;
 }
 
 Listagem.Tabela = function Tabela({
@@ -199,11 +254,40 @@ Listagem.Tabela = function Tabela({
   loading = false,
   emptyMessage = "Nenhum registro encontrado",
   footer,
+  mobile,
 }: TabelaProps & { footer?: ReactNode }) {
   const vazio = Children.count(children) === 0;
 
+  const semDados = !loading && vazio;
+
   return (
-    <div className="table-responsive shadow-sm rounded">
+    <>
+      {mobile !== undefined && (
+        <div className="d-md-none">
+          {loading ? (
+            <div className="text-center py-5 bg-light rounded">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Carregando...</span>
+              </div>
+            </div>
+          ) : semDados ? (
+            <div className="text-center py-5 bg-light rounded">
+              <i className="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+              <p className="text-muted mb-0">{emptyMessage}</p>
+            </div>
+          ) : (
+            <div className="d-flex flex-column gap-2">{mobile}</div>
+          )}
+          {!loading && footer && (
+            <div className="shadow-sm rounded mt-2 overflow-hidden">{footer}</div>
+          )}
+        </div>
+      )}
+    <div
+      className={`table-responsive shadow-sm rounded ${
+        mobile !== undefined ? "d-none d-md-block" : ""
+      }`}
+    >
       <table className="table table-hover align-middle mb-0">
         <thead className="table-light">
           <tr>
@@ -255,6 +339,7 @@ Listagem.Tabela = function Tabela({
         </div>
       )}
     </div>
+    </>
   );
 };
 
