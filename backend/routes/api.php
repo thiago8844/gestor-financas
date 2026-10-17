@@ -35,6 +35,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //RELATORIOS
     Route::get('/relatorios/fluxo-de-caixa', [\App\Http\Controllers\RelatorioController::class, 'fluxoCaixa']);
     Route::get('/relatorios/resultado-financeiro', [\App\Http\Controllers\RelatorioController::class, 'resultadoFinanceiro']);
+    Route::get('/relatorios/analise-gastos', [\App\Http\Controllers\RelatorioController::class, 'analiseGastos']);
     Route::get('/relatorios/compromissos-futuros', [\App\Http\Controllers\RelatorioController::class, 'compromissosFuturos']);
     // POST: o cenário (ajustes e eventos hipotéticos) é um JSON aninhado; nada é gravado.
     Route::post('/relatorios/simulador-financeiro', [\App\Http\Controllers\RelatorioController::class, 'simuladorFinanceiro']);

@@ -248,3 +248,141 @@ export type FiltrosCompromissosFuturosParams = {
   estimar_variaveis?: boolean;
   tipos?: TipoProjecao;
 };
+
+// -=-=-=- ANÁLISE DOS GASTOS -=-=-=-
+
+export type NaturezaGasto = "FIXA" | "FIXA_VARIAVEL" | "VARIAVEL" | "PARCELADA";
+export type SituacaoGasto = "PAGO" | "PENDENTE" | "PREVISTO";
+export type BaseDataGastos = "GASTO" | "PAGAMENTO";
+export type OrigemGastos = "TODAS" | "CONTA" | "CARTAO";
+
+export type SomasGasto = {
+  total: number;
+  pago: number;
+  pendente: number;
+  /** Recorrência futura que ainda não virou lançamento. */
+  previsto: number;
+  quantidade: number;
+};
+
+export type LancamentoGasto = {
+  id: number | null;
+  data: string;
+  data_gasto: string;
+  data_pagamento: string;
+  descricao: string;
+  valor: number | null;
+  natureza: NaturezaGasto;
+  situacao: SituacaoGasto;
+  estimado: boolean;
+  categoria_id: number | null;
+  categoria: string;
+  conta_id: number;
+  conta: string | null;
+  cartao: string | null;
+  parcela: string | null;
+  grupo_parcelas: string | null;
+  recorrencia_id: number | null;
+  recorrencia: string | null;
+};
+
+export type ResumoGastos = SomasGasto & {
+  percentual_pago: number | null;
+  sem_valor: number;
+  media_mensal: number;
+  media_diaria: number;
+  ticket_medio: number | null;
+  maior: { descricao: string; valor: number; data: string; categoria: string } | null;
+  fixos: number;
+  fixos_mensal: number;
+  rigidez_percentual: number | null;
+  receitas: number;
+  comprometimento_receitas: number | null;
+  no_cartao: number;
+  na_conta: number;
+  estimado: number;
+  anterior: number | null;
+  variacao_percentual: number | null;
+};
+
+export type GastoPorNatureza = SomasGasto & {
+  natureza: NaturezaGasto;
+  percentual: number | null;
+  media_mensal: number;
+  no_cartao: number;
+  na_conta: number;
+  estimado: number;
+  anterior: number | null;
+  variacao_percentual: number | null;
+};
+
+export type GastoPorCategoria = SomasGasto & {
+  categoria_id: number | null;
+  categoria: string;
+  percentual: number | null;
+  naturezas: Record<NaturezaGasto, number>;
+  no_cartao: number;
+  anterior: number | null;
+  variacao_percentual: number | null;
+};
+
+export type GastoPorMes = SomasGasto & {
+  mes: string;
+  naturezas: Record<NaturezaGasto, number>;
+};
+
+export type GastoPorMeio = SomasGasto & {
+  tipo: "CARTAO" | "CONTA";
+  nome: string;
+  percentual: number | null;
+};
+
+export type RecorrenciaGasto = SomasGasto & {
+  recorrencia_id: number;
+  descricao: string;
+  natureza: "FIXA" | "FIXA_VARIAVEL";
+  categoria: string;
+  meio: string | null;
+  no_cartao: boolean;
+  ocorrencias: number;
+  media: number;
+  minimo: number;
+  maximo: number;
+};
+
+export type ParcelamentoGasto = SomasGasto & {
+  descricao: string;
+  categoria: string;
+  meio: string | null;
+  no_cartao: boolean;
+  parcelas_no_periodo: number;
+  primeira: string | null;
+  ultima: string | null;
+};
+
+export type RelatorioAnaliseGastos = {
+  periodo: { data_inicial: string; data_final: string; dias: number };
+  filtros: { base_data: BaseDataGastos; origem: OrigemGastos; estimar_variaveis: boolean; comparar: boolean };
+  resumo: ResumoGastos;
+  por_natureza: GastoPorNatureza[];
+  por_categoria: GastoPorCategoria[];
+  por_mes: GastoPorMes[];
+  por_meio: GastoPorMeio[];
+  recorrencias: RecorrenciaGasto[];
+  parcelamentos: ParcelamentoGasto[];
+  maiores: LancamentoGasto[];
+  lancamentos: LancamentoGasto[];
+  lancamentos_truncados: boolean;
+};
+
+export type RelatorioAnaliseGastosResponse = { data: RelatorioAnaliseGastos };
+
+export type FiltrosAnaliseGastosParams = {
+  data_inicial: string;
+  data_final: string;
+  conta_ids?: number[];
+  base_data?: BaseDataGastos;
+  origem?: OrigemGastos;
+  estimar_variaveis?: boolean;
+  comparar?: boolean;
+};

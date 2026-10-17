@@ -22,6 +22,12 @@ const RELATORIOS: CardRelatorio[] = [
     to: "/relatorios/resultado-financeiro",
   },
   {
+    titulo: "Análise dos Gastos",
+    pergunta: "Quanto do que eu gasto é fixo, quanto varia, o que já paguei e o que ainda vem?",
+    icone: "bi-clipboard-data",
+    to: "/relatorios/analise-gastos",
+  },
+  {
     titulo: "Orçado x Realizado",
     pergunta: "Estou gastando conforme o planejado?",
     icone: "bi-pie-chart",

@@ -214,6 +214,31 @@ class SimuladorFinanceiroTest extends TestCase
     }
 
     #[Test]
+    public function categoria_soma_gastos_da_conta_e_do_cartao_para_estimar(): void
+    {
+        $conta = $this->conta();
+        $this->saldo($conta, 10000);
+        $cartao = $this->cartao($conta);
+        $mercado = $this->categoria($conta, 'Supermercado');
+
+        // Todo mês: ~300 direto na conta + ~200 no cartão = ~500 de supermercado.
+        $this->historico($conta, $mercado, [300, 310, 290, 300, 305, 295]);
+        foreach (range(1, 6) as $atras) {
+            $data = Carbon::parse('2026-09-01')->subMonthsNoOverflow($atras - 1)->day(15)->toDateString();
+            CriarDespesaCartao::executar($conta->user_id, $cartao, [
+                'description' => 'Mercado cartão', 'amount' => 200, 'purchase_date' => $data, 'category_id' => $mercado->id,
+            ]);
+        }
+        Transacao::where('card_id', $cartao->id)->update(['status' => 'PAID']);
+
+        $categoria = $this->categoriaDaResposta($this->simular()->assertOk(), 'Supermercado');
+
+        // Estima a categoria inteira (conta + cartão), não só um dos meios.
+        $this->assertEqualsWithDelta(500, $categoria['estimativa_mensal'], 40);
+        $this->assertCount(2, $categoria['canais']);
+    }
+
+    #[Test]
     public function estimativas_desligadas_usam_so_compromissos_conhecidos(): void
     {
         $conta = $this->conta();

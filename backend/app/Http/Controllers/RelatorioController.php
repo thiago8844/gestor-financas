@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Relatorios\GerarRelatorioAnaliseGastos;
 use App\Actions\Relatorios\GerarRelatorioCompromissosFuturos;
 use App\Actions\Relatorios\GerarRelatorioFluxoCaixa;
 use App\Actions\Relatorios\GerarRelatorioResultadoFinanceiro;
 use App\Actions\Relatorios\GerarSimuladorFinanceiro;
+use App\Http\Requests\Relatorios\AnaliseGastosRelatorioRequest;
 use App\Http\Requests\Relatorios\CompromissosFuturosRelatorioRequest;
 use App\Http\Requests\Relatorios\FluxoCaixaRelatorioRequest;
 use App\Http\Requests\Relatorios\ResultadoFinanceiroRelatorioRequest;
@@ -63,6 +65,19 @@ class RelatorioController extends Controller
     public function simuladorFinanceiro(SimuladorFinanceiroRequest $request)
     {
         $relatorio = GerarSimuladorFinanceiro::executar(Auth::id(), $request->validated());
+
+        return response()->json(['data' => $relatorio]);
+    }
+
+    /**
+     * GET /relatorios/analise-gastos
+     *
+     * Só despesas: divisão em fixas, fixas variáveis, variáveis e parceladas, o que já foi pago,
+     * o que falta e o que ainda vai vir de recorrências, por categoria, mês e meio de pagamento.
+     */
+    public function analiseGastos(AnaliseGastosRelatorioRequest $request)
+    {
+        $relatorio = GerarRelatorioAnaliseGastos::executar(Auth::id(), $request->validated());
 
         return response()->json(['data' => $relatorio]);
     }
