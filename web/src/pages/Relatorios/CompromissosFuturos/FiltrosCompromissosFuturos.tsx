@@ -2,7 +2,8 @@ import { useFormularioTransacao } from "../../../hooks/useFormularioDespesa";
 import { SelectMultiplo } from "../../../components/SelectMultiplo";
 import { mascararData } from "../periodoPresets";
 import type { Conta } from "../../../types";
-import type { TipoProjecao } from "../../../types/relatorio";
+import type { FonteProjecao, TipoProjecao } from "../../../types/relatorio";
+import { SeletorFonteCompromissos } from "../../../components/Relatorio/SeletorFonteCompromissos";
 
 export type Horizonte = 3 | 6 | 12 | "personalizado";
 
@@ -34,6 +35,8 @@ const OPCOES_HORIZONTE: { valor: Horizonte; label: string }[] = [
 type Props = {
   tipos: TipoProjecao;
   onTipos: (tipos: TipoProjecao) => void;
+  fonte: FonteProjecao;
+  onFonte: (fonte: FonteProjecao) => void;
   horizonte: Horizonte;
   onHorizonte: (horizonte: Horizonte) => void;
   dataFinalBR: string;
@@ -52,6 +55,8 @@ type Props = {
 export function FiltrosCompromissosFuturos({
   tipos,
   onTipos,
+  fonte,
+  onFonte,
   horizonte,
   onHorizonte,
   dataFinalBR,
@@ -86,6 +91,11 @@ export function FiltrosCompromissosFuturos({
             <i className="bi bi-info-circle me-1"></i>
             {OPCOES_TIPO.find((o) => o.valor === tipos)?.ajuda}
           </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="form-label small">Quais lançamentos considerar</label>
+          <SeletorFonteCompromissos valor={fonte} onChange={onFonte} />
         </div>
 
         <div className="row g-3 align-items-end">

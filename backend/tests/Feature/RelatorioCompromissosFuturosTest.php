@@ -125,6 +125,34 @@ class RelatorioCompromissosFuturosTest extends TestCase
     }
 
     #[Test]
+    public function fonte_lancadas_mostra_o_saldo_se_pagasse_so_o_consolidado_hoje(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+        $this->saldo($conta, 10000);
+        $cartao = $this->cartao($conta);
+
+        CriarDespesaCartao::executar($conta->user_id, $cartao, [
+            'description' => 'Notebook', 'amount' => 1200, 'purchase_date' => '2026-10-05', 'installment_total' => 4,
+        ]);
+        $this->transacao($conta, ['amount' => 800, 'due_date' => '2026-10-20']);
+        $this->recorrencia($conta, ['day_of_month' => 9, 'start_date' => '2026-10-09']);
+        (new \App\Actions\GerarTransacoesRecorrentes())->executar(Carbon::parse('2026-10-10'));
+
+        // Consolidado = parcelas (900 até dezembro) + avulsa 800 + aluguel de outubro já gerado 1200.
+        $lancadas = $this->relatorio(['tipos' => 'DESPESAS', 'fonte' => 'LANCADAS'])->assertOk();
+        $lancadas->assertJsonPath('data.resumo.a_pagar', 900 + 800 + 1200);
+        $lancadas->assertJsonPath('data.resumo.saldo_final', 10000 - 2900);
+
+        // Recorrências = só novembro e dezembro, ainda não lançados (outubro já está no consolidado).
+        $recorrencias = $this->relatorio(['tipos' => 'DESPESAS', 'fonte' => 'RECORRENCIAS'])->assertOk();
+        $recorrencias->assertJsonPath('data.resumo.a_pagar', 2400);
+
+        $todas = $this->relatorio(['tipos' => 'DESPESAS'])->assertOk();
+        $todas->assertJsonPath('data.resumo.a_pagar', 2900 + 2400);
+    }
+
+    #[Test]
     public function parcelas_do_cartao_compoem_uma_unica_saida_por_fatura(): void
     {
         $conta = Conta::factory()->create();

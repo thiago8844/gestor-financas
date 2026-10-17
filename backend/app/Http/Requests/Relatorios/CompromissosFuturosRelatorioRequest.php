@@ -21,6 +21,7 @@ class CompromissosFuturosRelatorioRequest extends FormRequest
             'conta_ids.*' => ['integer', Rule::exists('accounts', 'id')->where('user_id', $this->user()->id)],
             'estimar_variaveis' => 'nullable|boolean',
             'tipos' => 'nullable|in:AMBOS,DESPESAS,RECEITAS',
+            'fonte' => 'nullable|in:TODAS,LANCADAS,RECORRENCIAS',
         ];
     }
 

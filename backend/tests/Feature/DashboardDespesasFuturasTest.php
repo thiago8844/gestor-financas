@@ -91,6 +91,45 @@ class DashboardDespesasFuturasTest extends TestCase
     }
 
     #[Test]
+    public function fonte_separa_o_ja_lancado_das_recorrencias_ainda_nao_lancadas(): void
+    {
+        $conta = Conta::factory()->create();
+        Sanctum::actingAs($conta->user);
+
+        Transacao::create([
+            'user_id' => $conta->user_id, 'account_id' => $conta->id, 'type' => 'EXPENSE',
+            'amount' => 50, 'status' => 'PENDING', 'due_date' => '2026-10-25', 'description' => 'Dentista',
+        ]);
+        Transacao::create([
+            'user_id' => $conta->user_id, 'account_id' => $conta->id, 'type' => 'EXPENSE',
+            'amount' => 999, 'status' => 'PAID', 'date' => '2026-10-02', 'description' => 'Paga',
+        ]);
+        // Aluguel 15/10 (já gerado e pendente), 15/11 e 15/12 (ainda não lançados).
+        CriarRecorrenciaTransacao::executar($conta->user_id, [
+            'account_id' => $conta->id, 'default_status' => 'PENDING', 'type' => 'EXPENSE',
+            'description' => 'Aluguel', 'amount' => 1200, 'frequency' => 'MONTHLY',
+            'interval' => 1, 'day_of_month' => 9, 'start_date' => '2026-10-09',
+        ]);
+        (new \App\Actions\GerarTransacoesRecorrentes())->executar(Carbon::parse('2026-10-10'));
+
+        $base = '/api/dashboard/despesas-futuras?data_final=2026-12-31';
+
+        // Lançadas: a avulsa + o aluguel de outubro (já gerado) + o que já foi pago. Nenhuma previsão.
+        $r = $this->getJson($base . '&fonte=LANCADAS')->assertOk();
+        $r->assertJsonPath('a_pagar', 50 + 1200);
+        $r->assertJsonPath('pago', 999);
+
+        // Recorrências: só novembro e dezembro, que ainda não foram lançados; outubro NÃO repete.
+        $r = $this->getJson($base . '&fonte=RECORRENCIAS')->assertOk();
+        $r->assertJsonPath('a_pagar', 2400);
+        $r->assertJsonPath('pago', 0);
+
+        // Juntas, fecham com o total sem contar nada duas vezes.
+        $r = $this->getJson($base . '&fonte=TODAS')->assertOk();
+        $r->assertJsonPath('a_pagar', 50 + 1200 + 2400);
+    }
+
+    #[Test]
     public function fatura_paga_vira_pago_e_sai_do_a_pagar(): void
     {
         $conta = Conta::factory()->create();

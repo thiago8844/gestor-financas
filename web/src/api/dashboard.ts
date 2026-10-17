@@ -162,10 +162,13 @@ export interface DespesasFuturasDashboard {
   meses: { mes: string; pago: number; a_pagar: number; total: number }[];
 }
 
-export const getDespesasFuturasDashboard = async (dataFinal: string) => {
+export const getDespesasFuturasDashboard = async (
+  dataFinal: string,
+  fonte: import("../types/relatorio").FonteProjecao = "TODAS",
+) => {
   const response = await api.get<DespesasFuturasDashboard>(
     "/dashboard/despesas-futuras",
-    { params: { data_final: dataFinal } },
+    { params: { data_final: dataFinal, fonte } },
   );
   return response.data;
 };

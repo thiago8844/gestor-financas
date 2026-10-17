@@ -20,11 +20,14 @@ class ObterDespesasFuturasDashboardAction
      *  - no cartão: pelo vencimento da fatura, nunca pela data da compra. Compras e recorrências
      *    no cartão são abertas dentro da fatura, então não existe o mesmo valor "solto" e "na fatura".
      *
+     * `$fonte` limita o que entra: só o já lançado (consolidado: avulsas, parcelas, faturas e recorrências
+     * já geradas), só recorrências ainda não lançadas, ou tudo.
+     *
      * `recorrentes` é um recorte (já incluído no total) para deixar claro quanto do valor vem de
      * recorrências, tanto no cartão quanto fora dele. Valores variáveis sem valor definido ficam
      * em `sem_valor`, sem estimativa.
      */
-    public static function execute(int $userId, Carbon $dataFinal, ?Carbon $hoje = null): array
+    public static function execute(int $userId, Carbon $dataFinal, ?Carbon $hoje = null, string $fonte = FiltrosProjecao::FONTE_TODAS): array
     {
         $hoje = ($hoje ?? Carbon::today())->copy()->startOfDay();
         $inicio = $hoje->copy()->startOfMonth();
@@ -56,6 +59,7 @@ class ObterDespesasFuturasDashboardAction
             dataFinal: $fim,
             estimarVariaveis: false,
             tipos: FiltrosProjecao::DESPESAS,
+            fonte: $fonte,
         );
 
         foreach ((new GeradorEventosFinanceiros($filtros))->gerar()['eventos'] as $evento) {
@@ -99,7 +103,8 @@ class ObterDespesasFuturasDashboardAction
 
         // -=-=-=- PAGO: lançamentos já pagos dentro do período -=-=-=-
 
-        $pagas = Transacao::query()
+        // Recorrência ainda não lançada nunca está paga: com essa fonte, não há "pago".
+        $pagas = $fonte === FiltrosProjecao::FONTE_RECORRENCIAS ? collect() : Transacao::query()
             ->with('fatura.cartao')
             ->where('user_id', $userId)
             ->where('type', 'EXPENSE')

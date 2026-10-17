@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { getDespesasFuturasDashboard } from "../../../api/dashboard";
 import { convertNumberToCurrencyMask } from "../../../utils";
+import { SeletorFonteCompromissos } from "../../../components/Relatorio/SeletorFonteCompromissos";
+import type { FonteProjecao } from "../../../types/relatorio";
 
 const MESES = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
@@ -38,6 +40,7 @@ function formatarDataBr(dataStr: string) {
 export function DespesasFuturasCard() {
   const [periodo, setPeriodo] = useState("proximos_3_meses");
   const [dataPersonalizada, setDataPersonalizada] = useState("");
+  const [fonte, setFonte] = useState<FonteProjecao>("TODAS");
 
   const hojeISO = toISO(new Date());
   const dataFinal =
@@ -48,8 +51,8 @@ export function DespesasFuturasCard() {
   const dataValida = dataFinal !== "" && dataFinal >= hojeISO;
 
   const { data, isFetching } = useQuery({
-    queryKey: ["dashboard-despesas-futuras", dataFinal],
-    queryFn: () => getDespesasFuturasDashboard(dataFinal),
+    queryKey: ["dashboard-despesas-futuras", dataFinal, fonte],
+    queryFn: () => getDespesasFuturasDashboard(dataFinal, fonte),
     enabled: dataValida,
     placeholderData: (anterior) => anterior,
   });
@@ -115,6 +118,10 @@ export function DespesasFuturasCard() {
                 />
               )}
             </div>
+          </div>
+
+          <div className="mb-3">
+            <SeletorFonteCompromissos valor={fonte} onChange={setFonte} />
           </div>
 
           {!dataValida ? (

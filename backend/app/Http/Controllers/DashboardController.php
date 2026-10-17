@@ -116,10 +116,11 @@ class DashboardController extends Controller
     {
         $dados = $request->validate([
             'data_final' => 'required|date|after_or_equal:today|before_or_equal:' . now()->addYears(5)->toDateString(),
+            'fonte' => 'nullable|in:TODAS,LANCADAS,RECORRENCIAS',
         ]);
 
         return response()->json(
-            ObterDespesasFuturasDashboardAction::execute(Auth::id(), Carbon::parse($dados['data_final'])),
+            ObterDespesasFuturasDashboardAction::execute(Auth::id(), Carbon::parse($dados['data_final']), null, $dados['fonte'] ?? 'TODAS'),
             200
         );
     }

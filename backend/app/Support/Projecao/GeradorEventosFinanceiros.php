@@ -87,12 +87,17 @@ class GeradorEventosFinanceiros
             $this->carregarEstimativas($this->recorrenciasSemValor($pendentes, $recorrencias));
         }
 
-        foreach ($pendentes as $transacao) {
-            $this->registrarPendente($transacao);
+        // A fonte separa o que já está lançado (consolidado) do que ainda é só previsão de recorrência.
+        if ($this->filtros->fonte !== FiltrosProjecao::FONTE_RECORRENCIAS) {
+            foreach ($pendentes as $transacao) {
+                $this->registrarPendente($transacao);
+            }
         }
 
-        foreach ($recorrencias as $recorrencia) {
-            $this->projetarRecorrencia($recorrencia);
+        if ($this->filtros->fonte !== FiltrosProjecao::FONTE_LANCADAS) {
+            foreach ($recorrencias as $recorrencia) {
+                $this->projetarRecorrencia($recorrencia);
+            }
         }
 
         return [

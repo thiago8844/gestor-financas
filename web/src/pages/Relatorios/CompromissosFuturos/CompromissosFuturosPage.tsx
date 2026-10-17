@@ -15,7 +15,7 @@ import { TabelaResumoMensal } from "./TabelaResumoMensal";
 import { CompromissosDetalhados } from "./CompromissosDetalhados";
 import { CompromissosPorCategoria } from "./CompromissosPorCategoria";
 import { erroDataFinal, fimDoHorizonte, formatarDataBR } from "./formatadores";
-import type { TipoProjecao } from "../../../types/relatorio";
+import type { FonteProjecao, TipoProjecao } from "../../../types/relatorio";
 
 const LABEL_TIPO: Record<TipoProjecao, string> = {
   AMBOS: "Receitas e despesas",
@@ -38,6 +38,12 @@ const ICONE_ABA: Record<Aba, string> = {
   detalhes: "bi-list-check",
 };
 
+const LABEL_FONTE: Record<FonteProjecao, string> = {
+  TODAS: "Lançadas e recorrências",
+  LANCADAS: "Só já lançadas",
+  RECORRENCIAS: "Só recorrências a lançar",
+};
+
 const hojeISO = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -45,6 +51,7 @@ const hojeISO = () => {
 
 export function CompromissosFuturosPage() {
   const [tipos, setTipos] = useState<TipoProjecao>("AMBOS");
+  const [fonte, setFonte] = useState<FonteProjecao>("TODAS");
   const [horizonte, setHorizonte] = useState<Horizonte>(6);
   const [dataFinalBR, setDataFinalBR] = useState("");
   const [contaIds, setContaIds] = useState<number[]>([]);
@@ -73,9 +80,10 @@ export function CompromissosFuturosPage() {
             conta_ids: contaIds.length ? contaIds : undefined,
             estimar_variaveis: estimar,
             tipos,
+            fonte,
           }
         : null,
-    [dataFinal, contaIds, estimar, tipos]
+    [dataFinal, contaIds, estimar, tipos, fonte]
   );
 
   const { data, isLoading, isFetching, isError } = useQuery({
@@ -95,7 +103,7 @@ export function CompromissosFuturosPage() {
   );
 
   const filtrosTexto = relatorio
-    ? `Hoje a ${formatarDataBR(relatorio.periodo.data_final)} · ${LABEL_TIPO[relatorio.tipos]} · ${textoContas(
+    ? `Hoje a ${formatarDataBR(relatorio.periodo.data_final)} · ${LABEL_TIPO[relatorio.tipos]} · ${LABEL_FONTE[relatorio.fonte]} · ${textoContas(
         filtros?.conta_ids
       )} · ${relatorio.estimar_variaveis ? "Valores variáveis estimados pelo histórico" : "Valores variáveis fora dos totais"}`
     : null;
@@ -120,6 +128,8 @@ export function CompromissosFuturosPage() {
       <FiltrosCompromissosFuturos
         tipos={tipos}
         onTipos={setTipos}
+        fonte={fonte}
+        onFonte={setFonte}
         horizonte={horizonte}
         onHorizonte={setHorizonte}
         dataFinalBR={dataFinalBR}

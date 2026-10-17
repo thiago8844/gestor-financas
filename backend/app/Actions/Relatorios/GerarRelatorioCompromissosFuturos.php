@@ -41,6 +41,7 @@ class GerarRelatorioCompromissosFuturos
             ],
             'estimar_variaveis' => $filtros->estimarVariaveis,
             'tipos' => $filtros->tipos,
+            'fonte' => $filtros->fonte,
             'resumo' => self::montarResumo($eventos, $linhaDoTempo, array_sum($base['saldos_iniciais'])),
             'meses' => $linhaDoTempo['meses'],
             'serie_diaria' => $linhaDoTempo['serie_diaria'],

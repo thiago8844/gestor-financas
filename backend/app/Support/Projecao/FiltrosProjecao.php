@@ -19,6 +19,15 @@ final class FiltrosProjecao
     /** Só receitas, sem pagar nada: o saldo final mostra quanto entraria. */
     public const RECEITAS = 'RECEITAS';
 
+    /** Tudo: lançamentos pendentes + ocorrências futuras de recorrências. */
+    public const FONTE_TODAS = 'TODAS';
+
+    /** Só o que já está lançado como pendente (avulsas, parcelas, faturas e recorrências já geradas). */
+    public const FONTE_LANCADAS = 'LANCADAS';
+
+    /** Só ocorrências futuras de recorrências que o sistema ainda não lançou. */
+    public const FONTE_RECORRENCIAS = 'RECORRENCIAS';
+
     public function __construct(
         public readonly int $userId,
         public readonly Carbon $hoje,
@@ -28,6 +37,8 @@ final class FiltrosProjecao
         /** Valores variáveis (recorrência sem valor fixo) entram com uma estimativa do histórico. */
         public readonly bool $estimarVariaveis = false,
         public readonly string $tipos = self::AMBOS,
+        /** De onde vêm os compromissos: ver FONTE_*. Recorrência já lançada conta em LANCADAS, nunca em RECORRENCIAS. */
+        public readonly string $fonte = self::FONTE_TODAS,
     ) {
     }
 
@@ -49,6 +60,7 @@ final class FiltrosProjecao
             contaIds: array_map('intval', $dados['conta_ids'] ?? []),
             estimarVariaveis: filter_var($dados['estimar_variaveis'] ?? false, FILTER_VALIDATE_BOOLEAN),
             tipos: $dados['tipos'] ?? self::AMBOS,
+            fonte: $dados['fonte'] ?? self::FONTE_TODAS,
         );
     }
 }
