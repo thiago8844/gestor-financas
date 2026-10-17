@@ -61,7 +61,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter }: Pr
   }, [fatura.parcelas]);
 
   const parcelas = useMemo(() => filtrarParcelas(fatura.parcelas, filtros), [fatura.parcelas, filtros]);
-  const totalFiltrado = parcelas.reduce((soma, p) => soma + (p.amount ?? 0), 0);
+  const totalFiltrado = parcelas.reduce((soma, p) => soma + Number(p.amount ?? 0), 0);
   const ativos = contarFiltrosAtivos(filtros);
   const filtrado = ativos > 0;
   const textoFiltros = descreverFiltros(
