@@ -11,6 +11,8 @@ import {
 } from "recharts";
 import { convertNumberToCurrencyMask } from "../../../utils";
 import type { TimeInterval } from "../../../api/dashboard";
+import type { Conta } from "../../../types";
+import { SeletorContas } from "./SeletorContas";
 
 export interface SaldoPonto {
   periodo: string;
@@ -31,6 +33,8 @@ export interface SaldoFiltroParams {
   saldosContasDataInicial?: string;
   saldosContasDataFinal?: string;
   saldosContasIntervalo?: TimeInterval;
+  /** Contas escolhidas; vazio/omitido = todas. */
+  saldosContasIds?: number[];
 }
 
 // --- Helpers de data (dd/mm/aaaa <-> yyyy-mm-dd) ---
@@ -162,16 +166,18 @@ function TooltipCustom({
 
 interface Props {
   data: SaldoPorContaData | undefined;
+  contas?: Conta[];
   onFiltroChange: (params: SaldoFiltroParams) => void;
 }
 
 const NOME_SERIE_UNIFICADA = "Patrimônio total";
 
-export function SaldoPorContaPeriodo({ data, onFiltroChange }: Props) {
+export function SaldoPorContaPeriodo({ data, contas, onFiltroChange }: Props) {
   const [periodo, setPeriodo] = useState("mes_atual");
   const [dataInicialBR, setDataInicial] = useState("");
   const [dataFinalBR, setDataFinal] = useState("");
   const [unificarContas, setUnificarContas] = useState(false);
+  const [contasSelecionadas, setContasSelecionadas] = useState<number[]>([]);
 
   const erroInicial =
     periodo === "personalizado" &&
@@ -201,13 +207,19 @@ export function SaldoPorContaPeriodo({ data, onFiltroChange }: Props) {
         isDataBRValida(dataFinalBR) &&
         brParaISO(dataInicialBR) <= brParaISO(dataFinalBR)
       ) {
-        onFiltroChange(resolverPeriodo(periodo, dataInicialBR, dataFinalBR));
+        onFiltroChange({
+          ...resolverPeriodo(periodo, dataInicialBR, dataFinalBR),
+          saldosContasIds: contasSelecionadas,
+        });
       }
       return;
     }
-    onFiltroChange(resolverPeriodo(periodo));
+    onFiltroChange({
+      ...resolverPeriodo(periodo),
+      saldosContasIds: contasSelecionadas,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodo, dataInicialBR, dataFinalBR]);
+  }, [periodo, dataInicialBR, dataFinalBR, contasSelecionadas]);
 
   // O backend devolve todas as séries com os mesmos buckets (sem buracos), então
   // basta juntar por período.
@@ -261,6 +273,13 @@ export function SaldoPorContaPeriodo({ data, onFiltroChange }: Props) {
                 Todas as contas
               </button>
             </div>
+
+            <SeletorContas
+              id="saldo-contas-selecao"
+              contas={contas}
+              selecionadas={contasSelecionadas}
+              onChange={setContasSelecionadas}
+            />
 
             <select
               value={periodo}

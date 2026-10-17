@@ -14,13 +14,14 @@ class TransacoesPorCategoriaQuery
      * @param  string       $tipo       'EXPENSE' ou 'INCOME'
      * @param  Carbon|null  $dataInicial  null = sem filtro (alltime)
      * @param  Carbon|null  $dataFinal    null = sem filtro (alltime)
+     * @param  int[]|null   $contaIds    null/vazio = todas as contas
      * @return array  [ ['categoria' => string, 'total' => float], ... ]
      */
     public static function run(
         string $tipo,
         ?Carbon $dataInicial,
         ?Carbon $dataFinal,
-        ?int $contaId = null,
+        ?array $contaIds = null,
     ): array {
         $userId = Auth::id();
 
@@ -32,7 +33,7 @@ class TransacoesPorCategoriaQuery
             ->where('transactions.status', 'PAID')
             ->where('transactions.is_initial_balance', false)
             ->whereNull('transactions.transfer_id')
-            ->when($contaId, fn($q) => $q->where('transactions.account_id', $contaId))
+            ->when($contaIds, fn($q) => $q->whereIn('transactions.account_id', $contaIds))
             // Filtro de período — só aplicado quando as datas forem informadas
             ->when($dataInicial && $dataFinal, function ($q) use ($dataInicial, $dataFinal) {
                 $q->whereBetween('transactions.date', [

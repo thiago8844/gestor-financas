@@ -44,6 +44,7 @@ export function Dashboard() {
         dataInicial: saldoFiltros.saldosContasDataInicial,
         dataFinal: saldoFiltros.saldosContasDataFinal,
         intervalo: saldoFiltros.saldosContasIntervalo,
+        contaIds: saldoFiltros.saldosContasIds,
       }),
   });
 
@@ -57,7 +58,7 @@ export function Dashboard() {
         receitasAlltime: categoriaFiltros.receitasCategoriaAlltime,
         receitasDataInicial: categoriaFiltros.receitasCategoriaDataInicial,
         receitasDataFinal: categoriaFiltros.receitasCategoriaDataFinal,
-        contaId: categoriaFiltros.categoriaContaId,
+        contaIds: categoriaFiltros.categoriaContaIds,
       }),
   });
 
@@ -80,6 +81,7 @@ export function Dashboard() {
           <div className="col-12">
             <SaldoPorContaPeriodo
               data={saldoContas}
+              contas={contas?.data}
               onFiltroChange={setSaldoFiltros}
             />
           </div>

@@ -42,6 +42,19 @@ class DashboardController extends Controller
         return response()->json(ObterFaturaAtualDashboardAction::execute($offset), 200);
     }
 
+    /**
+     * Ids de contas escolhidos no filtro (conta_ids[]=1&conta_ids[]=2). Aceita também conta_id legado.
+     * Retorna null quando nenhuma foi escolhida (= todas).
+     */
+    private function contaIds(Request $request): ?array
+    {
+        $ids = array_map('intval', array_filter(
+            array_merge((array) $request->query('conta_ids', []), (array) $request->query('conta_id', []))
+        ));
+
+        return $ids ? array_values(array_unique($ids)) : null;
+    }
+
     // ---------------------------------------------------------------
     // GET /dashboard/saldo-contas
     // Retorna o saldo evolutivo por conta ao longo do tempo.
@@ -59,7 +72,7 @@ class DashboardController extends Controller
         $dataFinal   = $alltime ? null : Carbon::parse($request->query('saldos_contas_periodo_final'));
         $intervalo   = TimeIntervals::from($request->query('saldos_contas_periodo_intervalo', 'MONTHLY'));
 
-        $dados = ObterSaldoContasPeriodoDashboardAction::execute($dataInicial, $dataFinal, $intervalo);
+        $dados = ObterSaldoContasPeriodoDashboardAction::execute($dataInicial, $dataFinal, $intervalo, $this->contaIds($request));
 
         return response()->json($dados, 200);
     }
@@ -85,11 +98,11 @@ class DashboardController extends Controller
         $receitasInicial = $receitasAlltime ? null : Carbon::parse($request->query('receitas_categoria_periodo_inicial'));
         $receitasFinal   = $receitasAlltime ? null : Carbon::parse($request->query('receitas_categoria_periodo_final'));
 
-        $contaId = $request->filled('conta_id') ? (int) $request->query('conta_id') : null;
+        $contaIds = $this->contaIds($request);
 
         return response()->json([
-            'despesas_por_categoria' => ObterDespesasPorCategoriaAction::execute($despesasInicial, $despesasFinal, $contaId),
-            'receitas_por_categoria' => ObterReceitasPorCategoriaAction::execute($receitasInicial, $receitasFinal, $contaId),
+            'despesas_por_categoria' => ObterDespesasPorCategoriaAction::execute($despesasInicial, $despesasFinal, $contaIds),
+            'receitas_por_categoria' => ObterReceitasPorCategoriaAction::execute($receitasInicial, $receitasFinal, $contaIds),
         ], 200);
     }
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { convertNumberToCurrencyMask } from "../../../utils";
 import type { Conta } from "../../../types";
+import { SeletorContas } from "./SeletorContas";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -20,7 +21,7 @@ export interface CategoriaFiltroParams {
   receitasCategoriaAlltime?: boolean;
   receitasCategoriaDataInicial?: string;
   receitasCategoriaDataFinal?: string;
-  categoriaContaId?: number;
+  categoriaContaIds?: number[];
 }
 
 // ---------------------------------------------------------------------------
@@ -185,7 +186,7 @@ export function TransacaoCategoria({
   const [periodo, setPeriodo] = useState("mes_atual");
   const [dataInicialBR, setDataInicial] = useState("");
   const [dataFinalBR, setDataFinal] = useState("");
-  const [contaId, setContaId] = useState<number | null>(null);
+  const [contasSelecionadas, setContasSelecionadas] = useState<number[]>([]);
 
   const erroInicial =
     periodo === "personalizado" &&
@@ -227,7 +228,7 @@ export function TransacaoCategoria({
           receitasCategoriaAlltime: alltime,
           receitasCategoriaDataInicial: inicio,
           receitasCategoriaDataFinal: fim,
-          categoriaContaId: contaId ?? undefined,
+          categoriaContaIds: contasSelecionadas,
         });
       }
       return;
@@ -240,10 +241,10 @@ export function TransacaoCategoria({
       receitasCategoriaAlltime: alltime,
       receitasCategoriaDataInicial: inicio,
       receitasCategoriaDataFinal: fim,
-      categoriaContaId: contaId ?? undefined,
+      categoriaContaIds: contasSelecionadas,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodo, dataInicialBR, dataFinalBR, contaId]);
+  }, [periodo, dataInicialBR, dataFinalBR, contasSelecionadas]);
 
   const chartData = (tipo === "EXPENSE" ? despesas : receitas) ?? [];
 
@@ -283,24 +284,13 @@ export function TransacaoCategoria({
               </button>
             </div>
 
-            {/* Filtro por conta */}
-            {contas && contas.length > 0 && (
-              <select
-                value={contaId ?? ""}
-                onChange={(e) =>
-                  setContaId(e.target.value ? Number(e.target.value) : null)
-                }
-                className="form-select form-select-sm"
-                style={{ minWidth: 160 }}
-              >
-                <option value="">Todas as contas</option>
-                {contas.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            )}
+            {/* Filtro por contas (várias) */}
+            <SeletorContas
+              id="categoria-contas-selecao"
+              contas={contas}
+              selecionadas={contasSelecionadas}
+              onChange={setContasSelecionadas}
+            />
 
             {/* Filtro de período */}
             <div className="d-flex flex-wrap align-items-start gap-2">

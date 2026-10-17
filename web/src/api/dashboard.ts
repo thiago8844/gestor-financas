@@ -64,6 +64,8 @@ export interface SaldoContasParams {
   dataFinal?: string;
   /** Granularidade. Padrão: DAILY no mês, MONTHLY no alltime. */
   intervalo?: TimeInterval;
+  /** Contas escolhidas; vazio/omitido = todas. */
+  contaIds?: number[];
 }
 
 export const getSaldoContas = async ({
@@ -71,13 +73,15 @@ export const getSaldoContas = async ({
   dataInicial,
   dataFinal,
   intervalo,
+  contaIds,
 }: SaldoContasParams = {}) => {
-  const params: Record<string, string | boolean> = {
+  const params: Record<string, string | boolean | number[]> = {
     saldos_contas_alltime: alltime,
     saldos_contas_periodo_intervalo:
       intervalo ?? (alltime ? "MONTHLY" : "DAILY"),
     saldos_contas_periodo_inicial: dataInicial ?? primeiroDiaMesAtual(),
     saldos_contas_periodo_final: dataFinal ?? ultimoDiaMesAtual(),
+    ...(contaIds?.length ? { conta_ids: contaIds } : {}),
   };
   const response = await api.get("/dashboard/saldo-contas", { params });
   return response.data as import("../pages/Dashboard/components/SaldoPorContaPeriodo").SaldoPorContaData;
@@ -93,7 +97,7 @@ export interface TransacoesCategoriaParams {
   receitasAlltime?: boolean;
   receitasDataInicial?: string;
   receitasDataFinal?: string;
-  contaId?: number;
+  contaIds?: number[];
 }
 
 export const getTransacoesCategoria = async ({
@@ -103,9 +107,9 @@ export const getTransacoesCategoria = async ({
   receitasAlltime = false,
   receitasDataInicial,
   receitasDataFinal,
-  contaId,
+  contaIds,
 }: TransacoesCategoriaParams = {}) => {
-  const params: Record<string, string | boolean | number> = {
+  const params: Record<string, string | boolean | number[]> = {
     despesas_categoria_alltime: despesasAlltime,
     despesas_categoria_periodo_inicial:
       despesasDataInicial ?? primeiroDiaMesAtual(),
@@ -114,7 +118,7 @@ export const getTransacoesCategoria = async ({
     receitas_categoria_periodo_inicial:
       receitasDataInicial ?? primeiroDiaMesAtual(),
     receitas_categoria_periodo_final: receitasDataFinal ?? ultimoDiaMesAtual(),
-    ...(contaId ? { conta_id: contaId } : {}),
+    ...(contaIds?.length ? { conta_ids: contaIds } : {}),
   };
   const response = await api.get("/dashboard/transacoes-categoria", { params });
   return response.data as {

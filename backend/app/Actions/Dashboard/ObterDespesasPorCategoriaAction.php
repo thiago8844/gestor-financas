@@ -7,8 +7,8 @@ use Carbon\Carbon;
 
 class ObterDespesasPorCategoriaAction
 {
-  public static function execute(?Carbon $dataInicial, ?Carbon $dataFinal, ?int $contaId = null): array
+  public static function execute(?Carbon $dataInicial, ?Carbon $dataFinal, ?array $contaIds = null): array
   {
-    return TransacoesPorCategoriaQuery::run('EXPENSE', $dataInicial, $dataFinal, $contaId);
+    return TransacoesPorCategoriaQuery::run('EXPENSE', $dataInicial, $dataFinal, $contaIds);
   }
 }
