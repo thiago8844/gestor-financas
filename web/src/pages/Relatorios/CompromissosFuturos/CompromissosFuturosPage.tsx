@@ -13,6 +13,7 @@ import { GraficoEvolucaoSaldo } from "./GraficoEvolucaoSaldo";
 import { ProximosCompromissos } from "./ProximosCompromissos";
 import { TabelaResumoMensal } from "./TabelaResumoMensal";
 import { CompromissosDetalhados } from "./CompromissosDetalhados";
+import { CompromissosPorCategoria } from "./CompromissosPorCategoria";
 import { erroDataFinal, fimDoHorizonte, formatarDataBR } from "./formatadores";
 import type { TipoProjecao } from "../../../types/relatorio";
 
@@ -22,16 +23,18 @@ const LABEL_TIPO: Record<TipoProjecao, string> = {
   RECEITAS: "Só receitas",
 };
 
-const ABAS = ["evolucao", "detalhes"] as const;
+const ABAS = ["evolucao", "categorias", "detalhes"] as const;
 type Aba = (typeof ABAS)[number];
 
 const LABEL_ABA: Record<Aba, string> = {
   evolucao: "Evolução do saldo",
+  categorias: "Por categoria",
   detalhes: "Compromissos detalhados",
 };
 
 const ICONE_ABA: Record<Aba, string> = {
   evolucao: "bi-graph-up-arrow",
+  categorias: "bi-tags",
   detalhes: "bi-list-check",
 };
 
@@ -198,6 +201,8 @@ export function CompromissosFuturosPage() {
             </>
           )}
 
+          {aba === "categorias" && <CompromissosPorCategoria eventos={relatorio.eventos} tipos={relatorio.tipos} />}
+
           {aba === "detalhes" && <CompromissosDetalhados eventos={relatorio.eventos} meses={relatorio.meses} />}
         </div>
       )}
@@ -221,6 +226,9 @@ export function CompromissosFuturosPage() {
           tabelas={
             <>
               <TabelaResumoMensal meses={relatorio.meses} saldoAtual={relatorio.resumo.saldo_atual} />
+              <div className="mt-4">
+                <CompromissosPorCategoria eventos={relatorio.eventos} tipos={relatorio.tipos} modoImpressao />
+              </div>
               <div className="mt-4">
                 <CompromissosDetalhados eventos={relatorio.eventos} meses={relatorio.meses} modoImpressao />
               </div>
