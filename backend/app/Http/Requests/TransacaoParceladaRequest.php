@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\TransactionStatus;
+use App\Support\DividirParcelas;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TransacaoParceladaRequest extends FormRequest
@@ -30,6 +31,8 @@ class TransacaoParceladaRequest extends FormRequest
             'budget_id' => 'nullable|integer|exists:budgets,id',
             'description' => 'required|string|max:255',
 
+            // Valor total da compra. Opcional, mas quando informado a soma das parcelas precisa bater com ele.
+            'amount' => 'nullable|numeric|min:0.01|max:999999999.99',
             'installment_total' => 'required|integer|min:2|max:60',
 
             'parcelas' => "required|array|size:{$this->installment_total}",
@@ -71,6 +74,16 @@ class TransacaoParceladaRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $parcelas = $this->input('parcelas', []);
+
+            if ($this->filled('amount') && is_array($parcelas) && $parcelas !== []) {
+                $soma = DividirParcelas::somaEmCentavos(array_column($parcelas, 'amount'));
+                $total = (int) round(((float) $this->input('amount')) * 100);
+
+                if ($soma !== $total) {
+                    $diferenca = number_format(abs($soma - $total) / 100, 2, ',', '.');
+                    $validator->errors()->add('parcelas', "A soma das parcelas não confere com o valor total (diferença de R$ {$diferenca}).");
+                }
+            }
 
             foreach ($parcelas as $index => $parcela) {
                 $status = $parcela['status'] ?? null;

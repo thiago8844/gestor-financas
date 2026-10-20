@@ -83,6 +83,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/transacoes/atualizar/{transacao}', [\App\Http\Controllers\TransacaoController::class, 'update']);
     Route::put('/transacoes/{transacao}/valor', [\App\Http\Controllers\TransacaoController::class, 'atualizarValor']);
     Route::delete('/transacoes/deletar-multiplas', [\App\Http\Controllers\TransacaoController::class, 'destroyMultiplas']);
+    Route::get('/transacoes/grupos/{grupo}', [\App\Http\Controllers\ParcelaController::class, 'show']);
+    Route::put('/transacoes/grupos/{grupo}', [\App\Http\Controllers\ParcelaController::class, 'update']);
+    Route::delete('/transacoes/grupos/{grupo}', [\App\Http\Controllers\ParcelaController::class, 'destroy']);
     Route::delete('/transacoes/deletar/{transacao}', [\App\Http\Controllers\TransacaoController::class, 'destroy']);
 
     //Despesas

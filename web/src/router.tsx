@@ -16,6 +16,7 @@ import CadastrarCartao from "./pages/Cartoes/Cadastrar";
 import EditarCartao from "./pages/Cartoes/Editar";
 
 import { EditarDespesa } from "./pages/Despesa/EditarDespesa";
+import { EditarGrupoParcelas } from "./pages/Parcelas/EditarGrupoParcelas";
 import { DespesaRoute } from "./pages/Despesa/DespesaRoute";
 import { ListagemDespesa } from "./pages/Despesa/ListagemDespesa";
 import { CadastrarDespesa } from "./pages/Despesa/CadastrarDespesa";
@@ -95,6 +96,7 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemDespesa /> },
           { path: "cadastrar", element: <CadastrarDespesa /> },
           { path: "editar/:id", element: <EditarDespesa /> },
+          { path: "grupo/:grupo", element: <EditarGrupoParcelas /> },
           { path: "editar-multiplas", element: <EditarMultiplasDespesas /> },
         ],
       },
@@ -105,6 +107,7 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemReceita /> },
           { path: "cadastrar", element: <CadastrarReceita /> },
           { path: "editar/:id", element: <EditarReceita /> },
+          { path: "grupo/:grupo", element: <EditarGrupoParcelas /> },
           { path: "editar-multiplas", element: <EditarMultiplasReceitas /> },
         ],
       },

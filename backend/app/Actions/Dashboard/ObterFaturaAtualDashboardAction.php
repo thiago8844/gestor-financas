@@ -73,7 +73,7 @@ class ObterFaturaAtualDashboardAction
                 'total' => 0.0,
                 'pago' => 0.0,
                 'pendente' => 0.0,
-                'status' => now()->gte($closingDate) ? 'FECHADA' : 'ABERTA',
+                'status' => now()->startOfDay()->gt($closingDate) ? 'FECHADA' : 'ABERTA',
                 'parcelas' => [],
             ],
             'offset' => $offset,

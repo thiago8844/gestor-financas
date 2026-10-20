@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\DividirParcelas;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -38,6 +39,11 @@ class TransacaoCartaoRequest extends FormRequest
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'category_name' => ['nullable', 'string', 'max:100'],
             'budget_id' => ['nullable', 'integer', 'exists:budgets,id'],
+            // Onde caem os centavos que sobram da divisão (cada banco/vendedor faz de um jeito).
+            'modo_centavos' => ['nullable', Rule::in(DividirParcelas::MODOS)],
+            // Valores exatos de cada parcela, quando conferidos com o banco. Opcional: sem ele o total é dividido.
+            'parcelas' => ['nullable', 'array'],
+            'parcelas.*.amount' => ['required_with:parcelas', 'numeric', 'min:0.01', 'max:999999999.99'],
         ];
     }
 
@@ -55,6 +61,9 @@ class TransacaoCartaoRequest extends FormRequest
             'purchase_date.required' => 'A data da compra é obrigatória.',
             'installment_total.min' => 'O parcelamento deve ter pelo menos 1 parcela.',
             'installment_total.max' => 'O parcelamento não pode ter mais que 60 parcelas.',
+            'modo_centavos.in' => 'O modo de distribuição dos centavos é inválido.',
+            'parcelas.*.amount.required_with' => 'O valor da parcela é obrigatório.',
+            'parcelas.*.amount.min' => 'O valor da parcela deve ser maior que zero.',
             'type.in' => 'O tipo deve ser compra (EXPENSE) ou crédito (INCOME).',
         ];
     }
@@ -64,6 +73,26 @@ class TransacaoCartaoRequest extends FormRequest
         $validator->after(function ($validator) {
             if ($this->input('type') === 'INCOME' && (int) $this->input('installment_total', 1) > 1) {
                 $validator->errors()->add('installment_total', 'Crédito/estorno no cartão não pode ser parcelado.');
+            }
+
+            $parcelas = $this->input('parcelas');
+
+            if (!is_array($parcelas) || $parcelas === []) {
+                return;
+            }
+
+            if (count($parcelas) !== (int) $this->input('installment_total', 1)) {
+                $validator->errors()->add('parcelas', 'A quantidade de parcelas informadas deve ser igual ao número de parcelas.');
+
+                return;
+            }
+
+            $soma = DividirParcelas::somaEmCentavos(array_column($parcelas, 'amount'));
+            $total = (int) round(((float) $this->input('amount')) * 100);
+
+            if ($soma !== $total) {
+                $diferenca = number_format(abs($soma - $total) / 100, 2, ',', '.');
+                $validator->errors()->add('parcelas', "A soma das parcelas não confere com o valor total (diferença de R$ {$diferenca}).");
             }
         });
     }

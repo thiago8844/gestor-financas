@@ -1,8 +1,9 @@
-import { useState } from "react";
 import InputMoeda from "../InputMoeda";
 import { convertNumberToCurrencyMask } from "../../utils";
 import type { useDespesaCartao } from "../../hooks/useDespesaCartao";
 import type { Cartao } from "../../types/cartao";
+import { SeletorModoCentavos } from "../Parcelamento/SeletorModoCentavos";
+import { IndicadorSomaParcelas } from "../Parcelamento/IndicadorSomaParcelas";
 
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -30,14 +31,17 @@ export function DespesaCartaoCampos({ despesaCartao, cartao }: Props) {
     setPurchaseDate,
     installmentTotal,
     setInstallmentTotal,
+    modoCentavos,
+    setModoCentavos,
     gerarPreview,
+    ajustarParcela,
+    diferencaPara,
   } = despesaCartao;
-
-  const [mostrarParcelas, setMostrarParcelas] = useState(false);
 
   const parcelas = gerarPreview(cartao);
   const primeiraParcela = parcelas[0];
   const isParcelado = installmentTotal > 1;
+  const diferenca = diferencaPara(cartao);
 
   return (
     <>
@@ -98,42 +102,48 @@ export function DespesaCartaoCampos({ despesaCartao, cartao }: Props) {
               )}
             </span>
 
-            {isParcelado && (
-              <button
-                type="button"
-                className="btn btn-link btn-sm p-0"
-                onClick={() => setMostrarParcelas((v) => !v)}
-              >
-                {mostrarParcelas ? "Ocultar parcelas" : "Ver parcelas"}
-              </button>
-            )}
           </div>
         </div>
       )}
 
-      {mostrarParcelas && isParcelado && (
-        <table className="table table-sm">
-          <thead>
-            <tr>
-              <th>Parcela</th>
-              <th>Valor</th>
-              <th>Fatura</th>
-              <th>Vencimento</th>
-            </tr>
-          </thead>
-          <tbody>
-            {parcelas.map((parcela) => (
-              <tr key={parcela.number}>
-                <td>
-                  {parcela.number}/{installmentTotal}
-                </td>
-                <td>{convertNumberToCurrencyMask(parcela.amount)}</td>
-                <td>{formatarMesAno(parcela.referenceMonth)}</td>
-                <td>{formatarDataBr(parcela.dueDate)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {isParcelado && (
+        <div className="mb-3">
+          <div className="mb-2">
+            <SeletorModoCentavos valor={modoCentavos} onChange={setModoCentavos} />
+          </div>
+
+          <div className="table-responsive">
+            <table className="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Parcela</th>
+                  <th>Valor</th>
+                  <th>Fatura</th>
+                  <th>Vencimento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {parcelas.map((parcela, index) => (
+                  <tr key={parcela.number}>
+                    <td>
+                      {parcela.number}/{installmentTotal}
+                    </td>
+                    <td style={{ minWidth: 130 }}>
+                      <InputMoeda
+                        value={convertNumberToCurrencyMask(parcela.amount)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => ajustarParcela(index, e.target.value)}
+                      />
+                    </td>
+                    <td>{formatarMesAno(parcela.referenceMonth)}</td>
+                    <td>{formatarDataBr(parcela.dueDate)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <IndicadorSomaParcelas diferenca={diferenca} />
+        </div>
       )}
     </>
   );

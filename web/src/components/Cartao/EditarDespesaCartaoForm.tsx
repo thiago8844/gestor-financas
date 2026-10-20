@@ -17,7 +17,7 @@ import { useCacheUtils } from "../../hooks/useCacheUtils";
 import type { Transacao } from "../../types/transacao";
 
 const EXPLICACAO_BLOQUEIO =
-  "Essa despesa pertence a um cartão e faz parte do grupo de parcelas da fatura, por isso não é possível editar esses campos aqui. Se precisar mudar algo além do valor, exclua todas as despesas desse grupo e cadastre a compra novamente.";
+  "Essa despesa pertence a um cartão e faz parte do grupo de parcelas da fatura, por isso não é possível editar esses campos aqui. Para mudar o valor, a descrição ou a categoria de todas as parcelas de uma vez, use \"Editar todas as parcelas\".";
 
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",

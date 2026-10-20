@@ -18,6 +18,9 @@ export const DespesaCartaoFormSchema = z.object({
   category_id: z.string().nullable().optional(),
   category_name: z.string().optional(),
   budget_id: z.string().nullable().optional(),
+  modo_centavos: z.enum(["ultima", "primeira", "espalhar"]).optional(),
+  // Valores exatos de cada parcela (já editados pelo usuário). A soma precisa fechar com o total.
+  parcelas: z.array(z.object({ amount: z.number().min(0.01, "Cada parcela deve ter pelo menos R$ 0,01") })).optional(),
 });
 
 export type DespesaCartaoForm = z.infer<typeof DespesaCartaoFormSchema>;

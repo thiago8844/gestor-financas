@@ -11,6 +11,7 @@ import { CategoriaAutocomplete } from "../Contas/components/CategoriaAutocomplet
 import type { Conta } from "../../types/conta";
 import { getTransacao, updateTransacao } from "../../api/transacoes";
 import { useNavigate, useParams } from "react-router-dom";
+import { BannerEdicaoParcela } from "../../components/Parcelamento/BannerEdicaoParcela";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { useEffect } from "react";
@@ -150,6 +151,7 @@ export function EditarReceita() {
       backTo="/receitas"
     >
       <div className="container-fluid">
+        <BannerEdicaoParcela transacao={receita} basePath="/receitas" />
         <form onSubmit={handleSubmit(onSubmit)} className="container mt-4">
           {errors.root && (
             <div className="alert alert-danger">{errors.root.message}</div>

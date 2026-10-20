@@ -17,6 +17,7 @@ import { convertNumberToCurrencyMask } from "../../utils";
 import { useEffect } from "react";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
 import { EditarDespesaCartaoForm } from "../../components/Cartao/EditarDespesaCartaoForm";
+import { BannerEdicaoParcela } from "../../components/Parcelamento/BannerEdicaoParcela";
 
 export function EditarDespesa() {
   const { id } = useParams<{ id: string }>();
@@ -156,6 +157,7 @@ export function EditarDespesa() {
         backTo="/despesas"
       >
         <div className="container-fluid">
+          <BannerEdicaoParcela transacao={despesa} basePath="/despesas" />
           <EditarDespesaCartaoForm despesa={despesa} />
         </div>
       </PageLayout>
@@ -172,6 +174,7 @@ export function EditarDespesa() {
       backTo="/despesas"
     >
       <div className="container-fluid">
+        <BannerEdicaoParcela transacao={despesa} basePath="/despesas" />
         <form onSubmit={handleSubmit(onSubmit)} className="container mt-4">
           {errors.root && (
             <div className="alert alert-danger">{errors.root.message}</div>
@@ -360,7 +363,7 @@ export function EditarDespesa() {
                       <span className="badge text-bg-info">
                         {despesa.installment_number}/{despesa.installment_total}
                       </span>{" "}
-                      — as demais parcelas dessa compra são editadas separadamente.
+                      — para mudar as demais parcelas junto, reabra a edição e escolha "Editar todas as parcelas".
                     </li>
                   )}
                   <li>Alterações serão salvas permanentemente</li>

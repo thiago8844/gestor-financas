@@ -3,7 +3,12 @@ import type { DespesaForm } from "../schemas/despesa";
 import type { ReceitaForm } from "../schemas/receita";
 import type { ParcelamentoForm } from "../schemas/parcelamento";
 import type { DespesaCartaoForm } from "../schemas/despesaCartao";
-import type { GrupoParceladoResponse, TransacaoResponse } from "../types/transacao";
+import type {
+  AtualizarGrupoParcelasPayload,
+  GrupoParceladoResponse,
+  GrupoParcelasDetalhe,
+  TransacaoResponse,
+} from "../types/transacao";
 
 
 // -=-=-=- TRANSACOES -=-=-=-
@@ -80,7 +85,24 @@ export async function updateTransacao(id: number, data: DespesaForm|ReceitaForm)
   return response.data;
 }
 
-// Despesa de cartão: só o valor pode ser editado (os demais campos pertencem ao grupo/fatura).
+// -=-=-=- GRUPO DE PARCELAS (compra parcelada inteira) -=-=-=-
+
+export async function getGrupoParcelas(grupo: string) {
+  const response = await api.get<{ data: GrupoParcelasDetalhe }>(`/transacoes/grupos/${grupo}`);
+  return response.data.data;
+}
+
+export async function atualizarGrupoParcelas(grupo: string, data: AtualizarGrupoParcelasPayload) {
+  const response = await api.put(`/transacoes/grupos/${grupo}`, data);
+  return response.data;
+}
+
+export async function excluirGrupoParcelas(grupo: string) {
+  const response = await api.delete(`/transacoes/grupos/${grupo}`);
+  return response.data;
+}
+
+// Despesa de cartão: valor (e, opcionalmente, descrição/categoria) — o resto pertence ao grupo/fatura. ser editado (os demais campos pertencem ao grupo/fatura).
 export async function atualizarValorDespesa(id: number, amount: number) {
   const response = await api.put(`/transacoes/${id}/valor`, { amount });
   return response.data;

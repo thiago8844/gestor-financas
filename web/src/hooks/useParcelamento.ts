@@ -1,5 +1,12 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { convertCurrencyMaskToNumber, convertNumberToCurrencyMask } from "../utils";
+import {
+  adicionarMesesISO,
+  diferencaEntreSomaETotal,
+  dividirEmCentavos,
+  formatarDataISO,
+  type ModoCentavos,
+} from "../utils/parcelas";
 
 export type StatusParcela = "PENDING" | "PAID";
 
@@ -14,44 +21,42 @@ export type ParcelaLinha = {
 function gerarLinhas(
   valorTotal: number,
   total: number,
-  primeiraDataVencimento: string
+  primeiraDataVencimento: string,
+  modo: ModoCentavos
 ): ParcelaLinha[] {
   if (!valorTotal || valorTotal <= 0 || !total || total < 2 || !primeiraDataVencimento) {
     return [];
   }
 
-  const valorTotalCentavos = Math.round(valorTotal * 100);
-  const parcelaCentavos = Math.floor(valorTotalCentavos / total);
-  const restoCentavos = valorTotalCentavos - parcelaCentavos * total;
+  const centavos = dividirEmCentavos(valorTotal, total, modo);
 
-  const [ano, mes, dia] = primeiraDataVencimento.split("-").map(Number);
-
-  return Array.from({ length: total }, (_, i) => {
-    const centavosLinha = parcelaCentavos + (i === total - 1 ? restoCentavos : 0);
-
-    const dataVencimento = new Date(ano, mes - 1 + i, dia);
-    const dueDateFormatada = dataVencimento.toISOString().slice(0, 10);
-
-    return {
-      number: i + 1,
-      amount: convertNumberToCurrencyMask(centavosLinha / 100),
-      date: "",
-      due_date: dueDateFormatada,
-      status: "PENDING" as StatusParcela,
-    };
-  });
+  return centavos.map((valor, i) => ({
+    number: i + 1,
+    amount: convertNumberToCurrencyMask(valor / 100),
+    date: "",
+    due_date: adicionarMesesISO(primeiraDataVencimento, i),
+    status: "PENDING" as StatusParcela,
+  }));
 }
 
 export function useParcelamento() {
   const [valorTotal, setValorTotal] = useState("");
   const [installmentTotal, setInstallmentTotal] = useState(2);
   const [primeiraDataVencimento, setPrimeiraDataVencimento] = useState("");
+  const [modoCentavos, setModoCentavos] = useState<ModoCentavos>("ultima");
   const [parcelas, setParcelas] = useState<ParcelaLinha[]>([]);
 
   const gerarParcelas = useCallback(() => {
     const valor = convertCurrencyMaskToNumber(valorTotal) ?? 0;
-    setParcelas(gerarLinhas(valor, installmentTotal, primeiraDataVencimento));
-  }, [valorTotal, installmentTotal, primeiraDataVencimento]);
+    setParcelas(gerarLinhas(valor, installmentTotal, primeiraDataVencimento, modoCentavos));
+  }, [valorTotal, installmentTotal, primeiraDataVencimento, modoCentavos]);
+
+  // Diferença entre a soma das parcelas (já editadas) e o total informado; 0 = confere com o banco.
+  const diferenca = useMemo(() => {
+    if (parcelas.length === 0) return 0;
+    const valores = parcelas.map((p) => convertCurrencyMaskToNumber(p.amount) ?? 0);
+    return diferencaEntreSomaETotal(valores, convertCurrencyMaskToNumber(valorTotal) ?? 0);
+  }, [parcelas, valorTotal]);
 
   const atualizarParcela = useCallback(
     (index: number, dados: Partial<ParcelaLinha>) => {
@@ -62,7 +67,7 @@ export function useParcelamento() {
           const atualizada = { ...parcela, ...dados };
 
           if (dados.status === "PAID" && !atualizada.date) {
-            atualizada.date = new Date().toISOString().slice(0, 10);
+            atualizada.date = formatarDataISO(new Date());
           }
 
           if (dados.status === "PENDING") {
@@ -80,6 +85,7 @@ export function useParcelamento() {
     setValorTotal("");
     setInstallmentTotal(2);
     setPrimeiraDataVencimento("");
+    setModoCentavos("ultima");
     setParcelas([]);
   }, []);
 
@@ -90,6 +96,9 @@ export function useParcelamento() {
     setInstallmentTotal,
     primeiraDataVencimento,
     setPrimeiraDataVencimento,
+    modoCentavos,
+    setModoCentavos,
+    diferenca,
     parcelas,
     gerarParcelas,
     atualizarParcela,

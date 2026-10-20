@@ -26,6 +26,8 @@ export const ParcelamentoFormSchema = z
     category_name: z.string().optional(),
     budget_id: z.string().nullable().optional(),
     type: z.enum(["EXPENSE", "INCOME"]),
+    // Total da compra: as parcelas, mesmo editadas livremente, sempre precisam somar este valor.
+    amount: z.number().optional(),
     installment_total: z
       .number()
       .min(2, "O parcelamento deve ter pelo menos 2 parcelas")
@@ -35,6 +37,12 @@ export const ParcelamentoFormSchema = z
   .refine((data) => data.parcelas.length === data.installment_total, {
     message: "A quantidade de parcelas geradas não bate com o número de parcelas informado",
     path: ["parcelas"],
-  });
+  })
+  .refine(
+    (data) =>
+      data.amount === undefined ||
+      Math.round(data.amount * 100) === data.parcelas.reduce((acc, p) => acc + Math.round(p.amount * 100), 0),
+    { message: "A soma das parcelas precisa ser igual ao valor total da compra", path: ["parcelas"] }
+  );
 
 export type ParcelamentoForm = z.infer<typeof ParcelamentoFormSchema>;

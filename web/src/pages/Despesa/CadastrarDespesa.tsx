@@ -14,6 +14,7 @@ import type { Conta } from "../../types/conta";
 import type { Cartao } from "../../types/cartao";
 import { criarDespesa, criarTransacaoParcelada, criarDespesaCartao } from "../../api/transacoes";
 import { useNavigate } from "react-router-dom";
+import { convertCurrencyMaskToNumber } from "../../utils";
 import { useState } from "react";
 import { CategoriaAutocomplete } from "../Contas/components/CategoriaAutocomplete";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
@@ -197,6 +198,7 @@ export function CadastrarDespesa() {
         category_name: categoryNameAtual,
         budget_id: budgetIdAtual,
         type: "EXPENSE",
+        amount: convertCurrencyMaskToNumber(parcelamento.valorTotal) ?? undefined,
         installment_total: parcelamento.installmentTotal,
         parcelas: parcelamento.parcelas,
       });
@@ -259,6 +261,13 @@ export function CadastrarDespesa() {
 
       if (!valido) return;
 
+      const parcelado = despesaCartao.installmentTotal > 1;
+
+      if (parcelado && Math.abs(despesaCartao.diferencaPara(cartaoSelecionado)) >= 0.005) {
+        alert("A soma das parcelas precisa ser igual ao valor total da compra. Ajuste os valores das parcelas.");
+        return;
+      }
+
       const resultado = DespesaCartaoFormSchema.safeParse({
         card_id: despesaCartao.cardId,
         description: descricaoAtual,
@@ -268,6 +277,10 @@ export function CadastrarDespesa() {
         category_id: categoryIdAtual,
         category_name: categoryNameAtual,
         budget_id: budgetIdAtual,
+        modo_centavos: despesaCartao.modoCentavos,
+        parcelas: parcelado
+          ? despesaCartao.valoresParcelas(cartaoSelecionado).map((amount) => ({ amount }))
+          : undefined,
       });
 
       if (!resultado.success) {

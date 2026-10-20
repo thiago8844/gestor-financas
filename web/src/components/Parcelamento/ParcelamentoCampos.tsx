@@ -1,6 +1,8 @@
 import InputMoeda from "../InputMoeda";
 import type { useParcelamento } from "../../hooks/useParcelamento";
 import { ParcelamentoTabela } from "./ParcelamentoTabela";
+import { SeletorModoCentavos } from "./SeletorModoCentavos";
+import { IndicadorSomaParcelas } from "./IndicadorSomaParcelas";
 
 type Props = {
   parcelamento: ReturnType<typeof useParcelamento>;
@@ -14,6 +16,9 @@ export function ParcelamentoCampos({ parcelamento }: Props) {
     setInstallmentTotal,
     primeiraDataVencimento,
     setPrimeiraDataVencimento,
+    modoCentavos,
+    setModoCentavos,
+    diferenca,
     parcelas,
     gerarParcelas,
     atualizarParcela,
@@ -61,9 +66,14 @@ export function ParcelamentoCampos({ parcelamento }: Props) {
         </div>
       </div>
 
+      <div className="mt-2">
+        <SeletorModoCentavos valor={modoCentavos} onChange={setModoCentavos} />
+      </div>
+
       <hr />
 
       <ParcelamentoTabela parcelas={parcelas} onChangeParcela={atualizarParcela} />
+      {parcelas.length > 0 && <IndicadorSomaParcelas diferenca={diferenca} />}
     </div>
   );
 }

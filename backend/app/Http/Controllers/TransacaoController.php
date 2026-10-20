@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Auth;
 
 class TransacaoController extends Controller
 {
+    private const MENSAGEM_VALOR_TRAVADO = 'Esta parcela já está paga e o valor não pode mais ser alterado. Use o ajuste de fatura para corrigir diferenças.';
+
     /**
      * Display a listing of the resource.
      */
@@ -283,10 +285,13 @@ class TransacaoController extends Controller
             return response()->json(['message' => $this->mensagemMovimentacaoInterna($transacao, 'Edite')], 403);
         }
 
-        // Despesa de cartão: pertence a um grupo de parcelas/fatura, então só o valor pode
-        // mudar por aqui. Pra alterar outra coisa, o fluxo é excluir e recriar (ver rota
-        // dedicada /transacoes/{id}/valor, usada pela tela de edição pra esse caso).
+        // Despesa de cartão: pertence a um grupo de parcelas/fatura, então só valor, descrição e
+        // categoria podem mudar por aqui (rota dedicada /transacoes/{id}/valor, usada pela tela de edição).
         if ($transacao->card_id !== null) {
+            if ($transacao->isPaga() && (float) $request->amount !== (float) $transacao->amount) {
+                return response()->json(['message' => self::MENSAGEM_VALOR_TRAVADO], 422);
+            }
+
             $transacao->update(['amount' => $request->amount]);
 
             return response()->json(['message' => 'Transação atualizada com sucesso'], 200);
@@ -331,7 +336,11 @@ class TransacaoController extends Controller
             return response()->json(['message' => $this->mensagemMovimentacaoInterna($transacao, 'Edite')], 403);
         }
 
-        $transacao->update(['amount' => $request->amount]);
+        if ($transacao->isPaga() && (float) $request->amount !== (float) $transacao->amount) {
+            return response()->json(['message' => self::MENSAGEM_VALOR_TRAVADO], 422);
+        }
+
+        $transacao->update($request->safe()->only(['amount', 'description', 'category_id']));
 
         return response()->json(['message' => 'Valor atualizado com sucesso'], 200);
     }

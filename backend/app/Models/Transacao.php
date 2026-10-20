@@ -104,6 +104,11 @@ class Transacao extends Model
             ->orderBy('installment_number');
     }
 
+    public function isPaga(): bool
+    {
+        return $this->status === TransactionStatus::PAID;
+    }
+
     public function isParcelada(): bool
     {
         return (int) $this->installment_total > 1;

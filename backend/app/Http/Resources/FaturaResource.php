@@ -53,7 +53,8 @@ class FaturaResource extends JsonResource
             return 'VENCIDA';
         }
 
-        if ($hoje->gte($this->closing_date)) {
+        // No próprio dia do fechamento a fatura ainda aceita compras: só fecha no dia seguinte.
+        if ($hoje->gt($this->closing_date)) {
             return 'FECHADA';
         }
 

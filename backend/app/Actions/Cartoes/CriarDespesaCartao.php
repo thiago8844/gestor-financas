@@ -7,6 +7,7 @@ use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use App\Models\Cartao;
 use App\Models\Transacao;
+use App\Support\DividirParcelas;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -28,7 +29,7 @@ class CriarDespesaCartao
         $dataCompra = Carbon::parse($dados['purchase_date'])->startOfDay();
         $tipo = TransactionType::tryFrom($dados['type'] ?? '') ?? TransactionType::EXPENSE;
         $installmentTotal = $tipo === TransactionType::INCOME ? 1 : max(1, (int) ($dados['installment_total'] ?? 1));
-        $valores = static::dividirValor(round((float) $dados['amount'], 2), $installmentTotal);
+        $valores = static::valoresDasParcelas($dados, $tipo, $installmentTotal);
         $installmentGroup = $installmentTotal > 1 ? (string) Str::uuid() : null;
 
         $referenciaInicial = ResolverFaturaCompra::referenciaParaCompra($cartao, $dataCompra);
@@ -74,19 +75,33 @@ class CriarDespesaCartao
     }
 
     /**
+     * Valores de cada parcela. Se o usuário informou `parcelas[]` (conferidas com o banco), valem
+     * exatamente esses valores; senão o total é dividido segundo `modo_centavos`.
+     *
+     * @return array<int, float>
+     */
+    protected static function valoresDasParcelas(array $dados, TransactionType $tipo, int $installmentTotal): array
+    {
+        $informadas = $tipo === TransactionType::INCOME ? [] : array_values($dados['parcelas'] ?? []);
+
+        if (count($informadas) === $installmentTotal) {
+            return array_map(fn ($p) => round((float) $p['amount'], 2), $informadas);
+        }
+
+        return DividirParcelas::dividir(
+            round((float) $dados['amount'], 2),
+            $installmentTotal,
+            $dados['modo_centavos'] ?? DividirParcelas::MODO_ULTIMA,
+        );
+    }
+
+    /**
      * Divide o valor total em N parcelas de centavos, jogando o resto do arredondamento na última.
      *
      * @return array<int, float>
      */
     public static function dividirValor(float $valorTotal, int $total): array
     {
-        $centavosTotal = (int) round($valorTotal * 100);
-        $base = intdiv($centavosTotal, $total);
-        $resto = $centavosTotal - $base * $total;
-
-        return array_map(
-            fn (int $i) => round(($base + ($i === $total - 1 ? $resto : 0)) / 100, 2),
-            range(0, $total - 1)
-        );
+        return DividirParcelas::dividir($valorTotal, $total, DividirParcelas::MODO_ULTIMA);
     }
 }

@@ -14,6 +14,7 @@ import { useState } from "react";
 import { CategoriaAutocomplete } from "../Contas/components/CategoriaAutocomplete";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
 import { ReceitaFormSchema, type ReceitaForm } from "../../schemas/receita";
+import { convertCurrencyMaskToNumber } from "../../utils";
 import { ParcelamentoFormSchema } from "../../schemas/parcelamento";
 import { useParcelamento } from "../../hooks/useParcelamento";
 import { ParcelamentoCampos } from "../../components/Parcelamento/ParcelamentoCampos";
@@ -168,6 +169,7 @@ export function CadastrarReceita() {
         category_id: categoryIdAtual,
         category_name: categoryNameAtual,
         type: "INCOME",
+        amount: convertCurrencyMaskToNumber(parcelamento.valorTotal) ?? undefined,
         installment_total: parcelamento.installmentTotal,
         parcelas: parcelamento.parcelas,
       });

@@ -1,3 +1,5 @@
+import { dividirEmCentavos, type ModoCentavos } from "./parcelas";
+
 export type ParcelaPreview = {
   number: number;
   amount: number;
@@ -43,7 +45,8 @@ export function gerarPreviewParcelasCartao(
   cartao: CartaoDias,
   valorTotal: number,
   dataCompraStr: string,
-  installmentTotal: number
+  installmentTotal: number,
+  modo: ModoCentavos = "ultima"
 ): ParcelaPreview[] {
   if (!valorTotal || valorTotal <= 0 || !dataCompraStr || installmentTotal < 1) {
     return [];
@@ -52,9 +55,7 @@ export function gerarPreviewParcelasCartao(
   const [ano, mes, dia] = dataCompraStr.split("-").map(Number);
   const dataCompra = new Date(ano, mes - 1, dia);
 
-  const valorTotalCentavos = Math.round(valorTotal * 100);
-  const parcelaCentavos = Math.floor(valorTotalCentavos / installmentTotal);
-  const restoCentavos = valorTotalCentavos - parcelaCentavos * installmentTotal;
+  const centavos = dividirEmCentavos(valorTotal, installmentTotal, modo);
 
   const cicloInicial = referenciaParaCompra(cartao, dataCompra);
 
@@ -63,11 +64,9 @@ export function gerarPreviewParcelasCartao(
     ciclo.setMonth(ciclo.getMonth() + i);
 
     const dueDate = vencimentoDaFatura(cartao, ciclo);
-    const centavosLinha = parcelaCentavos + (i === installmentTotal - 1 ? restoCentavos : 0);
-
     return {
       number: i + 1,
-      amount: centavosLinha / 100,
+      amount: centavos[i] / 100,
       // O mês "oficial" da fatura é o mês do vencimento, não o do ciclo de fechamento.
       referenceMonth: new Date(dueDate.getFullYear(), dueDate.getMonth(), 1),
       dueDate,

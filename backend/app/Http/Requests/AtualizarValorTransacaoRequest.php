@@ -23,6 +23,9 @@ class AtualizarValorTransacaoRequest extends FormRequest
     {
         return [
             'amount' => ['required', 'numeric', 'min:0.01', 'max:999999999.99'],
+            // Opcionais: a tela de edição de despesa de cartão também ajusta descrição e categoria.
+            'description' => ['sometimes', 'string', 'max:255'],
+            'category_id' => ['sometimes', 'nullable', 'integer', 'exists:categories,id'],
         ];
     }
 

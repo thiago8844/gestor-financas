@@ -25,6 +25,18 @@ class ResolverFaturaCompra
     }
 
     /**
+     * Operação inversa de calcularDatas: dado o mês de competência da fatura (o do vencimento),
+     * devolve o ciclo de fechamento que a gera. Se o vencimento é no mês seguinte ao fechamento
+     * (due_day <= closing_day), o ciclo é o mês anterior.
+     */
+    public static function cicloParaReferencia(Cartao $cartao, Carbon $referencia): Carbon
+    {
+        $ciclo = $referencia->copy()->startOfMonth();
+
+        return $cartao->due_day <= $cartao->closing_day ? $ciclo->subMonthNoOverflow() : $ciclo;
+    }
+
+    /**
      * Busca a fatura cujo fechamento cai no ciclo informado, criando-a se ainda não existir.
      * O mês de competência gravado (reference_month) é o mês do vencimento, não o do fechamento:
      * ex. fechamento dia 24, vencimento dia 1 — uma compra em 24/09 fecha no ciclo de setembro,

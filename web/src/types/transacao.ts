@@ -77,3 +77,31 @@ export type TransacaoFilters = {
   limit?: number;
   page?: number;
 };
+
+/** Parcela dentro do detalhe de um grupo (compra parcelada inteira). */
+export type ParcelaDoGrupo = Transacao & {
+  /** Paga ou conciliada: valor, vencimento e fatura não podem mais ser alterados. */
+  travada: boolean;
+};
+
+export type GrupoParcelasDetalhe = {
+  installment_group: string;
+  tipo: "cartao" | "conta";
+  type: "EXPENSE" | "INCOME";
+  description: string;
+  category_id: number | null;
+  account_id: number | null;
+  card_id: number | null;
+  purchase_date: string | null;
+  total: number;
+  pagas: number;
+  pendentes: number;
+  parcelas: ParcelaDoGrupo[];
+};
+
+export type AtualizarGrupoParcelasPayload = {
+  description?: string;
+  category_id?: number | null;
+  category_name?: string | null;
+  parcelas?: { id: number; amount?: number; due_date?: string | null; invoice_month?: string | null }[];
+};
