@@ -6,6 +6,7 @@ import { FieldError } from "../../components/FieldError";
 import { atualizarConfiguracoes, getConfiguracoes } from "../../api/configuracao";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { CONFIGURACAO_DIAS_MAXIMO, type Configuracao } from "../../types/configuracao";
+import { toast } from "../../utils/toast";
 
 const OPCOES_DIAS = Array.from({ length: CONFIGURACAO_DIAS_MAXIMO + 1 }, (_, i) => i);
 
@@ -43,7 +44,7 @@ function ConfiguracoesForm({ configuracao }: { configuracao: Configuracao }) {
     onSuccess: (salvo) => {
       queryClient.setQueryData(["configuracoes"], salvo);
       reset(salvo);
-      alert("Configurações salvas com sucesso!");
+      toast.success("Configurações salvas com sucesso!");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
   });

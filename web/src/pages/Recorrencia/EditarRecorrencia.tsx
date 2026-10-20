@@ -13,6 +13,7 @@ import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { RecorrenciaFormFields } from "./RecorrenciaFormFields";
 import { VincularLancamentosModal } from "./VincularLancamentosModal";
+import { toast } from "../../utils/toast";
 
 export function EditarRecorrencia() {
   const { id } = useParams<{ id: string }>();
@@ -75,7 +76,7 @@ export function EditarRecorrencia() {
   const { mutate, isPending } = useMutation({
     mutationFn: (data: RecorrenciaForm) => updateRecorrencia(Number(id), data),
     onSuccess: () => {
-      alert("Recorrência atualizada com sucesso!");
+      toast.success("Recorrência atualizada com sucesso!");
       navigate("/recorrencias");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

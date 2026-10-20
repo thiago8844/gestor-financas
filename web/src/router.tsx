@@ -61,6 +61,7 @@ import { Configuracoes } from "./pages/Configuracoes/Configuracoes";
 import { ConciliacaoRoute } from "./pages/Conciliacao/ConciliacaoRoute";
 import { PainelFechamento } from "./pages/Conciliacao/PainelFechamento";
 import { RevisarConciliacao } from "./pages/Conciliacao/RevisarConciliacao";
+import { ToastsDemo } from "./pages/Dev/ToastsDemo";
 
 export const router = createBrowserRouter([
   {
@@ -71,6 +72,8 @@ export const router = createBrowserRouter([
         path: "/",
         element: <Dashboard />,
       },
+      // Demonstração dos toasts/alertas: só existe em desenvolvimento.
+      ...(import.meta.env.DEV ? [{ path: "dev/toasts", element: <ToastsDemo /> }] : []),
       {
         path: "contas",
         element: <ContaRoutes />,

@@ -1,6 +1,6 @@
 import { Overlay } from "../components/Overlay";
 import { ConfirmModal } from "../components/ConfirmModal";
-import { ToastViewport } from "../components/Notificacoes/ToastViewport";
+import { ToastViewport } from "../components/Toast/ToastViewport";
 import { NotificacaoDigestModal } from "../components/Notificacoes/NotificacaoDigestModal";
 import { NotificacoesWatcher } from "../components/Notificacoes/NotificacoesWatcher";
 

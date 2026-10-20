@@ -18,6 +18,7 @@ import { useEffect } from "react";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
 import { EditarDespesaCartaoForm } from "../../components/Cartao/EditarDespesaCartaoForm";
 import { BannerEdicaoParcela } from "../../components/Parcelamento/BannerEdicaoParcela";
+import { toast } from "../../utils/toast";
 
 export function EditarDespesa() {
   const { id } = useParams<{ id: string }>();
@@ -123,7 +124,7 @@ export function EditarDespesa() {
     mutationFn: (data: DespesaForm) => updateDespesa(Number(id), data),
     onSuccess: () => {
       invalidateFormularios(); // ✅ Atualiza cache
-      alert("Despesa atualizada com sucesso!");
+      toast.success("Despesa atualizada com sucesso!");
       navigate("/despesas");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

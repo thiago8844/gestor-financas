@@ -10,6 +10,7 @@ import { atualizarGrupoParcelas, excluirGrupoParcelas, getGrupoParcelas } from "
 import { convertCurrencyMaskToNumber, convertNumberToCurrencyMask, mensagemErroApi } from "../../utils";
 import { diferencaEntreSomaETotal, dividirEmCentavos, type ModoCentavos } from "../../utils/parcelas";
 import type { AtualizarGrupoParcelasPayload, GrupoParcelasDetalhe } from "../../types/transacao";
+import { toast } from "../../utils/toast";
 
 type Linha = {
   id: number;
@@ -120,7 +121,7 @@ export function EditarGrupoParcelas() {
     mutationFn: (payload: AtualizarGrupoParcelasPayload) => atualizarGrupoParcelas(grupo, payload),
     onSuccess: () => {
       invalidar();
-      alert("Parcelas atualizadas com sucesso!");
+      toast.success("Parcelas atualizadas com sucesso!");
       navigate(basePath);
     },
     onError: (e) => setErro(mensagemErroApi(e, "Não foi possível salvar as parcelas.")),
@@ -130,7 +131,7 @@ export function EditarGrupoParcelas() {
     mutationFn: () => excluirGrupoParcelas(grupo),
     onSuccess: () => {
       invalidar();
-      alert("Grupo de parcelas excluído.");
+      toast.success("Grupo de parcelas excluído.");
       navigate(basePath);
     },
     onError: (e) => setErro(mensagemErroApi(e, "Não foi possível excluir o grupo.")),

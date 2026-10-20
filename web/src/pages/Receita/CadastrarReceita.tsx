@@ -18,6 +18,7 @@ import { convertCurrencyMaskToNumber } from "../../utils";
 import { ParcelamentoFormSchema } from "../../schemas/parcelamento";
 import { useParcelamento } from "../../hooks/useParcelamento";
 import { ParcelamentoCampos } from "../../components/Parcelamento/ParcelamentoCampos";
+import { toast } from "../../utils/toast";
 
 export function CadastrarReceita() {
   const { contas, orcamentos, isLoading, isError } = useFormularioTransacao();
@@ -55,7 +56,7 @@ export function CadastrarReceita() {
     onSuccess: () => {
       if (actionType === "save") {
         // Salvar e voltar para receitas
-        alert("Receita criada com sucesso!");
+        toast.success("Receita criada com sucesso!");
         navigate("/receitas");
       } else if (actionType === "saveAndNew") {
         // Salvar e criar outra
@@ -64,7 +65,7 @@ export function CadastrarReceita() {
         )?.checked;
 
         if (keepFormChecked) {
-          alert("Despesa criada! Dados mantidos para nova despesa.");
+          toast.success("Despesa criada! Dados mantidos para nova despesa.");
 
           unregister("amount");
           unregister("category_name");
@@ -77,7 +78,7 @@ export function CadastrarReceita() {
             setValue("category_id", null);
           }, 50);
         } else {
-          alert("Despesa criada! Formulário limpo para nova despesa.");
+          toast.success("Despesa criada! Formulário limpo para nova despesa.");
 
           // 🔥 STEP 1: REMOVE OS CAMPOS PROBLEMÁTICOS
           unregister("amount");
@@ -124,10 +125,10 @@ export function CadastrarReceita() {
       criarTransacaoParcelada(data),
     onSuccess: () => {
       if (actionType === "save") {
-        alert("Receita parcelada criada com sucesso!");
+        toast.success("Receita parcelada criada com sucesso!");
         navigate("/receitas");
       } else if (actionType === "saveAndNew") {
-        alert("Receita parcelada criada! Preencha os dados da próxima.");
+        toast.success("Receita parcelada criada! Preencha os dados da próxima.");
         setValue("description", "");
         setValue("category_name", "");
         setValue("category_id", null);
@@ -175,7 +176,7 @@ export function CadastrarReceita() {
       });
 
       if (!resultado.success) {
-        alert(resultado.error.issues.map((issue) => issue.message).join("\n"));
+        toast.warning("Confira os dados informados", { message: resultado.error.issues.map((issue) => issue.message).join("\n") });
         return;
       }
 

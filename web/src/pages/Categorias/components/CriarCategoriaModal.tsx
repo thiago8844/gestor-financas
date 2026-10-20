@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldError } from "../../../components/FieldError";
 import { defaultFormErrorHandler } from "../../../utils/formErrorHandlers";
 import type { AxiosError } from "axios";
+import { toast } from "../../../utils/toast";
 
 export function CriarCategoriaModal({
   show,
@@ -35,7 +36,7 @@ export function CriarCategoriaModal({
       queryClient.invalidateQueries({
         queryKey: ["categorias_usuario"],
       });
-      alert("Categoria cadastrada com sucesso");
+      toast.success("Categoria cadastrada com sucesso");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
   });

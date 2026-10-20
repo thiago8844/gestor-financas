@@ -23,6 +23,7 @@ import { useDespesaCartao } from "../../hooks/useDespesaCartao";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { ParcelamentoCampos } from "../../components/Parcelamento/ParcelamentoCampos";
 import { DespesaCartaoCampos } from "../../components/Cartao/DespesaCartaoCampos";
+import { toast } from "../../utils/toast";
 
 export function CadastrarDespesa() {
   const { contas, cartoes, orcamentos, isLoading, isError } = useFormularioTransacao();
@@ -80,7 +81,7 @@ export function CadastrarDespesa() {
     onSuccess: () => {
       if (actionType === "save") {
         // Salvar e voltar para despesas
-        alert("Despesa criada com sucesso!");
+        toast.success("Despesa criada com sucesso!");
         navigate("/despesas");
       } else if (actionType === "saveAndNew") {
         // Salvar e criar outra
@@ -89,7 +90,7 @@ export function CadastrarDespesa() {
         )?.checked;
 
         if (keepFormChecked) {
-          alert("Despesa criada! Dados mantidos para nova despesa.");
+          toast.success("Despesa criada! Dados mantidos para nova despesa.");
 
           unregister("amount");
           unregister("category_name");
@@ -102,7 +103,7 @@ export function CadastrarDespesa() {
             setValue("category_id", null);
           }, 50);
         } else {
-          alert("Despesa criada! Formulário limpo para nova despesa.");
+          toast.success("Despesa criada! Formulário limpo para nova despesa.");
 
           // 🔥 STEP 1: REMOVE OS CAMPOS PROBLEMÁTICOS
           unregister("amount");
@@ -151,10 +152,10 @@ export function CadastrarDespesa() {
       criarTransacaoParcelada(data),
     onSuccess: () => {
       if (actionType === "save") {
-        alert("Despesa parcelada criada com sucesso!");
+        toast.success("Despesa parcelada criada com sucesso!");
         navigate("/despesas");
       } else if (actionType === "saveAndNew") {
-        alert("Despesa parcelada criada! Preencha os dados da próxima.");
+        toast.success("Despesa parcelada criada! Preencha os dados da próxima.");
         setValue("description", "");
         setValue("category_name", "");
         setValue("category_id", null);
@@ -204,7 +205,7 @@ export function CadastrarDespesa() {
       });
 
       if (!resultado.success) {
-        alert(resultado.error.issues.map((issue) => issue.message).join("\n"));
+        toast.warning("Confira os dados informados", { message: resultado.error.issues.map((issue) => issue.message).join("\n") });
         return;
       }
 
@@ -221,10 +222,10 @@ export function CadastrarDespesa() {
       invalidateDespesas();
 
       if (actionType === "save") {
-        alert("Despesa do cartão criada com sucesso!");
+        toast.success("Despesa do cartão criada com sucesso!");
         navigate("/despesas");
       } else if (actionType === "saveAndNew") {
-        alert("Despesa do cartão criada! Preencha os dados da próxima.");
+        toast.success("Despesa do cartão criada! Preencha os dados da próxima.");
         setValue("description", "");
         setValue("category_name", "");
         setValue("category_id", null);
@@ -255,7 +256,7 @@ export function CadastrarDespesa() {
       }
 
       if (!despesaCartao.cardId) {
-        alert("Selecione um cartão");
+        toast.warning("Selecione um cartão", { message: "Escolha em qual cartão a compra foi feita." });
         valido = false;
       }
 
@@ -264,7 +265,7 @@ export function CadastrarDespesa() {
       const parcelado = despesaCartao.installmentTotal > 1;
 
       if (parcelado && Math.abs(despesaCartao.diferencaPara(cartaoSelecionado)) >= 0.005) {
-        alert("A soma das parcelas precisa ser igual ao valor total da compra. Ajuste os valores das parcelas.");
+        toast.warning("A soma das parcelas não confere", { message: "A soma precisa ser igual ao valor total da compra. Ajuste os valores das parcelas." });
         return;
       }
 
@@ -284,7 +285,7 @@ export function CadastrarDespesa() {
       });
 
       if (!resultado.success) {
-        alert(resultado.error.issues.map((issue) => issue.message).join("\n"));
+        toast.warning("Confira os dados informados", { message: resultado.error.issues.map((issue) => issue.message).join("\n") });
         return;
       }
 

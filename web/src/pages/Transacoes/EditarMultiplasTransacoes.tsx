@@ -7,6 +7,7 @@ import {
   type TransacaoEditavelCardHandle,
 } from "../Despesa/DespesaEditavelCard";
 import { ReceitaEditavelCard } from "../Receita/ReceitaEditavelCard";
+import { toast } from "../../utils/toast";
 
 type Props = {
   tipo: "EXPENSE" | "INCOME";
@@ -46,7 +47,7 @@ export function EditarMultiplasTransacoes({ tipo, backTo, titulo }: Props) {
     setSalvandoTodas(false);
 
     if (falha === 0) {
-      alert(`${sucesso} transação(ões) salva(s) com sucesso!`);
+      toast.success(`${sucesso} transação(ões) salva(s) com sucesso!`);
       navigate(backTo);
     }
   };

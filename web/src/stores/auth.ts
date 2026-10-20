@@ -3,6 +3,7 @@ import type { User } from "../types";
 import { getUser } from "../api/auth";
 import { ACCESS_TOKEN_KEY } from "../config/config";
 import { api } from "../api-client";
+import { useToastStore } from "./toast";
 
 //Tipagem do estado global de autenticação
 type AuthState = {
@@ -26,6 +27,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const user = await getUser();
       console.log("Fetched user:", user);
+      // Outro usuário na mesma aba: descarta avisos da sessão anterior.
+      if (get().user && get().user?.id !== user.id) useToastStore.getState().clear();
       set({ user, loading: false });
     } catch (error) {
       console.error("Failed to fetch user:", error);
@@ -43,6 +46,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setUser: (user: User | null) => set({ user }),
 
   logout: () => {
+    // Avisos e fila da sessão que está acabando não podem aparecer para o próximo usuário.
+    useToastStore.getState().clear();
     //TODO: COLOCAR PRA RETORNAR TRUE OR FALSE PARA SABER O LOGOUT FOI BEM SUCEDIDO E ELIMNAR O CACHE
     const token = get().token; // 👈 pega o token do estado
 

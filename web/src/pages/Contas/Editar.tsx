@@ -12,6 +12,7 @@ import { SubmitBtn } from "../../components/SubmitBtn";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { convertNumberToCurrencyMask } from "../../utils";
+import { toast } from "../../utils/toast";
 
 export default function Editar() {
   const navigate = useNavigate();
@@ -92,7 +93,7 @@ export default function Editar() {
   const { mutate, isPending } = useMutation({
     mutationFn: (data: ContaForm) => editarConta(Number(id), data),
     onSuccess: () => {
-      alert("Conta editada com sucesso!");
+      toast.success("Conta editada com sucesso!");
       navigate("/contas");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

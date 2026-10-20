@@ -6,6 +6,7 @@ import { useConfirmModalStore } from "../../../stores/confirmModal";
 import { deletarConta } from "../../../api/conta";
 import { useMutation } from "@tanstack/react-query";
 import { useCacheUtils } from "../../../hooks/useCacheUtils"; // ✅ NOVO
+import { toast } from "../../../utils/toast";
 
 export function ContaCard({ conta }: { conta: Conta }) {
   const { openModal } = useConfirmModalStore();
@@ -17,10 +18,10 @@ export function ContaCard({ conta }: { conta: Conta }) {
     mutationFn: (id: number) => deletarConta(id),
     onSuccess: () => {
       invalidateFormularios(); // ✅ Atualiza TODOS os formulários
-      alert("Conta excluída com sucesso!");
+      toast.success("Conta excluída com sucesso!");
     },
     onError: () => {
-      alert("Erro ao excluir conta. Tente novamente.");
+      toast.error("Erro ao excluir conta", { message: "Tente novamente." });
     },
   });
 

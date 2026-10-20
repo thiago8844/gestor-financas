@@ -11,6 +11,7 @@ import { getOrcamento, updateOrcamento } from "../../api/orcamentos";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { OrcamentoFormFields } from "./OrcamentoFormFields";
+import { toast } from "../../utils/toast";
 
 export function EditarOrcamento() {
   const { id } = useParams<{ id: string }>();
@@ -67,7 +68,7 @@ export function EditarOrcamento() {
   const { mutate, isPending } = useMutation({
     mutationFn: (data: OrcamentoForm) => updateOrcamento(Number(id), data),
     onSuccess: () => {
-      alert("Orçamento atualizado com sucesso!");
+      toast.success("Orçamento atualizado com sucesso!");
       navigate("/orcamentos");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

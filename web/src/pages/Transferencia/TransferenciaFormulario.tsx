@@ -13,6 +13,7 @@ import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { TransferenciaFormSchema, type TransferenciaForm } from "../../schemas/transferencia";
 import type { Conta } from "../../types/conta";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
+import { toast } from "../../utils/toast";
 
 type Props = {
   title: string;
@@ -74,7 +75,7 @@ export function TransferenciaFormulario({
       // Muda o saldo das duas contas, então o cache de contas/dashboard precisa recarregar.
       invalidateContas();
       invalidateFormularios();
-      alert(mensagemSucesso);
+      toast.success(mensagemSucesso);
       navigate("/transferencias");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

@@ -9,6 +9,7 @@ import { OrcamentoFormSchema, type OrcamentoForm } from "../../schemas/orcamento
 import { criarOrcamento } from "../../api/orcamentos";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { OrcamentoFormFields } from "./OrcamentoFormFields";
+import { toast } from "../../utils/toast";
 
 export function CadastrarOrcamento() {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ export function CadastrarOrcamento() {
   const { mutate, isPending } = useMutation({
     mutationFn: (data: OrcamentoForm) => criarOrcamento(data),
     onSuccess: () => {
-      alert("Orçamento criado com sucesso!");
+      toast.success("Orçamento criado com sucesso!");
       navigate("/orcamentos");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

@@ -18,6 +18,7 @@ import { Listagem } from "../../components/Listagens/Listagem";
 import { AcoesEmMassa } from "../../components/Listagens/AcoesEmMassa";
 import { CampoDataSelect, DatasTransacao, SituacaoSelect } from "../../components/Listagens/CampoData";
 import { useSelecaoEmMassa } from "../../hooks/useSelecaoEmMassa";
+import { toast } from "../../utils/toast";
 
 // TODO: COLOCAR O STATUS PENDENTE EM RECEITAS DEPOIS
 
@@ -81,7 +82,7 @@ export function ListagemReceita() {
       refetch(); // Refaz a consulta para atualizar a lista de despesas
     },
     onError: () => {
-      alert("Erro ao excluir despesa. Tente novamente.");
+      toast.error("Erro ao excluir despesa", { message: "Tente novamente." });
     },
   });
 
@@ -93,7 +94,7 @@ export function ListagemReceita() {
       refetch();
     },
     onError: () => {
-      alert("Erro ao excluir receitas. Tente novamente.");
+      toast.error("Erro ao excluir receitas", { message: "Tente novamente." });
     },
   });
 

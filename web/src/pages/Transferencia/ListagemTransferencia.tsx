@@ -8,6 +8,7 @@ import { useConfirmModalStore } from "../../stores/confirmModal";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { deletarTransferencia, getTransferencias } from "../../api/transferencias";
+import { toast } from "../../utils/toast";
 
 export function ListagemTransferencia() {
   const [page, setPage] = useState(1);
@@ -28,7 +29,7 @@ export function ListagemTransferencia() {
       invalidateFormularios();
       refetch();
     },
-    onError: () => alert("Erro ao excluir transferência. Tente novamente."),
+    onError: () => toast.error("Erro ao excluir transferência", { message: "Tente novamente." }),
   });
 
   if (isError) {

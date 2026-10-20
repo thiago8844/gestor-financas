@@ -23,6 +23,7 @@ import {
   formatarDataBr,
   formatarMesAno,
 } from "./faturaUtils";
+import { toast } from "../../../utils/toast";
 
 const moeda = (v: number) => `R$ ${convertNumberToCurrencyMask(v)}`;
 
@@ -126,10 +127,10 @@ export function FaturasDoCartao({ cartao }: Props) {
       queryClient.invalidateQueries({ queryKey: ["dashboard-fatura-atual"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-indicadores"] });
       invalidateContas();
-      alert("Pagamento revertido com sucesso!");
+      toast.success("Pagamento revertido com sucesso!");
     },
     onError: (error: AxiosError<{ message?: string }>) => {
-      alert(error.response?.data?.message || "Erro ao reverter pagamento. Tente novamente.");
+      toast.error("Erro ao reverter pagamento", { message: error.response?.data?.message || "Tente novamente." });
     },
   });
 

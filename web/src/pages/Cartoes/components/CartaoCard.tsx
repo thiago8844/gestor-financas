@@ -7,6 +7,7 @@ import { deletarCartao } from "../../../api/cartao";
 import { useMutation } from "@tanstack/react-query";
 import { useCacheUtils } from "../../../hooks/useCacheUtils";
 import { FaturasDoCartao } from "./FaturasDoCartao";
+import { toast } from "../../../utils/toast";
 
 export function CartaoCard({ cartao }: { cartao: Cartao }) {
   const { openModal } = useConfirmModalStore();
@@ -19,10 +20,10 @@ export function CartaoCard({ cartao }: { cartao: Cartao }) {
     mutationFn: (id: number) => deletarCartao(id),
     onSuccess: () => {
       invalidateCartoes();
-      alert("Cartão excluído com sucesso!");
+      toast.success("Cartão excluído com sucesso!");
     },
     onError: () => {
-      alert("Erro ao excluir cartão. Tente novamente.");
+      toast.error("Erro ao excluir cartão", { message: "Tente novamente." });
     },
   });
 

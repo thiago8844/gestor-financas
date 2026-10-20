@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
 import type { Conta } from "../../types/conta";
 import { AvisoDiaCartao } from "../../components/Cartao/AvisoDiaCartao";
+import { toast } from "../../utils/toast";
 
 export default function Editar() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ export default function Editar() {
     mutationFn: (data: CartaoForm) => editarCartao(Number(id), data),
     onSuccess: () => {
       invalidateCartoes();
-      alert("Cartão editado com sucesso!");
+      toast.success("Cartão editado com sucesso!");
       navigate("/cartoes");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

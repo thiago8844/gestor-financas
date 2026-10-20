@@ -13,6 +13,7 @@ import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { useNavigate } from "react-router-dom";
 import type { Conta } from "../../types/conta";
 import { AvisoDiaCartao } from "../../components/Cartao/AvisoDiaCartao";
+import { toast } from "../../utils/toast";
 
 export default function Cadastrar() {
   const { invalidateCartoes } = useCacheUtils();
@@ -43,7 +44,7 @@ export default function Cadastrar() {
     onSuccess: () => {
       invalidateCartoes();
       navigate("/cartoes");
-      alert("Cartão criado com sucesso!");
+      toast.success("Cartão criado com sucesso!");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
   });

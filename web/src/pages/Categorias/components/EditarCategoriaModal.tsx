@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FieldError } from "../../../components/FieldError";
 import { defaultFormErrorHandler } from "../../../utils/formErrorHandlers";
 import type { AxiosError } from "axios";
+import { toast } from "../../../utils/toast";
 
 export function EditarCategoriaModal({
   show,
@@ -44,7 +45,7 @@ export function EditarCategoriaModal({
       queryClient.invalidateQueries({
         queryKey: ["categorias_usuario"],
       });
-      alert("Categoria editada com sucesso");
+      toast.success("Categoria editada com sucesso");
       setShow(false);
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

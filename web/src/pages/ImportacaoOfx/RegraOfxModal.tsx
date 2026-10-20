@@ -10,6 +10,7 @@ import { criarRegraOfx } from "../../api/regrasOfx";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import type { Categoria } from "../../api/categoria";
 import type { Orcamento } from "../../types/orcamento";
+import { toast } from "../../utils/toast";
 
 type Props = {
   show: boolean;
@@ -56,7 +57,7 @@ export function RegraOfxModal({ show, onClose, ofxImportId, categorias, orcament
       }),
     onSuccess: (resposta) => {
       queryClient.invalidateQueries({ queryKey: ["importacao-ofx", ofxImportId] });
-      alert(
+      toast.success(
         resposta.itens_aplicados
           ? `Regra criada e aplicada a mais ${resposta.itens_aplicados} transação(ões) desta importação.`
           : "Regra criada com sucesso."

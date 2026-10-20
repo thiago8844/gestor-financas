@@ -13,6 +13,7 @@ import {
 import { formatarFrequencia } from "./formatarFrequencia";
 import { VincularLancamentosModal } from "./VincularLancamentosModal";
 import type { RecorrenciaTransacao } from "../../types/recorrencia";
+import { toast } from "../../utils/toast";
 
 export function ListagemRecorrencia() {
   const queryClient = useQueryClient();
@@ -29,13 +30,13 @@ export function ListagemRecorrencia() {
   const { mutate: deletar } = useMutation({
     mutationFn: (id: number) => deletarRecorrencia(id),
     onSuccess: () => refetch(),
-    onError: () => alert("Erro ao excluir recorrência. Tente novamente."),
+    onError: () => toast.error("Erro ao excluir recorrência", { message: "Tente novamente." }),
   });
 
   const { mutate: alternarAtivo } = useMutation({
     mutationFn: (id: number) => alternarAtivoRecorrencia(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["recorrencias"] }),
-    onError: () => alert("Erro ao alterar status da recorrência. Tente novamente."),
+    onError: () => toast.error("Erro ao alterar status da recorrência", { message: "Tente novamente." }),
   });
 
   if (isError) {

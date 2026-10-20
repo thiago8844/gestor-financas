@@ -6,6 +6,7 @@ import { Listagem } from "../../components/Listagens/Listagem";
 import { useConfirmModalStore } from "../../stores/confirmModal";
 import { desfazerImportacaoOfx, getImportacoesOfx } from "../../api/ofxImportacoes";
 import type { OfxDesfazerBloqueadoError, OfxImportStatus } from "../../types/ofx";
+import { toast } from "../../utils/toast";
 
 const badgeStatus: Record<OfxImportStatus, { texto: string; classe: string }> = {
   STAGED: { texto: "Em revisão", classe: "text-bg-warning" },
@@ -37,7 +38,7 @@ export function HistoricoImportacoesOfx() {
           autoClose: true,
         });
       } else {
-        alert("Erro ao desfazer importação. Tente novamente.");
+        toast.error("Erro ao desfazer importação", { message: "Tente novamente." });
       }
     },
   });

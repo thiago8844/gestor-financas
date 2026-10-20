@@ -1,0 +1,170 @@
+// Toasts e alertas inline. Usa as variáveis do Bootstrap, então acompanha o tema claro/escuro.
+
+.toast-viewport {
+  position: fixed;
+  z-index: 1100;
+  top: max(24px, env(safe-area-inset-top));
+  right: max(24px, env(safe-area-inset-right));
+  width: min(380px, calc(100vw - 48px));
+  display: flex;
+  flex-direction: column;
+  pointer-events: none; // não bloqueia a página; só os cards recebem clique
+
+  @media (max-width: 575.98px) {
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    width: calc(100vw - 24px - env(safe-area-inset-left));
+  }
+}
+
+// O slot colapsa a altura ao sair, então os demais sobem suavemente.
+.toast-slot {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.25s ease, opacity 0.25s ease;
+
+  &.is-leaving {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+.toast-slot__inner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 2px 4px 10px;
+}
+
+.toast-card,
+.alerta-inline {
+  --toast-accent: var(--bs-secondary);
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.75rem 0.5rem 0.75rem 0.875rem;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+  border-left: 4px solid var(--toast-accent);
+  border-radius: 0.5rem;
+}
+
+.toast-card {
+  pointer-events: auto;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  animation: toast-in 0.25s ease;
+
+  // Persistente "discreto": menos sombra e borda, mantendo fundo e texto (contraste preservado).
+  &.is-idle {
+    box-shadow: none;
+    border-color: transparent;
+    border-left-color: color-mix(in srgb, var(--toast-accent) 55%, transparent);
+  }
+}
+
+.toast-card__icon,
+.alerta-inline__icon {
+  color: var(--toast-accent);
+  font-size: 1.15rem;
+  line-height: 1.4;
+  flex: 0 0 auto;
+}
+
+.toast-card__content,
+.alerta-inline__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.toast-card__title {
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.toast-card__message,
+.alerta-inline__desc {
+  font-size: 0.875rem;
+  color: var(--bs-secondary-color);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+// Mensagens muito longas rolam dentro do card em vez de crescer sem limite.
+.toast-card__message {
+  max-height: 7.5rem;
+  overflow-y: auto;
+}
+
+.alerta-inline__list {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.875rem;
+  color: var(--bs-secondary-color);
+}
+
+.toast-card__close {
+  flex: 0 0 auto;
+  width: 2.25rem; // área de toque confortável
+  height: 2.25rem;
+  margin: -0.35rem 0 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0.375rem;
+  color: var(--bs-secondary-color);
+
+  &:hover {
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 1px;
+  }
+}
+
+.toast-card__progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: var(--toast-accent);
+  opacity: 0.55;
+  transform-origin: left;
+  animation: toast-progress linear forwards;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes toast-progress {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-slot,
+  .toast-card {
+    transition: none;
+    animation: none;
+  }
+
+  .toast-card__progress {
+    animation: none;
+    transform: none;
+    opacity: 0.35;
+  }
+}

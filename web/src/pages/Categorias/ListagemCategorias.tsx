@@ -6,6 +6,7 @@ import { useConfirmModalStore } from "../../stores/confirmModal";
 import { CriarCategoriaModal } from "./components/CriarCategoriaModal";
 import { useState } from "react";
 import { EditarCategoriaModal } from "./components/EditarCategoriaModal";
+import { toast } from "../../utils/toast";
 
 /**
  *
@@ -31,10 +32,10 @@ export function ListagemCategorias() {
     mutationFn: (id: number) => deleteCategoria(id),
     onSuccess: () => {
       refetch();
-      alert("Categoria Excluída com sucesso");
+      toast.success("Categoria Excluída com sucesso");
     },
     onError: () => {
-      alert("Erro ao excluir categoria");
+      toast.error("Erro ao excluir categoria");
     },
   });
 

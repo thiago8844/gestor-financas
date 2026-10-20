@@ -15,6 +15,7 @@ import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
 import type { Transacao } from "../../types/transacao";
+import { toast } from "../../utils/toast";
 
 const EXPLICACAO_BLOQUEIO =
   "Essa despesa pertence a um cartão e faz parte do grupo de parcelas da fatura, por isso não é possível editar esses campos aqui. Para mudar o valor, a descrição ou a categoria de todas as parcelas de uma vez, use \"Editar todas as parcelas\".";
@@ -55,7 +56,7 @@ export function EditarDespesaCartaoForm({ despesa }: Props) {
     mutationFn: (data: EditarValorDespesaForm) => atualizarValorDespesa(despesa.id, data.amount),
     onSuccess: () => {
       invalidateFormularios();
-      alert("Valor atualizado com sucesso!");
+      toast.success("Valor atualizado com sucesso!");
       navigate("/despesas");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

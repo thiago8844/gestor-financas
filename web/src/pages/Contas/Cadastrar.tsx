@@ -16,6 +16,7 @@ import { SubmitBtn } from "../../components/SubmitBtn";
 import { getBrazilDateTime } from "../../utils";
 import { useCacheUtils } from "../../hooks/useCacheUtils"; // ✅ NOVO
 import { useNavigate } from "react-router-dom";
+import { toast } from "../../utils/toast";
 
 export default function Cadastrar() {
   const { invalidateFormularios } = useCacheUtils(); // ✅ NOVO
@@ -42,7 +43,7 @@ export default function Cadastrar() {
     onSuccess: () => {
       invalidateFormularios(); // ✅ Atualiza TODOS os formulários
       navigate("/contas");
-      alert("Conta criada com sucesso!");
+      toast.success("Conta criada com sucesso!");
 
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

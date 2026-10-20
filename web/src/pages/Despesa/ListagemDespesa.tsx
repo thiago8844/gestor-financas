@@ -22,6 +22,7 @@ import { AcoesEmMassa } from "../../components/Listagens/AcoesEmMassa";
 import { CampoDataSelect, DatasTransacao, SituacaoSelect } from "../../components/Listagens/CampoData";
 import { useSelecaoEmMassa } from "../../hooks/useSelecaoEmMassa";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
+import { toast } from "../../utils/toast";
 
 const filtrosOriginais = {
   type: "EXPENSE" as const,
@@ -92,7 +93,7 @@ export function ListagemDespesa() {
       refetch(); // Refaz a consulta para atualizar a lista de despesas
     },
     onError: () => {
-      alert("Erro ao excluir despesa. Tente novamente.");
+      toast.error("Erro ao excluir despesa", { message: "Tente novamente." });
     },
   });
 
@@ -105,7 +106,7 @@ export function ListagemDespesa() {
       refetch();
     },
     onError: () => {
-      alert("Erro ao excluir despesas. Tente novamente.");
+      toast.error("Erro ao excluir despesas", { message: "Tente novamente." });
     },
   });
 

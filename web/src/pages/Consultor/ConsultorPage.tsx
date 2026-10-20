@@ -16,6 +16,7 @@ import type {
 } from "../../types/chatbot";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "../../utils/toast";
 
 // ✅ TIPO DA MENSAGEM
 type Message = {
@@ -39,7 +40,7 @@ export function ConsultorPage() {
           //alert("Acesso negado ao consultor financeiro. Redirecionando...");
           navigate("/acesso-negado");
         } else {
-          alert(
+          toast.error(
             "Ocorreu um erro ao verificar acesso ao consultor financeiro. Tente novamente mais tarde.",
           );
           navigate("/");

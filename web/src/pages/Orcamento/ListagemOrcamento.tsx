@@ -5,6 +5,7 @@ import { Listagem } from "../../components/Listagens/Listagem";
 import { useConfirmModalStore } from "../../stores/confirmModal";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { alternarAtivoOrcamento, deletarOrcamento, getOrcamentos } from "../../api/orcamentos";
+import { toast } from "../../utils/toast";
 
 export function ListagemOrcamento() {
   const queryClient = useQueryClient();
@@ -20,13 +21,13 @@ export function ListagemOrcamento() {
   const { mutate: deletar } = useMutation({
     mutationFn: (id: number) => deletarOrcamento(id),
     onSuccess: () => refetch(),
-    onError: () => alert("Erro ao excluir orçamento. Tente novamente."),
+    onError: () => toast.error("Erro ao excluir orçamento", { message: "Tente novamente." }),
   });
 
   const { mutate: alternarAtivo } = useMutation({
     mutationFn: (id: number) => alternarAtivoOrcamento(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["orcamentos"] }),
-    onError: () => alert("Erro ao alterar status do orçamento. Tente novamente."),
+    onError: () => toast.error("Erro ao alterar status do orçamento", { message: "Tente novamente." }),
   });
 
   if (isError) {

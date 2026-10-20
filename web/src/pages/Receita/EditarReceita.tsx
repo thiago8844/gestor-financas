@@ -17,6 +17,7 @@ import { convertNumberToCurrencyMask } from "../../utils";
 import { useEffect } from "react";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
 import { ReceitaFormSchema, type ReceitaForm } from "../../schemas/receita";
+import { toast } from "../../utils/toast";
 
 export function EditarReceita() {
   const { id } = useParams<{ id: string }>();
@@ -117,7 +118,7 @@ export function EditarReceita() {
     mutationFn: (data: ReceitaForm) => updateTransacao(Number(id), data),
     onSuccess: () => {
       invalidateFormularios(); // ✅ Atualiza cache
-      alert("Receita atualizada com sucesso!");
+      toast.success("Receita atualizada com sucesso!");
       navigate("/receitas");
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),

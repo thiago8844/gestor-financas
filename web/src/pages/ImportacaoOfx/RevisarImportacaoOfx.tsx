@@ -15,6 +15,7 @@ import { ItemOfxRow } from "./ItemOfxRow";
 import { RegraOfxModal } from "./RegraOfxModal";
 import type { OfxImportItem, OfxModoReabertura } from "../../types/ofx";
 import type { Conta } from "../../types";
+import { toast } from "../../utils/toast";
 
 const FILTROS = ["todas", "pendentes", "duplicadas", "nao_selecionadas"] as const;
 type Filtro = (typeof FILTROS)[number];
@@ -57,7 +58,7 @@ export function RevisarImportacaoOfx() {
     mutationFn: ({ itemId, dados }: { itemId: number; dados: Record<string, unknown> }) =>
       atualizarItemOfx(importacaoId, itemId, dados),
     onSuccess: invalidar,
-    onError: () => alert("Erro ao salvar alteração. Tente novamente."),
+    onError: () => toast.error("Erro ao salvar alteração", { message: "Tente novamente." }),
   });
 
   const { mutate: atualizarEmMassa, isPending: salvandoEmMassa } = useMutation({
@@ -70,7 +71,7 @@ export function RevisarImportacaoOfx() {
       setBulkOrcamento("");
       setBulkConta("");
     },
-    onError: () => alert("Erro ao aplicar alteração em massa. Tente novamente."),
+    onError: () => toast.error("Erro ao aplicar alteração em massa", { message: "Tente novamente." }),
   });
 
   const { mutate: reabrir, isPending: reabrindo } = useMutation({
@@ -79,17 +80,17 @@ export function RevisarImportacaoOfx() {
       queryClient.invalidateQueries({ queryKey: ["importacoes-ofx"] });
       invalidar();
     },
-    onError: () => alert("Erro ao reabrir importação. Tente novamente."),
+    onError: () => toast.error("Erro ao reabrir importação", { message: "Tente novamente." }),
   });
 
   const { mutate: confirmar, isPending: confirmando } = useMutation({
     mutationFn: (ids: number[]) => confirmarImportacaoOfx(importacaoId, ids),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["importacoes-ofx"] });
-      alert("Importação confirmada com sucesso!");
+      toast.success("Importação confirmada com sucesso!");
       navigate("/importacoes-ofx");
     },
-    onError: () => alert("Erro ao confirmar importação. Tente novamente."),
+    onError: () => toast.error("Erro ao confirmar importação", { message: "Tente novamente." }),
   });
 
   if (isError) {
@@ -201,7 +202,7 @@ export function RevisarImportacaoOfx() {
     if (bulkOrcamento) dados.budget_id = Number(bulkOrcamento);
 
     if (Object.keys(dados).length === 1) {
-      alert("Selecione ao menos uma alteração para aplicar (conta, categoria ou orçamento).");
+      toast.warning("Nenhuma alteração selecionada", { message: "Selecione ao menos uma alteração para aplicar (conta, categoria ou orçamento)." });
       return;
     }
 
