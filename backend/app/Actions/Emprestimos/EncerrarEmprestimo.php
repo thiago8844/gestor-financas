@@ -26,8 +26,13 @@ class EncerrarEmprestimo
         }
 
         $dataFinal = Carbon::parse($data)->startOfDay();
+        $saldo = $emprestimo->saldoPrincipal();
 
-        return DB::transaction(function () use ($emprestimo, $dataFinal) {
+        if ($saldo <= 0) {
+            throw new DomainException('Não há saldo do empréstimo a devolver.');
+        }
+
+        return DB::transaction(function () use ($emprestimo, $dataFinal, $saldo) {
             $emprestimo->parcelas()->reorder()
                 ->where('status', StatusParcelaEmprestimo::PREVISTA->value)
                 ->whereDate('due_date', '>', $dataFinal->toDateString())
@@ -39,9 +44,9 @@ class EncerrarEmprestimo
                 'loan_id' => $emprestimo->id,
                 'number' => $numero,
                 'due_date' => $dataFinal,
-                'principal_amount' => $emprestimo->principal,
+                'principal_amount' => $saldo,
                 'interest_amount' => 0,
-                'expected_amount' => $emprestimo->principal,
+                'expected_amount' => $saldo,
                 'status' => StatusParcelaEmprestimo::PREVISTA,
             ]);
 

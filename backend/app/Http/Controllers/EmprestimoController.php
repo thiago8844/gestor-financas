@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Emprestimos\AjustarEmprestimo;
 use App\Actions\Emprestimos\BaixarParcela;
 use App\Actions\Emprestimos\CriarEmprestimo;
 use App\Actions\Emprestimos\EncerrarEmprestimo;
 use App\Actions\Emprestimos\ExcluirEmprestimo;
 use App\Actions\Emprestimos\ReverterBaixa;
+use App\Http\Requests\Emprestimos\AjusteEmprestimoRequest;
 use App\Http\Requests\Emprestimos\BaixarParcelaRequest;
 use App\Http\Requests\Emprestimos\EmprestimoRequest;
 use App\Http\Resources\EmprestimoParcelaResource;
@@ -15,10 +17,12 @@ use App\Models\Emprestimo;
 use App\Models\EmprestimoEvento;
 use App\Models\EmprestimoParcela;
 use App\Queries\Emprestimos\ResumoEmprestimosQuery;
+use App\Support\Emprestimos\CalculadoraAjuste;
 use App\Support\Emprestimos\ContratoEmprestimo;
 use App\Support\Emprestimos\GeradorCronograma;
 use DomainException;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 
@@ -215,6 +219,50 @@ class EmprestimoController extends Controller
 
         return EmprestimoResource::make($emprestimo->load(['conta:id,name', 'categoria:id,name']))
             ->additional(['message' => 'Encerramento definido com sucesso']);
+    }
+
+    /**
+     * Mostra o efeito de uma amortização extra ou de um aumento sem gravar nada.
+     */
+    public function simularAjuste(AjusteEmprestimoRequest $request, Emprestimo $emprestimo)
+    {
+        if ($negado = $this->negarSeNaoForDono($emprestimo)) {
+            return $negado;
+        }
+
+        $dados = $request->validated();
+        $calculadora = new CalculadoraAjuste();
+
+        try {
+            $plano = $calculadora->calcular(
+                $emprestimo->load('ajustes'),
+                $dados['type'],
+                (float) $dados['amount'],
+                Carbon::parse($dados['date'] ?? now()),
+                $dados['mode'] ?? CalculadoraAjuste::MANTER_PRAZO,
+                $dados['installments'] ?? null,
+            );
+        } catch (DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json(['data' => $calculadora->resumo($emprestimo, $plano)]);
+    }
+
+    public function ajustar(AjusteEmprestimoRequest $request, Emprestimo $emprestimo)
+    {
+        if ($negado = $this->negarSeNaoForDono($emprestimo)) {
+            return $negado;
+        }
+
+        try {
+            $emprestimo = AjustarEmprestimo::executar($emprestimo->load('ajustes'), $request->validated());
+        } catch (DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return EmprestimoResource::make($emprestimo)
+            ->additional(['message' => $request->input('type') === 'AMORTIZACAO' ? 'Amortização registrada com sucesso' : 'Empréstimo aumentado com sucesso']);
     }
 
     public function historico(Emprestimo $emprestimo)

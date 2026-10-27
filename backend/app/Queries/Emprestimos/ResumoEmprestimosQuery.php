@@ -18,7 +18,7 @@ class ResumoEmprestimosQuery
     {
         $emprestimos = Emprestimo::where('user_id', $userId)
             ->where('status', StatusEmprestimo::ATIVO->value)
-            ->with(['parcelas' => fn ($q) => $q->whereIn('status', ['PREVISTA', 'PARCIAL'])])
+            ->with(['ajustes', 'parcelas' => fn ($q) => $q->whereIn('status', ['PREVISTA', 'PARCIAL'])])
             ->get();
 
         $resumo = [];
@@ -28,7 +28,7 @@ class ResumoEmprestimosQuery
 
             $resumo[$direcao === DirecaoEmprestimo::TOMADO ? 'eu_devo' : 'me_devem'] = [
                 'contratos' => $daDirecao->count(),
-                'saldo_principal' => round($parcelas->sum(fn (EmprestimoParcela $p) => $p->principalRestante()), 2),
+                'saldo_principal' => round($daDirecao->sum(fn (Emprestimo $e) => $e->saldoPrincipal()), 2),
                 'total_restante' => round($parcelas->sum(fn (EmprestimoParcela $p) => $p->restante()), 2),
             ];
         }

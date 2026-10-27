@@ -138,7 +138,7 @@ class BaixarParcela
 
         $ultimo = (int) $emprestimo->parcelas()->reorder()->max('number');
         $gerar = (new GeradorCronograma())->gerar(
-            ContratoEmprestimo::dosDados($emprestimo->getAttributes()),
+            ContratoEmprestimo::dosDados([...$emprestimo->getAttributes(), 'principal' => $emprestimo->saldoPrincipal()]),
             $ultimo + self::PARCELAS_A_GERAR,
         );
 

@@ -51,6 +51,11 @@ class Emprestimo extends Model
         return $this->hasMany(EmprestimoParcela::class, 'loan_id')->orderBy('number');
     }
 
+    public function ajustes(): HasMany
+    {
+        return $this->hasMany(EmprestimoAjuste::class, 'loan_id')->orderBy('date')->orderBy('id');
+    }
+
     public function eventos(): HasMany
     {
         return $this->hasMany(EmprestimoEvento::class, 'loan_id')->latest('id');
@@ -65,5 +70,21 @@ class Emprestimo extends Model
     public function prazoAberto(): bool
     {
         return $this->installments === null && $this->modality === ModalidadeEmprestimo::JUROS_PERIODICOS;
+    }
+
+    /**
+     * Quanto do valor emprestado ainda falta devolver. Contratos de prazo aberto não têm o principal
+     * nas parcelas, então ali vale o principal menos as amortizações; nos demais, o que as parcelas
+     * em aberto ainda vão amortizar.
+     */
+    public function saldoPrincipal(): float
+    {
+        if ($this->prazoAberto()) {
+            $amortizado = $this->ajustes->where('type', EmprestimoAjuste::AMORTIZACAO)->sum(fn (EmprestimoAjuste $a) => (float) $a->amount);
+
+            return max(0.0, round((float) $this->principal - $amortizado, 2));
+        }
+
+        return round($this->parcelas->sum(fn (EmprestimoParcela $p) => $p->principalRestante()), 2);
     }
 }

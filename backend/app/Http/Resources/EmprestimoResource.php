@@ -58,7 +58,7 @@ class EmprestimoResource extends JsonResource
             'installments_paid' => $validas->where('status', StatusParcelaEmprestimo::PAGA)->count(),
             'installments_total' => $validas->count(),
             'installments_overdue' => $emAberto->filter(fn (EmprestimoParcela $p) => $p->atrasada())->count(),
-            'principal_balance' => round($emAberto->sum(fn (EmprestimoParcela $p) => $p->principalRestante()), 2),
+            'principal_balance' => $this->saldoPrincipal(),
             'remaining_total' => round($emAberto->sum(fn (EmprestimoParcela $p) => $p->restante()), 2),
             'paid_total' => round($validas->sum(fn (EmprestimoParcela $p) => (float) $p->paid_amount), 2),
             'interest_total' => round($validas->sum(fn (EmprestimoParcela $p) => (float) $p->interest_amount), 2),
