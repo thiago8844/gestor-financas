@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import PageLayout from "../../layouts/PageLayout";
 import {
   atualizarEmprestimo,
+  cancelarEmprestimo,
   deletarEmprestimo,
   encerrarEmprestimo,
   getEmprestimo,
@@ -21,10 +22,12 @@ import { toast } from "../../utils/toast";
 import { BaixaParcelaModal } from "./components/BaixaParcelaModal";
 import { ParcelasLista } from "./components/ParcelasLista";
 import { SituacaoBadge } from "./components/SituacaoBadge";
+import { AjustarContrato } from "./components/AjustarContrato";
+import { LancamentosEmprestimo } from "./components/LancamentosEmprestimo";
 import type { Conta } from "../../types/conta";
 import type { Emprestimo, ParcelaEmprestimo } from "../../types/emprestimo";
 
-type Aba = "parcelas" | "historico" | "ajustes";
+type Aba = "parcelas" | "lancamentos" | "ajustar" | "historico" | "ajustes";
 type FiltroParcelas = "ABERTAS" | "PAGAS" | "TODAS";
 
 export function DetalheEmprestimo() {
@@ -38,6 +41,7 @@ export function DetalheEmprestimo() {
   const [filtro, setFiltro] = useState<FiltroParcelas>("ABERTAS");
   const [baixando, setBaixando] = useState<ParcelaEmprestimo | null>(null);
   const [naoPaga, setNaoPaga] = useState<ParcelaEmprestimo | null>(null);
+  const [cancelando, setCancelando] = useState(false);
 
   const { data: emprestimo, isLoading, isError } = useQuery({
     queryKey: ["emprestimo", emprestimoId],
@@ -111,6 +115,13 @@ export function DetalheEmprestimo() {
         </div>
       </div>
 
+      {emprestimo.status === "CANCELADO" && (
+        <div className="alert alert-secondary">
+          <i className="bi bi-slash-circle me-2"></i>
+          Este empréstimo foi cancelado. As parcelas em aberto não serão cobradas; o histórico e os lançamentos já feitos continuam disponíveis.
+        </div>
+      )}
+
       <div className="row g-3 mb-4">
         {[
           { titulo: tomado ? "Falta pagar" : "Falta receber", valor: formatarMoeda(emprestimo.principal_balance), detalhe: "valor emprestado em aberto" },
@@ -160,6 +171,8 @@ export function DetalheEmprestimo() {
       <ul className="nav nav-tabs mb-3" role="tablist">
         {([
           ["parcelas", "Parcelas"],
+          ["lancamentos", "Lançamentos"],
+          ["ajustar", "Amortizar / Aumentar"],
           ["historico", "Histórico"],
           ["ajustes", "Ajustes"],
         ] as [Aba, string][]).map(([chave, label]) => (
@@ -193,12 +206,17 @@ export function DetalheEmprestimo() {
         </>
       )}
 
+      {aba === "lancamentos" && <LancamentosEmprestimo emprestimoId={emprestimoId} />}
+
+      {aba === "ajustar" && <AjustarContrato emprestimo={emprestimo} onConcluido={() => setAba("parcelas")} />}
+
       {aba === "historico" && <Historico emprestimoId={emprestimoId} />}
 
-      {aba === "ajustes" && <Ajustes emprestimo={emprestimo} onExcluir={pedirExclusao} />}
+      {aba === "ajustes" && <Ajustes emprestimo={emprestimo} onExcluir={pedirExclusao} onCancelar={() => setCancelando(true)} />}
 
       <BaixaParcelaModal emprestimo={baixando ? emprestimo : null} parcela={baixando} onClose={() => setBaixando(null)} />
       <NaoPagaModal emprestimoId={emprestimoId} parcela={naoPaga} onClose={() => setNaoPaga(null)} />
+      <CancelarModal emprestimoId={emprestimoId} aberto={cancelando} onClose={() => setCancelando(false)} />
     </PageLayout>
   );
 }
@@ -221,7 +239,7 @@ function Historico({ emprestimoId }: { emprestimoId: number }) {
   );
 }
 
-function Ajustes({ emprestimo, onExcluir }: { emprestimo: Emprestimo; onExcluir: () => void }) {
+function Ajustes({ emprestimo, onExcluir, onCancelar }: { emprestimo: Emprestimo; onExcluir: () => void; onCancelar: () => void }) {
   const invalidar = useInvalidarEmprestimos();
   const [counterparty, setCounterparty] = useState(emprestimo.counterparty);
   const [description, setDescription] = useState(emprestimo.description ?? "");
@@ -302,9 +320,22 @@ function Ajustes({ emprestimo, onExcluir }: { emprestimo: Emprestimo; onExcluir:
           </div>
         )}
 
+        {emprestimo.status === "ATIVO" && (
+          <div className="border border-warning rounded p-3 mb-4">
+            <h6 className="fw-bold">Cancelar empréstimo</h6>
+            <p className="text-muted small">
+              Encerra o contrato sem cobrar o que falta (perdão, desistência, acordo). As parcelas em aberto são canceladas, mas o histórico e o que já foi lançado nas contas continuam.
+            </p>
+            <button type="button" className="btn btn-outline-warning" onClick={onCancelar}>
+              <i className="bi bi-slash-circle me-2"></i>
+              Cancelar empréstimo
+            </button>
+          </div>
+        )}
+
         <div className="border border-danger rounded p-3">
           <h6 className="fw-bold text-danger">Excluir empréstimo</h6>
-          <p className="text-muted small">Remove o contrato, as parcelas e os lançamentos criados por ele.</p>
+          <p className="text-muted small">Apaga o contrato, as parcelas e também os lançamentos que ele criou nas contas, como se nunca tivesse existido. Para só encerrar, use "Cancelar".</p>
           <button type="button" className="btn btn-outline-danger" onClick={onExcluir}>
             <i className="bi bi-trash me-2"></i>
             Excluir
@@ -345,6 +376,43 @@ function NaoPagaModal({ emprestimoId, parcela, onClose }: { emprestimoId: number
       <Modal.Footer>
         <button type="button" className="btn btn-secondary text-white" onClick={onClose} disabled={isPending}>Cancelar</button>
         <button type="button" className="btn btn-primary" onClick={() => mutate()} disabled={isPending}>Registrar</button>
+      </Modal.Footer>
+    </Modal>
+  );
+}
+
+function CancelarModal({ emprestimoId, aberto, onClose }: { emprestimoId: number; aberto: boolean; onClose: () => void }) {
+  const invalidar = useInvalidarEmprestimos();
+  const [motivo, setMotivo] = useState("");
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: () => cancelarEmprestimo(emprestimoId, motivo.trim() || undefined),
+    onSuccess: () => {
+      invalidar();
+      setMotivo("");
+      toast.success("Empréstimo cancelado", { message: "As parcelas em aberto não serão mais cobradas." });
+      onClose();
+    },
+    onError: (e) => toast.error("Não foi possível cancelar", { message: mensagemErroApi(e, "Tente novamente.") }),
+  });
+
+  return (
+    <Modal show={aberto} onHide={isPending ? undefined : onClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title className="fs-5">Cancelar empréstimo</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p className="text-muted small">
+          As parcelas em aberto serão canceladas e o empréstimo deixa de aparecer nos vencimentos e avisos. Os lançamentos já feitos nas contas e o histórico são mantidos. Não dá para desfazer.
+        </p>
+        <label className="form-label" htmlFor="motivoCancelamento">Motivo <small className="text-muted">(opcional)</small></label>
+        <input id="motivoCancelamento" maxLength={200} className="form-control" placeholder="Ex.: perdoei o restante" value={motivo} onChange={(e) => setMotivo(e.target.value)} />
+      </Modal.Body>
+      <Modal.Footer>
+        <button type="button" className="btn btn-secondary text-white" onClick={onClose} disabled={isPending}>Voltar</button>
+        <button type="button" className="btn btn-warning" onClick={() => mutate()} disabled={isPending}>
+          {isPending ? "Cancelando..." : "Cancelar empréstimo"}
+        </button>
       </Modal.Footer>
     </Modal>
   );

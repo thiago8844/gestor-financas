@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  aceitaAjuste,
   diaDaData,
+  frasesDeJuros,
   formatarDataBr,
   hojeISO,
   jurosPrimeiroMes,
@@ -176,5 +178,25 @@ describe("jurosPrimeiroMes", () => {
     expect(jurosPrimeiroMes(5000, 2, "MES", "SEM_JUROS")).toBe(0);
     expect(jurosPrimeiroMes(5000, 0, "MES", "SIMPLES")).toBe(0);
     expect(jurosPrimeiroMes(0, 2, "MES", "SIMPLES")).toBe(0);
+  });
+});
+
+describe("ajustes do contrato", () => {
+  it("amortização só em contratos ativos de modalidades com saldo", () => {
+    expect(aceitaAjuste({ modality: "PRICE", status: "ATIVO" }, "AMORTIZACAO")).toBe(true);
+    expect(aceitaAjuste({ modality: "PAGAMENTO_UNICO", status: "ATIVO" }, "AMORTIZACAO")).toBe(false);
+    expect(aceitaAjuste({ modality: "LIVRE", status: "ATIVO" }, "AUMENTO")).toBe(false);
+    expect(aceitaAjuste({ modality: "SAC", status: "CANCELADO" }, "AUMENTO")).toBe(false);
+  });
+
+  it("quitado aceita só aumento (reabre o contrato)", () => {
+    expect(aceitaAjuste({ modality: "JUROS_PERIODICOS", status: "QUITADO" }, "AUMENTO")).toBe(true);
+    expect(aceitaAjuste({ modality: "JUROS_PERIODICOS", status: "QUITADO" }, "AMORTIZACAO")).toBe(false);
+  });
+
+  it("descreve economia ou aumento de juros", () => {
+    expect(frasesDeJuros(480)).toContain("economiza R$ 480,00");
+    expect(frasesDeJuros(-120)).toContain("aumentam R$ 120,00");
+    expect(frasesDeJuros(0)).toBe("Os juros restantes não mudam.");
   });
 });

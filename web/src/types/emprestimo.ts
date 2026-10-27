@@ -134,3 +134,45 @@ export type BaixaParcelaPayload = {
   paid_at?: string | null;
   account_id?: number | null;
 };
+
+export type TipoAjuste = "AMORTIZACAO" | "AUMENTO";
+export type ModoAjuste = "MANTER_PRAZO" | "MANTER_PARCELA";
+
+export type AjustePayload = {
+  type: TipoAjuste;
+  amount: number;
+  date: string;
+  mode?: ModoAjuste;
+  installments?: number | null;
+  account_id?: number | null;
+  movimentar_conta?: boolean;
+};
+
+export type SimulacaoAjuste = {
+  balance_before: number;
+  balance_after: number;
+  accrued_interest: number;
+  amount_to_post: number;
+  installments_before: number;
+  installments_after: number;
+  next_amount_before: number | null;
+  next_amount_after: number | null;
+  end_date_before: string | null;
+  end_date_after: string | null;
+  interest_before: number;
+  interest_after: number;
+  interest_difference: number;
+  installments: PreviaParcela[];
+};
+
+export type LancamentoEmprestimo = {
+  id: number;
+  description: string | null;
+  type: "EXPENSE" | "INCOME";
+  status: "PENDING" | "PAID";
+  amount: number;
+  date: string | null;
+  account: { id: number; name: string } | null;
+  installment_id: number | null;
+  kind: "PRINCIPAL" | "PARCELA" | "AJUSTE";
+};

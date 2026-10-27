@@ -184,3 +184,22 @@ export function jurosPrimeiroMes(principal: number, taxa: number, periodo: Perio
 
   return Math.round(principal * mensal * 100) / 100;
 }
+
+export const ROTULO_LANCAMENTO: Record<"PRINCIPAL" | "PARCELA" | "AJUSTE", string> = {
+  PRINCIPAL: "Valor emprestado",
+  PARCELA: "Parcela",
+  AJUSTE: "Amortização / aumento",
+};
+
+/** Ajustes só existem para estas modalidades (as demais não têm saldo que se recalcule). */
+export const aceitaAjuste = (e: Pick<Emprestimo, "modality" | "status">, tipo: "AMORTIZACAO" | "AUMENTO"): boolean =>
+  ["JUROS_PERIODICOS", "PRICE", "SAC"].includes(e.modality) &&
+  (e.status === "ATIVO" || (e.status === "QUITADO" && tipo === "AUMENTO"));
+
+/** Resumo em palavras da economia (ou custo) de juros de uma simulação. */
+export function frasesDeJuros(diferenca: number): string {
+  if (Math.abs(diferenca) < 0.005) return "Os juros restantes não mudam.";
+  return diferenca > 0
+    ? `Você economiza ${formatarMoeda(diferenca)} em juros.`
+    : `Os juros restantes aumentam ${formatarMoeda(-diferenca)}.`;
+}

@@ -1,13 +1,16 @@
 import { api } from "../api-client";
 import type {
+  AjustePayload,
   BaixaParcelaPayload,
   DirecaoEmprestimo,
   Emprestimo,
   EmprestimoPayload,
   EventoEmprestimo,
+  LancamentoEmprestimo,
   ParcelaEmprestimo,
   PreviaEmprestimo,
   ResumoEmprestimos,
+  SimulacaoAjuste,
   StatusEmprestimo,
 } from "../types/emprestimo";
 
@@ -85,4 +88,24 @@ export async function reverterParcela(emprestimoId: number, parcelaId: number) {
 export async function registrarNaoPaga(emprestimoId: number, parcelaId: number, note?: string) {
   const response = await api.post(`/emprestimos/${emprestimoId}/parcelas/${parcelaId}/nao-paga`, { note });
   return response.data;
+}
+
+export async function getLancamentosEmprestimo(id: number) {
+  const response = await api.get<{ data: LancamentoEmprestimo[] }>(`/emprestimos/${id}/lancamentos`);
+  return response.data.data;
+}
+
+export async function simularAjuste(id: number, payload: AjustePayload, signal?: AbortSignal) {
+  const response = await api.post<{ data: SimulacaoAjuste }>(`/emprestimos/${id}/ajustes/simular`, payload, { signal });
+  return response.data.data;
+}
+
+export async function ajustarEmprestimo(id: number, payload: AjustePayload) {
+  const response = await api.post<{ data: Emprestimo; message?: string }>(`/emprestimos/${id}/ajustes`, payload);
+  return response.data;
+}
+
+export async function cancelarEmprestimo(id: number, reason?: string) {
+  const response = await api.post<{ data: Emprestimo }>(`/emprestimos/${id}/cancelar`, { reason });
+  return response.data.data;
 }

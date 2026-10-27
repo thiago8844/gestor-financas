@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +18,7 @@ import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { mensagemErroApi } from "../../utils";
 import { hojeISO, montarPayload } from "../../utils/emprestimo";
 import { toast } from "../../utils/toast";
+import type { EmprestimoPayload } from "../../types/emprestimo";
 import { PassoCondicoes, PassoPessoa, PassoVencimentos } from "./PassosEmprestimo";
 import { PreviaCronograma } from "./components/PreviaCronograma";
 
@@ -37,7 +38,9 @@ export function CadastrarEmprestimo() {
   // A prévia só roda no último passo e com tudo válido; o debounce evita uma requisição por tecla.
   const valores = watch();
   const tudoValido = [0, 1, 2].every((p) => Object.keys(validarPasso(valores, p)).length === 0);
-  const payloadPrevia = useDebouncedValue(tudoValido ? montarPayload(valores) : null);
+  // Debounce sobre texto (comparado por valor): com um objeto novo a cada render o timer nunca assentaria.
+  const chavePrevia = useDebouncedValue(tudoValido ? JSON.stringify(montarPayload(valores)) : null);
+  const payloadPrevia = useMemo(() => (chavePrevia ? (JSON.parse(chavePrevia) as EmprestimoPayload) : null), [chavePrevia]);
 
   const previa = useQuery({
     queryKey: ["emprestimo-previa", payloadPrevia],
