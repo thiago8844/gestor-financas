@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Emprestimos\AjustarEmprestimo;
 use App\Actions\Emprestimos\BaixarParcela;
+use App\Actions\Emprestimos\CancelarEmprestimo;
 use App\Actions\Emprestimos\CriarEmprestimo;
 use App\Actions\Emprestimos\EncerrarEmprestimo;
 use App\Actions\Emprestimos\ExcluirEmprestimo;
@@ -263,6 +264,58 @@ class EmprestimoController extends Controller
 
         return EmprestimoResource::make($emprestimo)
             ->additional(['message' => $request->input('type') === 'AMORTIZACAO' ? 'Amortização registrada com sucesso' : 'Empréstimo aumentado com sucesso']);
+    }
+
+    /**
+     * Cancela o contrato mantendo histórico e lançamentos (ver CancelarEmprestimo).
+     */
+    public function cancelar(Request $request, Emprestimo $emprestimo)
+    {
+        if ($negado = $this->negarSeNaoForDono($emprestimo)) {
+            return $negado;
+        }
+
+        $dados = $request->validate(['reason' => 'nullable|string|max:200']);
+
+        try {
+            $emprestimo = CancelarEmprestimo::executar($emprestimo, $dados['reason'] ?? null);
+        } catch (DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return EmprestimoResource::make($emprestimo)->additional(['message' => 'Empréstimo cancelado com sucesso']);
+    }
+
+    /**
+     * Lançamentos que o empréstimo gerou nas contas: o valor emprestado, cada pagamento de parcela
+     * e as amortizações/aumentos. É daqui que dá para conferir o que mexeu no saldo.
+     */
+    public function lancamentos(Emprestimo $emprestimo)
+    {
+        if ($negado = $this->negarSeNaoForDono($emprestimo)) {
+            return $negado;
+        }
+
+        $idsDeAjuste = $emprestimo->ajustes()->reorder()->whereNotNull('transaction_id')->pluck('transaction_id')->all();
+
+        $lancamentos = $emprestimo->transacoes()
+            ->with('conta:id,name')
+            ->orderByRaw('COALESCE(date, due_date, created_at) desc')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn ($t) => [
+                'id' => $t->id,
+                'description' => $t->description,
+                'type' => $t->type,
+                'status' => $t->status,
+                'amount' => (float) $t->amount,
+                'date' => ($t->date ?? $t->due_date)?->toDateString(),
+                'account' => $t->conta ? ['id' => $t->conta->id, 'name' => $t->conta->name] : null,
+                'installment_id' => $t->loan_installment_id,
+                'kind' => $t->loan_installment_id ? 'PARCELA' : (in_array($t->id, $idsDeAjuste, true) ? 'AJUSTE' : 'PRINCIPAL'),
+            ]);
+
+        return response()->json(['data' => $lancamentos]);
     }
 
     public function historico(Emprestimo $emprestimo)

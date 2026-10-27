@@ -382,4 +382,69 @@ class EmprestimoTest extends TestCase
 
         $this->assertSame(0, (new GerarNotificacoes())->executar());
     }
+
+    #[Test]
+    public function cancelar_cancela_o_que_falta_e_mantem_historico_e_lancamentos(): void
+    {
+        $emprestimo = $this->criar(['movimentar_conta' => true]);
+        $paga = $emprestimo->parcelas->first();
+        $this->postJson("/api/emprestimos/{$emprestimo->id}/parcelas/{$paga->id}/baixar")->assertOk();
+
+        $this->postJson("/api/emprestimos/{$emprestimo->id}/cancelar", ['reason' => 'Perdoei a dívida'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'CANCELADO');
+
+        $parcelas = $emprestimo->parcelas()->get();
+        $this->assertSame('PAGA', $parcelas->first()->status->value);
+        $this->assertSame(11, $parcelas->where('status.value', 'CANCELADA')->count());
+        // Os lançamentos já feitos na conta continuam (principal + a parcela paga).
+        $this->assertSame(2, Transacao::count());
+        $this->getJson("/api/emprestimos/{$emprestimo->id}/historico")->assertJsonPath('data.0.type', 'cancelado');
+
+        // Cancelado não aceita mais baixa, reversão nem novo cancelamento.
+        $this->postJson("/api/emprestimos/{$emprestimo->id}/parcelas/{$parcelas[1]->id}/baixar")->assertStatus(422);
+        $this->postJson("/api/emprestimos/{$emprestimo->id}/parcelas/{$paga->id}/reverter")->assertStatus(422);
+        $this->postJson("/api/emprestimos/{$emprestimo->id}/cancelar")->assertStatus(422);
+    }
+
+    #[Test]
+    public function cancelado_some_das_notificacoes_e_do_resumo(): void
+    {
+        $emprestimo = $this->criar(['first_due_date' => now()->addDay()->toDateString(), 'due_day' => null, 'installments' => 3]);
+        $this->postJson("/api/emprestimos/{$emprestimo->id}/cancelar")->assertOk();
+
+        $this->assertSame(0, (new GerarNotificacoes())->executar());
+        $this->getJson('/api/emprestimos/resumo')->assertJsonPath('data.me_devem.contratos', 0);
+    }
+
+    #[Test]
+    public function nao_cancela_emprestimo_de_outro_usuario_nem_quitado(): void
+    {
+        $quitado = $this->criar(['installments' => 1]);
+        $this->postJson("/api/emprestimos/{$quitado->id}/parcelas/{$quitado->parcelas->first()->id}/baixar")->assertOk();
+        $this->postJson("/api/emprestimos/{$quitado->id}/cancelar")->assertStatus(422);
+
+        $outro = $this->criar();
+        Sanctum::actingAs(User::factory()->create());
+        $this->postJson("/api/emprestimos/{$outro->id}/cancelar")->assertStatus(403);
+    }
+
+    #[Test]
+    public function lista_os_lancamentos_gerados_pelo_emprestimo(): void
+    {
+        $emprestimo = $this->criar(['movimentar_conta' => true]);
+        $this->postJson("/api/emprestimos/{$emprestimo->id}/parcelas/{$emprestimo->parcelas->first()->id}/baixar", ['paid_at' => '2026-11-26'])->assertOk();
+        $this->postJson("/api/emprestimos/{$emprestimo->id}/ajustes", ['type' => 'AMORTIZACAO', 'amount' => 500, 'date' => '2026-12-01'])->assertOk();
+
+        $resposta = $this->getJson("/api/emprestimos/{$emprestimo->id}/lancamentos")->assertOk()->assertJsonCount(3, 'data');
+
+        $this->assertSame(['AJUSTE', 'PARCELA', 'PRINCIPAL'], collect($resposta->json('data'))->pluck('kind')->all());
+        $principal = collect($resposta->json('data'))->firstWhere('kind', 'PRINCIPAL');
+        $this->assertSame('EXPENSE', $principal['type']);
+        $this->assertEquals(5000, $principal['amount']);
+        $this->assertSame($this->conta->name, $principal['account']['name']);
+
+        Sanctum::actingAs(User::factory()->create());
+        $this->getJson("/api/emprestimos/{$emprestimo->id}/lancamentos")->assertStatus(403);
+    }
 }

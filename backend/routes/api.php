@@ -115,6 +115,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/emprestimos/deletar/{emprestimo}', [\App\Http\Controllers\EmprestimoController::class, 'destroy']);
     Route::get('/emprestimos/{emprestimo}/historico', [\App\Http\Controllers\EmprestimoController::class, 'historico']);
     Route::post('/emprestimos/{emprestimo}/encerrar', [\App\Http\Controllers\EmprestimoController::class, 'encerrar']);
+    Route::post('/emprestimos/{emprestimo}/cancelar', [\App\Http\Controllers\EmprestimoController::class, 'cancelar']);
+    Route::get('/emprestimos/{emprestimo}/lancamentos', [\App\Http\Controllers\EmprestimoController::class, 'lancamentos']);
     Route::post('/emprestimos/{emprestimo}/ajustes/simular', [\App\Http\Controllers\EmprestimoController::class, 'simularAjuste']);
     Route::post('/emprestimos/{emprestimo}/ajustes', [\App\Http\Controllers\EmprestimoController::class, 'ajustar']);
     Route::post('/emprestimos/{emprestimo}/parcelas/{parcela}/baixar', [\App\Http\Controllers\EmprestimoController::class, 'baixar']);

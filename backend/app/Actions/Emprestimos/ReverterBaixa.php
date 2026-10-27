@@ -2,6 +2,7 @@
 
 namespace App\Actions\Emprestimos;
 
+use App\Enums\StatusEmprestimo;
 use App\Enums\StatusParcelaEmprestimo;
 use App\Models\Emprestimo;
 use App\Models\EmprestimoEvento;
@@ -18,6 +19,10 @@ class ReverterBaixa
      */
     public static function executar(Emprestimo $emprestimo, EmprestimoParcela $parcela): EmprestimoParcela
     {
+        if ($emprestimo->status === StatusEmprestimo::CANCELADO) {
+            throw new DomainException('Este empréstimo está cancelado.');
+        }
+
         if ((float) $parcela->paid_amount <= 0) {
             throw new DomainException('Esta parcela não tem pagamentos para reverter.');
         }
