@@ -2,6 +2,8 @@
 
 use App\Notificacoes\Regras\ConciliacaoPendenteRegra;
 use App\Notificacoes\Regras\DespesaVencidaRegra;
+use App\Notificacoes\Regras\EmprestimoAtrasadoRegra;
+use App\Notificacoes\Regras\EmprestimoAVencerRegra;
 use App\Notificacoes\Regras\FechamentoMensalRegra;
 use App\Notificacoes\Regras\PagamentoAVencerRegra;
 
@@ -17,5 +19,7 @@ return [
         DespesaVencidaRegra::class,
         ConciliacaoPendenteRegra::class,
         FechamentoMensalRegra::class,
+        EmprestimoAVencerRegra::class,
+        EmprestimoAtrasadoRegra::class,
     ],
 ];

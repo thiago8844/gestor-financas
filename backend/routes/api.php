@@ -105,6 +105,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/recorrencias/{recorrencia}/lancamentos/{transacao}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'desvincularLancamento']);
     Route::delete('/recorrencias/deletar/{recorrencia}', [\App\Http\Controllers\RecorrenciaTransacaoController::class, 'destroy']);
 
+    //EMPRESTIMOS
+    Route::get('/emprestimos', [\App\Http\Controllers\EmprestimoController::class, 'index']);
+    Route::get('/emprestimos/resumo', [\App\Http\Controllers\EmprestimoController::class, 'resumo']);
+    Route::post('/emprestimos/previa', [\App\Http\Controllers\EmprestimoController::class, 'previa']);
+    Route::post('/emprestimos/criar', [\App\Http\Controllers\EmprestimoController::class, 'store']);
+    Route::get('/emprestimos/{emprestimo}', [\App\Http\Controllers\EmprestimoController::class, 'show']);
+    Route::put('/emprestimos/atualizar/{emprestimo}', [\App\Http\Controllers\EmprestimoController::class, 'update']);
+    Route::delete('/emprestimos/deletar/{emprestimo}', [\App\Http\Controllers\EmprestimoController::class, 'destroy']);
+    Route::get('/emprestimos/{emprestimo}/historico', [\App\Http\Controllers\EmprestimoController::class, 'historico']);
+    Route::post('/emprestimos/{emprestimo}/encerrar', [\App\Http\Controllers\EmprestimoController::class, 'encerrar']);
+    Route::post('/emprestimos/{emprestimo}/parcelas/{parcela}/baixar', [\App\Http\Controllers\EmprestimoController::class, 'baixar']);
+    Route::post('/emprestimos/{emprestimo}/parcelas/{parcela}/reverter', [\App\Http\Controllers\EmprestimoController::class, 'reverter']);
+    Route::post('/emprestimos/{emprestimo}/parcelas/{parcela}/nao-paga', [\App\Http\Controllers\EmprestimoController::class, 'naoPaga']);
+
     //ORCAMENTOS
     Route::get('/orcamentos', [\App\Http\Controllers\OrcamentoController::class, 'index']);
     Route::get('/orcamentos/{id}', [\App\Http\Controllers\OrcamentoController::class, 'show']);
