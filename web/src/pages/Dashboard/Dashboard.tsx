@@ -12,6 +12,7 @@ import { useAuthStore } from "../../stores/auth";
 import IndicadoresMes from "./components/IndicadoresMes";
 import { FaturaAtualCard } from "./components/FaturaAtualCard";
 import { DespesasFuturasCard } from "./components/DespesasFuturasCard";
+import { EmprestimosCard } from "./components/EmprestimosCard";
 import { SaldoPorContaPeriodo } from "./components/SaldoPorContaPeriodo";
 import { TransacaoCategoria } from "./components/TransacaoCategoria";
 import type { SaldoFiltroParams } from "./components/SaldoPorContaPeriodo";
@@ -74,6 +75,9 @@ export function Dashboard() {
 
       {/* Quanto ainda vai sair: parcelas, recorrências e outras despesas */}
       <DespesasFuturasCard />
+
+      {/* Empréstimos que devo e que me devem, com os próximos vencimentos */}
+      <EmprestimosCard />
 
       <div className="container py-2">
         {/* Saldo por conta ao longo do tempo */}

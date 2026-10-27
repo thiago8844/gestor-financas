@@ -33,6 +33,10 @@ import { ConsultorPage } from "./pages/Consultor/ConsultorPage";
 import { CategoriaRoutes } from "./pages/Categorias/CategoriaRoutes";
 import { ListagemCategorias } from "./pages/Categorias/ListagemCategorias";
 import Page403 from "./pages/Page403";
+import { EmprestimosRoute } from "./pages/Emprestimos/EmprestimosRoute";
+import { ListagemEmprestimos } from "./pages/Emprestimos/ListagemEmprestimos";
+import { CadastrarEmprestimo } from "./pages/Emprestimos/CadastrarEmprestimo";
+import { DetalheEmprestimo } from "./pages/Emprestimos/DetalheEmprestimo";
 import { RecorrenciaRoute } from "./pages/Recorrencia/RecorrenciaRoute";
 import { ListagemRecorrencia } from "./pages/Recorrencia/ListagemRecorrencia";
 import { CadastrarRecorrencia } from "./pages/Recorrencia/CadastrarRecorrencia";
@@ -135,6 +139,15 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemRecorrencia /> },
           { path: "cadastrar", element: <CadastrarRecorrencia /> },
           { path: "editar/:id", element: <EditarRecorrencia /> },
+        ],
+      },
+      {
+        path: "emprestimos",
+        element: <EmprestimosRoute />,
+        children: [
+          { path: "", element: <ListagemEmprestimos /> },
+          { path: "cadastrar", element: <CadastrarEmprestimo /> },
+          { path: ":id", element: <DetalheEmprestimo /> },
         ],
       },
       {

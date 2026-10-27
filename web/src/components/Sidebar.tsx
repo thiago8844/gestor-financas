@@ -50,6 +50,10 @@ export default function Sidebar({
             <i className="bi bi-arrow-repeat"></i> Recorrências
           </NavLink>
 
+          <NavLink to="/emprestimos" onClick={handleClose} className={linkClass}>
+            <i className="bi bi-cash-coin"></i> Empréstimos
+          </NavLink>
+
           <NavLink to="/consultor" onClick={handleClose} className={linkClass}>
             <i className="bi bi-chat-text"></i> Consultor IA
           </NavLink>
