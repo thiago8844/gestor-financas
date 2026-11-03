@@ -26,6 +26,7 @@ class FaturaResource extends JsonResource
             'card_id' => $this->card_id,
             'reference_month' => $this->reference_month?->toDateString(),
             'closing_date' => $this->closing_date?->toDateString(),
+            'closing_manual' => (bool) $this->closing_manual,
             'due_date' => $this->due_date?->toDateString(),
             'total' => $resumo['total'],
             'pago' => $resumo['pago'],

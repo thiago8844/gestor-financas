@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Faturas\Exceptions\OperacaoFaturaException;
+use App\Actions\Faturas\AjustarFechamentoFatura;
 use App\Actions\Faturas\LancarNaFatura;
 use App\Actions\Faturas\PagarFatura;
 use App\Actions\Faturas\ReverterPagamentoFatura;
@@ -73,6 +74,31 @@ class FaturaController extends Controller
             : 'Fatura paga com sucesso';
 
         return FaturaResource::make($this->carregar($fatura))->additional(['message' => $mensagem]);
+    }
+
+    /**
+     * Ajusta à mão a data de fechamento da fatura e realoca as despesas entre ela e a seguinte.
+     * Sem `closing_date`, desfaz o ajuste e volta à regra do cartão.
+     */
+    public function ajustarFechamento(Request $request, Fatura $fatura)
+    {
+        if ($fatura->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Ação não autorizada'], 403);
+        }
+
+        $request->validate(['closing_date' => ['nullable', 'date']]);
+
+        try {
+            $realocadas = AjustarFechamentoFatura::executar(
+                $fatura,
+                $request->filled('closing_date') ? Carbon::parse($request->closing_date) : null
+            );
+        } catch (OperacaoFaturaException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return FaturaResource::make($this->carregar($fatura->refresh()))
+            ->additional(['message' => "Fechamento ajustado. {$realocadas} despesa(s) mudaram de fatura."]);
     }
 
     /**

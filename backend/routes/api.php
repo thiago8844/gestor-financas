@@ -68,6 +68,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //FATURAS
     Route::post('/faturas/{fatura}/pagar', [\App\Http\Controllers\FaturaController::class, 'pagar']);
+    Route::put('/faturas/{fatura}/fechamento', [\App\Http\Controllers\FaturaController::class, 'ajustarFechamento']);
     Route::post('/faturas/{fatura}/reverter', [\App\Http\Controllers\FaturaController::class, 'reverter']);
     Route::post('/faturas/{fatura}/lancamentos', [\App\Http\Controllers\FaturaController::class, 'lancar']);
     Route::get('/faturas/{fatura}/auditorias', [\App\Http\Controllers\FaturaController::class, 'auditorias']);

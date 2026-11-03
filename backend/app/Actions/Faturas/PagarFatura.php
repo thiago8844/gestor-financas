@@ -83,10 +83,10 @@ class PagarFatura
     {
         $cartao = $fatura->cartao;
 
-        // O ciclo de uma fatura é o mês do fechamento; a seguinte é a do ciclo do mês seguinte.
-        $proxima = ResolverFaturaCompra::localizarOuCriar(
+        // A fatura seguinte é a do mês de competência seguinte.
+        $proxima = ResolverFaturaCompra::localizarOuCriarPorReferencia(
             $cartao,
-            $fatura->closing_date->copy()->startOfMonth()->addMonthNoOverflow()
+            $fatura->reference_month->copy()->addMonthNoOverflow()
         );
 
         if ($proxima->id === $fatura->id) {

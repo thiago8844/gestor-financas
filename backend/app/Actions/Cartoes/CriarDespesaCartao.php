@@ -32,14 +32,14 @@ class CriarDespesaCartao
         $valores = static::valoresDasParcelas($dados, $tipo, $installmentTotal);
         $installmentGroup = $installmentTotal > 1 ? (string) Str::uuid() : null;
 
-        $referenciaInicial = ResolverFaturaCompra::referenciaParaCompra($cartao, $dataCompra);
+        $referenciaInicial = ResolverFaturaCompra::referenciaFaturaParaCompra($cartao, $dataCompra);
 
         $transacoes = DB::transaction(function () use ($userId, $cartao, $dados, $dataCompra, $tipo, $installmentTotal, $installmentGroup, $valores, $referenciaInicial) {
             $criadas = collect();
             $referenciaAtual = $referenciaInicial->copy();
 
             for ($i = 0; $i < $installmentTotal; $i++) {
-                $fatura = ResolverFaturaCompra::localizarOuCriar($cartao, $referenciaAtual);
+                $fatura = ResolverFaturaCompra::localizarOuCriarPorReferencia($cartao, $referenciaAtual);
 
                 $criadas->push(Transacao::create([
                     'user_id' => $userId,

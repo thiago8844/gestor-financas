@@ -18,6 +18,7 @@ class Fatura extends Model
         'reference_month' => 'date',
         'closing_date' => 'date',
         'due_date' => 'date',
+        'closing_manual' => 'boolean',
     ];
 
     public function user(): BelongsTo

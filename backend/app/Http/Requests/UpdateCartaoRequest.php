@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\RegraFechamentoCartao;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -31,7 +32,9 @@ class UpdateCartaoRequest extends FormRequest
                 'integer',
                 Rule::exists('accounts', 'id')->where('user_id', Auth::id()),
             ],
-            'closing_day' => ['sometimes', 'integer', 'min:1', 'max:31'],
+            'closing_rule' => ['sometimes', Rule::enum(RegraFechamentoCartao::class)],
+            'closing_day' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:31'],
+            'closing_days_before_due' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:28'],
             'due_day' => ['sometimes', 'integer', 'min:1', 'max:31'],
             'active' => ['sometimes', 'boolean'],
         ];
@@ -42,6 +45,8 @@ class UpdateCartaoRequest extends FormRequest
         return [
             'name.unique' => 'Você já possui um cartão com esse nome.',
             'account_id.exists' => 'A conta informada não existe.',
+            'closing_days_before_due.min' => 'Informe entre 1 e 28 dias antes do vencimento.',
+            'closing_days_before_due.max' => 'Informe entre 1 e 28 dias antes do vencimento.',
             'closing_day.min' => 'O dia de fechamento deve ser entre 1 e 31.',
             'closing_day.max' => 'O dia de fechamento deve ser entre 1 e 31.',
             'due_day.min' => 'O dia de vencimento deve ser entre 1 e 31.',

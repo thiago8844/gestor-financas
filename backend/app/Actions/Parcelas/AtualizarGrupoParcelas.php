@@ -163,9 +163,6 @@ class AtualizarGrupoParcelas
     /** A fatura é identificada pelo mês em que vence (reference_month), como aparece na tela. */
     protected static function faturaDoMes(Transacao $parcela, Carbon $referencia): Fatura
     {
-        return ResolverFaturaCompra::localizarOuCriar(
-            $parcela->cartao,
-            ResolverFaturaCompra::cicloParaReferencia($parcela->cartao, $referencia),
-        );
+        return ResolverFaturaCompra::localizarOuCriarPorReferencia($parcela->cartao, $referencia);
     }
 }

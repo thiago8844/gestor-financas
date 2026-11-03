@@ -20,6 +20,8 @@ class CartaoResource extends JsonResource
             "account_id" => $this->account_id,
             "conta_nome" => $this->whenLoaded('conta', fn () => $this->conta->name),
             "closing_day" => $this->closing_day,
+            "closing_rule" => $this->closing_rule?->value ?? 'FIXED_DAY',
+            "closing_days_before_due" => $this->closing_days_before_due,
             "due_day" => $this->due_day,
             "active" => $this->active,
             "created_at" => $this->created_at,
