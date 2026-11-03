@@ -36,6 +36,8 @@ export interface Fatura {
   card_id: number;
   reference_month: string;
   closing_date: string;
+  /** Fechamento ajustado à mão (não segue a regra do cartão). */
+  closing_manual?: boolean;
   due_date: string;
   /** Valor da fatura (compras - créditos/estornos + saldo vindo da fatura anterior). */
   total: number;

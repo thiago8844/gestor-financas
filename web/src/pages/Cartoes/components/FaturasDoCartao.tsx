@@ -7,6 +7,7 @@ import type { Fatura, FaturaPagavel } from "../../../types/fatura";
 import type { Cartao } from "../../../types/cartao";
 import { PagarFaturaModal } from "./PagarFaturaModal";
 import { FaturaModal } from "./FaturaModal";
+import { AjustarFechamentoModal } from "./AjustarFechamentoModal";
 import { LancarNaFaturaModal } from "./LancarNaFaturaModal";
 import { AuditoriaFaturaModal, BadgeAuditoria } from "./AuditoriaFaturaModal";
 import { useConfirmModalStore } from "../../../stores/confirmModal";
@@ -116,6 +117,7 @@ export function FaturasDoCartao({ cartao }: Props) {
   const [faturaParaPagar, setFaturaParaPagar] = useState<FaturaPagavel | null>(null);
   const [lancamento, setLancamento] = useState<{ fatura: FaturaPagavel; tipo: "INCOME" | "EXPENSE"; valor?: number } | null>(null);
   const [faturaParaAuditar, setFaturaParaAuditar] = useState<FaturaPagavel | null>(null);
+  const [faturaParaAjustar, setFaturaParaAjustar] = useState<FaturaPagavel | null>(null);
   const { openModal } = useConfirmModalStore();
   const queryClient = useQueryClient();
   const { invalidateContas } = useCacheUtils();
@@ -242,6 +244,7 @@ export function FaturasDoCartao({ cartao }: Props) {
           onReverter={pedirReversao}
           onLancar={(f, tipo) => setLancamento({ fatura: { ...f, id: f.id as number }, tipo })}
           onAuditar={(f) => setFaturaParaAuditar({ ...f, id: f.id as number })}
+          onAjustarFechamento={(f) => setFaturaParaAjustar({ ...f, id: f.id as number })}
         />
       )}
 
@@ -262,6 +265,8 @@ export function FaturasDoCartao({ cartao }: Props) {
           onClose={() => setLancamento(null)}
         />
       )}
+
+      {faturaParaAjustar && <AjustarFechamentoModal fatura={atual(faturaParaAjustar)} onClose={() => setFaturaParaAjustar(null)} />}
 
       {faturaParaAuditar && (
         <AuditoriaFaturaModal

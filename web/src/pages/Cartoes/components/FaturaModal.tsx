@@ -30,6 +30,7 @@ type Props = {
   onReverter: (fatura: Fatura) => void;
   onLancar?: (fatura: Fatura, tipo: "INCOME" | "EXPENSE") => void;
   onAuditar?: (fatura: Fatura) => void;
+  onAjustarFechamento?: (fatura: Fatura) => void;
 };
 
 const moeda = (v: number | null | undefined) => `R$ ${convertNumberToCurrencyMask(v ?? 0)}`;
@@ -72,7 +73,7 @@ function ParcelaTexto({ p }: { p: Transacao }) {
   return <>{p.installment_total && p.installment_total > 1 ? `${p.installment_number}/${p.installment_total}` : "Única"}</>;
 }
 
-export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLancar, onAuditar }: Props) {
+export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLancar, onAuditar, onAjustarFechamento }: Props) {
   const [filtros, setFiltros] = useState<FiltrosFatura>(FILTROS_FATURA_INICIAIS);
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
@@ -190,7 +191,8 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLa
             )}
           </Modal.Title>
           <div className="text-muted small">
-            Fecha em {formatarDataBr(fatura.closing_date)} · Vence em {formatarDataBr(fatura.due_date)}
+            Fecha em {formatarDataBr(fatura.closing_date)}
+            {fatura.closing_manual && <i className="bi bi-pencil-fill ms-1" title="Fechamento ajustado à mão"></i>} · Vence em {formatarDataBr(fatura.due_date)}
             {cartao.conta_nome && <> · Paga pela conta {cartao.conta_nome}</>}
           </div>
         </div>
@@ -253,6 +255,12 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLa
                   Despesa/ajuste
                 </button>
               </>
+            )}
+            {fatura.id !== null && onAjustarFechamento && fatura.status !== "PAGA" && (
+              <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => onAjustarFechamento(fatura)}>
+                <i className="bi bi-calendar2-range me-1"></i>
+                Ajustar fechamento
+              </button>
             )}
             {fatura.id !== null && onAuditar && (
               <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => onAuditar(fatura)}>

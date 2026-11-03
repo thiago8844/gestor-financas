@@ -50,7 +50,9 @@ export function CartaoCard({ cartao }: { cartao: Cartao }) {
                 </span>
                 <span>
                   <i className="bi bi-calendar-x me-1"></i>
-                  Fecha dia {cartao.closing_day}
+                  {cartao.closing_rule === "DAYS_BEFORE_DUE"
+                    ? `Fecha ${cartao.closing_days_before_due} dias antes do vencimento`
+                    : `Fecha dia ${cartao.closing_day}`}
                 </span>
                 <span>
                   <i className="bi bi-calendar-check me-1"></i>

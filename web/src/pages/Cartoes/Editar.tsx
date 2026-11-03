@@ -13,7 +13,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
 import type { Conta } from "../../types/conta";
-import { AvisoDiaCartao } from "../../components/Cartao/AvisoDiaCartao";
+import { CamposFechamentoCartao } from "../../components/Cartao/CamposFechamentoCartao";
 import { toast } from "../../utils/toast";
 
 export default function Editar() {
@@ -55,7 +55,9 @@ export default function Editar() {
       reset({
         name: cartao.name || "",
         account_id: cartao.account_id,
-        closing_day: cartao.closing_day,
+        closing_rule: cartao.closing_rule ?? "FIXED_DAY",
+        closing_day: cartao.closing_rule === "DAYS_BEFORE_DUE" ? undefined : cartao.closing_day,
+        closing_days_before_due: cartao.closing_days_before_due ?? undefined,
         due_day: cartao.due_day,
         active: cartao.active,
       });
@@ -136,39 +138,7 @@ export default function Editar() {
             <FieldError>{errors.account_id?.message}</FieldError>
           </div>
 
-          {/* Dia de fechamento */}
-          <div className="mb-3">
-            <label htmlFor="closing_day" className="form-label">
-              Dia de fechamento
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={31}
-              id="closing_day"
-              className="form-control"
-              {...register("closing_day")}
-            />
-            <AvisoDiaCartao dia={watch("closing_day")} />
-            <FieldError>{errors.closing_day?.message}</FieldError>
-          </div>
-
-          {/* Dia de vencimento */}
-          <div className="mb-3">
-            <label htmlFor="due_day" className="form-label">
-              Dia de vencimento
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={31}
-              id="due_day"
-              className="form-control"
-              {...register("due_day")}
-            />
-            <AvisoDiaCartao dia={watch("due_day")} />
-            <FieldError>{errors.due_day?.message}</FieldError>
-          </div>
+          <CamposFechamentoCartao register={register} watch={watch} errors={errors} avisarRealocacao />
 
           {/* Ativo */}
           <div className="form-check mb-3">

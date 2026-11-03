@@ -12,7 +12,7 @@ import { SubmitBtn } from "../../components/SubmitBtn";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { useNavigate } from "react-router-dom";
 import type { Conta } from "../../types/conta";
-import { AvisoDiaCartao } from "../../components/Cartao/AvisoDiaCartao";
+import { CamposFechamentoCartao } from "../../components/Cartao/CamposFechamentoCartao";
 import { toast } from "../../utils/toast";
 
 export default function Cadastrar() {
@@ -36,6 +36,7 @@ export default function Cadastrar() {
     resolver: zodResolver(CartaoFormSchema),
     defaultValues: {
       active: true,
+      closing_rule: "FIXED_DAY",
     },
   });
 
@@ -96,39 +97,7 @@ export default function Cadastrar() {
             <FieldError>{errors.account_id?.message}</FieldError>
           </div>
 
-          {/* Dia de fechamento */}
-          <div className="mb-3">
-            <label htmlFor="closing_day" className="form-label">
-              Dia de fechamento
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={31}
-              id="closing_day"
-              className="form-control"
-              {...register("closing_day")}
-            />
-            <AvisoDiaCartao dia={watch("closing_day")} />
-            <FieldError>{errors.closing_day?.message}</FieldError>
-          </div>
-
-          {/* Dia de vencimento */}
-          <div className="mb-3">
-            <label htmlFor="due_day" className="form-label">
-              Dia de vencimento
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={31}
-              id="due_day"
-              className="form-control"
-              {...register("due_day")}
-            />
-            <AvisoDiaCartao dia={watch("due_day")} />
-            <FieldError>{errors.due_day?.message}</FieldError>
-          </div>
+          <CamposFechamentoCartao register={register} watch={watch} errors={errors} />
 
           {/* Botão */}
           <SubmitBtn loading={isPending}>Salvar</SubmitBtn>

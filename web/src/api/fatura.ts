@@ -44,3 +44,12 @@ export async function auditarFatura(faturaId: number, dados: { bank_total: numbe
   const response = await api.post<{ data: AuditoriaFatura; message: string }>(`/faturas/${faturaId}/auditorias`, dados);
   return response.data;
 }
+
+/** Ajusta à mão o fechamento da fatura e realoca despesas para a seguinte. Sem data, volta à regra do cartão. */
+export async function ajustarFechamentoFatura(faturaId: number, closingDate?: string) {
+  const response = await api.put<{ data: Fatura; message: string }>(
+    `/faturas/${faturaId}/fechamento`,
+    closingDate ? { closing_date: closingDate } : {}
+  );
+  return response.data;
+}
