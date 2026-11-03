@@ -63,6 +63,10 @@ class TransacaoController extends Controller
             $query->where('description', 'like', '%' . $request->descricao . '%');
         }
 
+        if ($request->filled('valor') && is_numeric($request->valor)) {
+            $query->where('amount', (float) $request->valor);
+        }
+
         if ($request->boolean('apenas_parceladas')) {
             $query->whereNotNull('installment_group');
         }
