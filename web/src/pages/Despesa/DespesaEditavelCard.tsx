@@ -12,6 +12,8 @@ import { getDespesa, updateDespesa } from "../../api/transacoes";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import type { Conta } from "../../types/conta";
+import { DescricaoParcela } from "../../components/DescricaoParcela";
+import { rotuloParcela } from "../../utils/descricaoParcela";
 
 export type TransacaoEditavelCardHandle = {
   submeter: () => Promise<void>;
@@ -127,7 +129,7 @@ export const DespesaEditavelCard = forwardRef<TransacaoEditavelCardHandle, Props
       <div className={`card mb-3 ${isSuccess ? "border-success" : ""}`}>
         <div className="card-header d-flex justify-content-between align-items-center">
           <span>
-            <strong>#{id}</strong> — {despesa.description}
+            <strong>#{id}</strong> — <DescricaoParcela descricao={despesa.description} parcela={rotuloParcela(despesa)} />
           </span>
           {isSuccess && (
             <span className="badge text-bg-success">

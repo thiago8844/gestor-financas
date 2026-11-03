@@ -13,6 +13,8 @@ import { convertNumberToCurrencyMask } from "../../utils";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import type { Conta } from "../../types/conta";
 import type { TransacaoEditavelCardHandle } from "../Despesa/DespesaEditavelCard";
+import { DescricaoParcela } from "../../components/DescricaoParcela";
+import { rotuloParcela } from "../../utils/descricaoParcela";
 
 type Props = {
   id: number;
@@ -109,7 +111,7 @@ export const ReceitaEditavelCard = forwardRef<TransacaoEditavelCardHandle, Props
       <div className={`card mb-3 ${isSuccess ? "border-success" : ""}`}>
         <div className="card-header d-flex justify-content-between align-items-center">
           <span>
-            <strong>#{id}</strong> — {receita.description}
+            <strong>#{id}</strong> — <DescricaoParcela descricao={receita.description} parcela={rotuloParcela(receita)} />
           </span>
           {isSuccess && (
             <span className="badge text-bg-success">

@@ -2,6 +2,8 @@ import { Fragment, useState } from "react";
 import { convertNumberToCurrencyMask } from "../../../utils";
 import type { AgrupamentoRelatorio, PontoFluxoCaixa } from "../../../types/relatorio";
 import type { Transacao } from "../../../types/transacao";
+import { DescricaoParcela } from "../../../components/DescricaoParcela";
+import { rotuloParcela } from "../../../utils/descricaoParcela";
 
 type Props = {
   serie: PontoFluxoCaixa[];
@@ -122,7 +124,7 @@ export function TabelaFluxoCaixa({
                                     onSelecionarTransacao?.(transacao);
                                   }}
                                 >
-                                  <span>{transacao.description || "Sem descrição"}</span>
+                                  <span><DescricaoParcela descricao={transacao.description || "Sem descrição"} parcela={rotuloParcela(transacao)} /></span>
                                   <span className="text-success">
                                     + {convertNumberToCurrencyMask(transacao.amount ?? 0)}
                                   </span>
@@ -144,7 +146,7 @@ export function TabelaFluxoCaixa({
                                     onSelecionarTransacao?.(transacao);
                                   }}
                                 >
-                                  <span>{transacao.description || "Sem descrição"}</span>
+                                  <span><DescricaoParcela descricao={transacao.description || "Sem descrição"} parcela={rotuloParcela(transacao)} /></span>
                                   <span className="text-danger">
                                     - {convertNumberToCurrencyMask(transacao.amount ?? 0)}
                                   </span>

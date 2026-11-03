@@ -21,6 +21,8 @@ import {
   type FiltrosFatura,
 } from "./faturaUtils";
 import { BadgeAuditoria } from "./AuditoriaFaturaModal";
+import { DescricaoParcela } from "../../../components/DescricaoParcela";
+import { rotuloParcela, textoComParcela } from "../../../utils/descricaoParcela";
 
 type Props = {
   fatura: Fatura;
@@ -102,7 +104,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLa
   const exportarExcel = async () => {
     const linhas = [
       ...parcelas.map((p) => ({
-        descricao: p.description,
+        descricao: textoComParcela(p.description, rotuloParcela(p)),
         categoria: p.categoria?.name ?? "-",
         compra: p.accrual_date_fmt ?? "-",
         parcela: p.installment_total && p.installment_total > 1 ? `${p.installment_number}/${p.installment_total}` : "Única",
@@ -148,7 +150,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLa
         {parcelas.map((p) => (
           <tr key={p.id}>
             <td>
-              {p.description}
+              <DescricaoParcela descricao={p.description} parcela={rotuloParcela(p)} />
               <MarcadoresParcela p={p} />
             </td>
             <td>{p.categoria?.name ?? "-"}</td>
@@ -368,7 +370,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLa
                 <div key={p.id} className="border rounded p-2">
                   <div className="d-flex justify-content-between gap-2">
                     <div className="fw-semibold">
-                      {p.description}
+                      <DescricaoParcela descricao={p.description} parcela={rotuloParcela(p)} />
                       <MarcadoresParcela p={p} />
                     </div>
                     <div className="fw-bold text-nowrap">

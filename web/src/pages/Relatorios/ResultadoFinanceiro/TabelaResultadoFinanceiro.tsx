@@ -2,6 +2,8 @@ import { Fragment, useState } from "react";
 import { convertNumberToCurrencyMask } from "../../../utils";
 import type { LinhaCategoriaResultado } from "../../../types/relatorio";
 import type { Transacao } from "../../../types/transacao";
+import { DescricaoParcela } from "../../../components/DescricaoParcela";
+import { rotuloParcela } from "../../../utils/descricaoParcela";
 
 type Props = {
   receitas: LinhaCategoriaResultado[];
@@ -94,7 +96,7 @@ function Secao({
                         }}
                       >
                         <span>
-                          {transacao.description || "Sem descrição"}{" "}
+                          <DescricaoParcela descricao={transacao.description || "Sem descrição"} parcela={rotuloParcela(transacao)} />{" "}
                           <span className="text-muted small">({transacao.date})</span>
                         </span>
                         <span>{convertNumberToCurrencyMask(transacao.amount ?? 0)}</span>

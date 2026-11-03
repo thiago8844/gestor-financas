@@ -1,6 +1,7 @@
 import { Fragment, useMemo, useState } from "react";
 import { brl, formatarDataBR, mesCurto } from "./formatadores";
 import type { EventoCompromisso, TipoProjecao } from "../../../types/relatorio";
+import { DescricaoParcela } from "../../../components/DescricaoParcela";
 
 type Tipo = "EXPENSE" | "INCOME";
 
@@ -291,8 +292,7 @@ export function CompromissosPorCategoria({ eventos, tipos, modoImpressao }: Prop
                             {categoria.itens.map((l) => (
                               <tr key={l.chave}>
                                 <td>
-                                  {l.descricao}
-                                  {l.parcela && <span className="text-muted ms-2">{l.parcela}</span>}
+                                  <DescricaoParcela descricao={l.descricao} parcela={l.parcela} />
                                   {l.recorrente && <i className="bi bi-arrow-repeat text-muted ms-2" title="Recorrente"></i>}
                                   {l.estimado && (
                                     <span className="badge text-bg-info-subtle text-info-emphasis border border-info-subtle ms-2">

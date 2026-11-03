@@ -10,6 +10,8 @@ import {
 import { convertNumberToCurrencyMask } from "../../utils";
 import type { LancamentoVinculavel, RecorrenciaTransacao } from "../../types/recorrencia";
 import type { Transacao } from "../../types/transacao";
+import { DescricaoParcela } from "../../components/DescricaoParcela";
+import { rotuloParcela } from "../../utils/descricaoParcela";
 
 type Props = {
   recorrencia: RecorrenciaTransacao | null;
@@ -210,7 +212,7 @@ export function VincularLancamentosModal({ recorrencia, onClose }: Props) {
                         </td>
                         <td className="text-nowrap">{dataDoLancamento(l)}</td>
                         <td>
-                          {l.description || "Sem descrição"}
+                          <DescricaoParcela descricao={l.description || "Sem descrição"} parcela={rotuloParcela(l)} />
                           {l.categoria && <div className="small text-muted">{l.categoria.name}</div>}
                         </td>
                         <td className="small text-muted text-nowrap">{origemDoLancamento(l)}</td>
@@ -311,7 +313,7 @@ function VinculadosLista({
           {transacoes.map((t) => (
             <tr key={t.id}>
               <td className="text-nowrap">{dataDoLancamento(t)}</td>
-              <td>{t.description || "Sem descrição"}</td>
+              <td><DescricaoParcela descricao={t.description || "Sem descrição"} parcela={rotuloParcela(t)} /></td>
               <td className="text-end text-nowrap">R$ {convertNumberToCurrencyMask(t.amount ?? 0)}</td>
               <td className="text-end">
                 <button

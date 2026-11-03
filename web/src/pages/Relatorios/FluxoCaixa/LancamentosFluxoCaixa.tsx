@@ -1,5 +1,7 @@
 import { convertNumberToCurrencyMask } from "../../../utils";
 import type { Transacao } from "../../../types/transacao";
+import { DescricaoParcela } from "../../../components/DescricaoParcela";
+import { rotuloParcela } from "../../../utils/descricaoParcela";
 
 type Props = {
   lancamentos: Transacao[];
@@ -32,7 +34,7 @@ export function LancamentosFluxoCaixa({ lancamentos, onSelecionarTransacao }: Pr
           {lancamentos.map((transacao) => (
             <tr key={transacao.id} role="button" onClick={() => onSelecionarTransacao(transacao)}>
               <td>{transacao.date ?? "-"}</td>
-              <td>{transacao.description || "Sem descrição"}</td>
+              <td><DescricaoParcela descricao={transacao.description || "Sem descrição"} parcela={rotuloParcela(transacao)} /></td>
               <td>
                 {transacao.categoria ? (
                   <span className="badge text-bg-secondary">{transacao.categoria.name}</span>

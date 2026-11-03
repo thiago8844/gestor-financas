@@ -23,6 +23,8 @@ import { CampoDataSelect, DatasTransacao, SituacaoSelect } from "../../component
 import { useSelecaoEmMassa } from "../../hooks/useSelecaoEmMassa";
 import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { toast } from "../../utils/toast";
+import { DescricaoParcela } from "../../components/DescricaoParcela";
+import { rotuloParcela } from "../../utils/descricaoParcela";
 
 const filtrosOriginais = {
   type: "EXPENSE" as const,
@@ -582,7 +584,9 @@ export function ListagemDespesa() {
                       />
                     )}
                     <div>
-                      <div className="fw-semibold">{despesa.description}</div>
+                      <div className="fw-semibold">
+                        <DescricaoParcela descricao={despesa.description} parcela={rotuloParcela(despesa)} />
+                      </div>
                       <div className="small text-muted">
                         #{despesa.id} · {despesa.conta?.name || "-"}
                       </div>
@@ -683,7 +687,7 @@ export function ListagemDespesa() {
               )}
               <td>{despesa.id}</td>
               <td>
-                {despesa.description}
+                <DescricaoParcela descricao={despesa.description} parcela={rotuloParcela(despesa)} />
                 {despesa.is_recurring && (
                   <Link
                     to={`/recorrencias/editar/${despesa.recurring_transaction_id}`}

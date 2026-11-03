@@ -1,5 +1,6 @@
 import { brlComSinal, diaDaSemana, formatarDiaMes, ICONE_ORIGEM, rotuloOrigem } from "./formatadores";
 import type { EventoCompromisso } from "../../../types/relatorio";
+import { DescricaoParcela } from "../../../components/DescricaoParcela";
 
 type Props = {
   eventos: EventoCompromisso[];
@@ -36,7 +37,7 @@ export function ProximosCompromissos({ eventos, limite = 8, onVerTodos }: Props)
                 </div>
 
                 <div className="flex-grow-1 text-truncate">
-                  <div className="text-truncate">{evento.descricao}</div>
+                  <div className="text-truncate"><DescricaoParcela descricao={evento.descricao} parcela={evento.parcela} /></div>
                   <div className="text-muted small text-truncate">
                     <i className={`bi ${ICONE_ORIGEM[evento.origem]} me-1`}></i>
                     {rotuloOrigem(evento)}

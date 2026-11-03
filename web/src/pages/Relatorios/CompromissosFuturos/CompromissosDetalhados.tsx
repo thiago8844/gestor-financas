@@ -12,6 +12,7 @@ import {
   rotuloOrigem,
 } from "./formatadores";
 import type { EventoCompromisso, MesProjecao, OrigemCompromisso } from "../../../types/relatorio";
+import { DescricaoParcela } from "../../../components/DescricaoParcela";
 
 type TipoFiltro = "TODOS" | "EXPENSE" | "INCOME";
 
@@ -81,8 +82,7 @@ function ItensDaFatura({ evento }: { evento: EventoCompromisso }) {
             {evento.itens.map((item, i) => (
               <tr key={`${item.transacao_id ?? "proj"}-${i}`}>
                 <td>
-                  {item.descricao}
-                  {item.parcela && <span className="text-muted ms-2">{item.parcela}</span>}
+                  <DescricaoParcela descricao={item.descricao} parcela={item.parcela} />
                   {item.recorrente && (
                     <i className="bi bi-arrow-repeat text-muted ms-2" title="Recorrente"></i>
                   )}
@@ -301,7 +301,7 @@ export function CompromissosDetalhados({ eventos, meses, modoImpressao }: Props)
                               <td>
                                 <div>
                                   <i className={`bi ${ICONE_ORIGEM[evento.origem]} text-muted me-2`}></i>
-                                  {evento.descricao}
+                                  <DescricaoParcela descricao={evento.descricao} parcela={evento.parcela} />
                                   <Selos evento={evento} />
                                 </div>
                                 <div className="text-muted small">

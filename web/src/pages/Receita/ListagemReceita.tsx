@@ -19,6 +19,8 @@ import { AcoesEmMassa } from "../../components/Listagens/AcoesEmMassa";
 import { CampoDataSelect, DatasTransacao, SituacaoSelect } from "../../components/Listagens/CampoData";
 import { useSelecaoEmMassa } from "../../hooks/useSelecaoEmMassa";
 import { toast } from "../../utils/toast";
+import { DescricaoParcela } from "../../components/DescricaoParcela";
+import { rotuloParcela } from "../../utils/descricaoParcela";
 
 // TODO: COLOCAR O STATUS PENDENTE EM RECEITAS DEPOIS
 
@@ -524,7 +526,9 @@ export function ListagemReceita() {
                       />
                     )}
                     <div>
-                      <div className="fw-semibold">{receita.description}</div>
+                      <div className="fw-semibold">
+                        <DescricaoParcela descricao={receita.description} parcela={rotuloParcela(receita)} />
+                      </div>
                       <div className="small text-muted">
                         #{receita.id} · {receita.conta?.name || "-"}
                       </div>
@@ -613,7 +617,7 @@ export function ListagemReceita() {
               )}
               <td>{receita.id}</td>
               <td>
-                {receita.description}
+                <DescricaoParcela descricao={receita.description} parcela={rotuloParcela(receita)} />
                 {receita.is_recurring && (
                   <Link
                     to={`/recorrencias/editar/${receita.recurring_transaction_id}`}

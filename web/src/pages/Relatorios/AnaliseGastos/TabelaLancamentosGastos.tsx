@@ -1,6 +1,7 @@
 import { brl, formatarDataBR } from "../CompromissosFuturos/formatadores";
 import { NATUREZA, SITUACAO } from "./constantes";
 import type { LancamentoGasto } from "../../../types/relatorio";
+import { DescricaoParcela } from "../../../components/DescricaoParcela";
 
 type Props = {
   lancamentos: LancamentoGasto[];
@@ -36,8 +37,7 @@ export function TabelaLancamentosGastos({ lancamentos, semCategoria }: Props) {
                 )}
               </td>
               <td>
-                {l.descricao}
-                {l.parcela && <span className="text-muted ms-2">{l.parcela}</span>}
+                <DescricaoParcela descricao={l.descricao} parcela={l.parcela} />
                 {l.estimado && <span className="badge text-bg-info-subtle text-info-emphasis border border-info-subtle ms-2">Estimado</span>}
               </td>
               {!semCategoria && <td>{l.categoria}</td>}

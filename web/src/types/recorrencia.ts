@@ -50,6 +50,8 @@ export type LancamentoVinculavel = {
   date_raw: string | null;
   due_date_raw: string | null;
   accrual_date: string | null;
+  installment_number: number | null;
+  installment_total: number | null;
   categoria: Categoria | null;
   conta: Conta | null;
   cartao: Cartao | null;

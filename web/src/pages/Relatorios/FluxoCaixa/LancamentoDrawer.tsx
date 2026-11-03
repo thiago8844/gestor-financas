@@ -1,6 +1,8 @@
 import { Offcanvas } from "react-bootstrap";
 import { convertNumberToCurrencyMask } from "../../../utils";
 import type { Transacao } from "../../../types/transacao";
+import { DescricaoParcela } from "../../../components/DescricaoParcela";
+import { rotuloParcela } from "../../../utils/descricaoParcela";
 
 type Props = {
   transacao: Transacao | null;
@@ -21,7 +23,7 @@ export function LancamentoDrawer({ transacao, onClose }: Props) {
             {convertNumberToCurrencyMask(transacao.amount ?? 0)}
           </h4>
 
-          <p className="fs-5 mb-4">{transacao.description || "Sem descrição"}</p>
+          <p className="fs-5 mb-4"><DescricaoParcela descricao={transacao.description || "Sem descrição"} parcela={rotuloParcela(transacao)} /></p>
 
           <dl className="row">
             <dt className="col-5 text-muted fw-normal">Categoria</dt>
