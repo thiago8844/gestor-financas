@@ -49,7 +49,7 @@ export function LancarNaFaturaModal({ fatura, tipoInicial, valorInicial, descric
         type: tipo,
         amount: convertCurrencyMaskToNumber(valor) ?? 0,
         description: descricao.trim(),
-        purchase_date: data,
+        accrual_date: data,
         category_id: categoriaId ? Number(categoriaId) : null,
       }),
     onSuccess: (resposta) => {

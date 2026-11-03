@@ -49,7 +49,7 @@ export type LancamentoVinculavel = {
   status: "PENDING" | "PAID";
   date_raw: string | null;
   due_date_raw: string | null;
-  purchase_date: string | null;
+  accrual_date: string | null;
   categoria: Categoria | null;
   conta: Conta | null;
   cartao: Cartao | null;

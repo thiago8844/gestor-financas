@@ -3,7 +3,7 @@ import type { Transacao } from "../../types/transacao";
 const CAMPOS_DATA = [
   { value: "", label: "Automática (transação › vencimento › cadastro)" },
   { value: "date", label: "Data da transação" },
-  { value: "purchase_date", label: "Data da compra" },
+  { value: "accrual_date", label: "Data da compra / competência" },
   { value: "due_date", label: "Data de vencimento" },
   { value: "created_at", label: "Data de cadastro" },
 ];
@@ -29,7 +29,7 @@ export function CampoDataSelect({
     >
       {CAMPOS_DATA.filter(
         (c) =>
-          (incluirCompra || c.value !== "purchase_date") &&
+          (incluirCompra || c.value !== "accrual_date") &&
           (incluirVencimento || c.value !== "due_date")
       ).map((campo) => (
         <option key={campo.value} value={campo.value}>
@@ -55,7 +55,7 @@ export function DatasTransacao({
   const itens = [
     { campo: "date", rotulo: "Transação", valor: transacao.date },
     ...(mostrarCompra
-      ? [{ campo: "purchase_date", rotulo: "Compra", valor: transacao.purchase_date_fmt }]
+      ? [{ campo: "accrual_date", rotulo: "Competência", valor: transacao.accrual_date_fmt }]
       : []),
     ...(mostrarVencimento
       ? [{ campo: "due_date", rotulo: "Vencimento", valor: transacao.due_date }]

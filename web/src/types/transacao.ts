@@ -38,8 +38,8 @@ export type Transacao = {
   is_recurring: boolean;
   card_id: number | null;
   invoice_id: number | null;
-  purchase_date: string | null;
-  purchase_date_fmt: string | null;
+  accrual_date: string | null;
+  accrual_date_fmt: string | null;
   created_at_fmt: string | null;
   cartao: Cartao | null;
   fatura: Fatura | null;
@@ -92,7 +92,7 @@ export type GrupoParcelasDetalhe = {
   category_id: number | null;
   account_id: number | null;
   card_id: number | null;
-  purchase_date: string | null;
+  accrual_date: string | null;
   total: number;
   pagas: number;
   pendentes: number;

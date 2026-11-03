@@ -25,6 +25,7 @@ export const ParcelamentoFormSchema = z
     category_id: z.string().nullable().optional(),
     category_name: z.string().optional(),
     budget_id: z.string().nullable().optional(),
+    accrual_date: z.string().nullable().optional(),
     type: z.enum(["EXPENSE", "INCOME"]),
     // Total da compra: as parcelas, mesmo editadas livremente, sempre precisam somar este valor.
     amount: z.number().optional(),

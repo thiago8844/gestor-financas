@@ -19,6 +19,7 @@ import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
 import { EditarDespesaCartaoForm } from "../../components/Cartao/EditarDespesaCartaoForm";
 import { BannerEdicaoParcela } from "../../components/Parcelamento/BannerEdicaoParcela";
 import { toast } from "../../utils/toast";
+import { CampoDataCompetencia } from "../../components/Listagens/CampoDataCompetencia";
 
 export function EditarDespesa() {
   const { id } = useParams<{ id: string }>();
@@ -85,6 +86,7 @@ export function EditarDespesa() {
         description: despesa.description || "",
         account_id: despesa.account_id?.toString() || "",
         date: dataFormatada,
+        accrual_date: despesa.accrual_date?.slice(0, 10) ?? "",
         category_name: despesa.categoria?.name || "",
         category_id: despesa.categoria?.id?.toString() || null,
         budget_id: despesa.budget_id?.toString() || "",
@@ -260,6 +262,12 @@ export function EditarDespesa() {
                   </label>
                 </div>
               </div>
+
+              <CampoDataCompetencia
+                registro={register("accrual_date")}
+                rotulo="Data da compra"
+                mensagemErro={errors.accrual_date?.message}
+              />
 
               {/* Data da transação - SÓ SE PAGO */}
               <div className="mb-3">

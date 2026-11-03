@@ -16,6 +16,7 @@ export const DespesaFormSchema = z
       .transform((val) => convertCurrencyMaskToNumber(val)),
     date: z.string().nullable().optional(),
     due_date: z.string().nullable().optional(),
+    accrual_date: z.string().nullable().optional(),
     category_id: z.string().nullable().optional(),
     category_name: z.string().optional(),
     type: z.string().default("EXPENSE"),

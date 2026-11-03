@@ -24,7 +24,7 @@ export type LancamentoNaFatura = {
   type: "EXPENSE" | "INCOME";
   amount: number;
   description: string;
-  purchase_date?: string;
+  accrual_date?: string;
   category_id?: number | null;
   category_name?: string;
 };

@@ -18,6 +18,7 @@ import { useEffect } from "react";
 import { useFormularioTransacao } from "../../hooks/useFormularioDespesa";
 import { ReceitaFormSchema, type ReceitaForm } from "../../schemas/receita";
 import { toast } from "../../utils/toast";
+import { CampoDataCompetencia } from "../../components/Listagens/CampoDataCompetencia";
 
 export function EditarReceita() {
   const { id } = useParams<{ id: string }>();
@@ -81,6 +82,7 @@ export function EditarReceita() {
         description: receita.description || "",
         account_id: receita.account_id?.toString() || "",
         date: dataFormatada,
+        accrual_date: receita.accrual_date?.slice(0, 10) ?? "",
         category_name: receita.categoria?.name || "",
         category_id: receita.categoria?.id?.toString() || null,
         budget_id: receita.budget_id?.toString() || "",
@@ -211,6 +213,12 @@ export function EditarReceita() {
                 />
                 <FieldError>{errors.amount?.message}</FieldError>
               </div>
+
+              <CampoDataCompetencia
+                registro={register("accrual_date")}
+                rotulo="Data do recebimento"
+                mensagemErro={errors.accrual_date?.message}
+              />
 
               {/* Data da Receita */}
               <div className="mb-3">

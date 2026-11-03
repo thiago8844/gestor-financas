@@ -24,6 +24,7 @@ import { useCacheUtils } from "../../hooks/useCacheUtils";
 import { ParcelamentoCampos } from "../../components/Parcelamento/ParcelamentoCampos";
 import { DespesaCartaoCampos } from "../../components/Cartao/DespesaCartaoCampos";
 import { toast } from "../../utils/toast";
+import { CampoDataCompetencia } from "../../components/Listagens/CampoDataCompetencia";
 
 export function CadastrarDespesa() {
   const { contas, cartoes, orcamentos, isLoading, isError } = useFormularioTransacao();
@@ -198,6 +199,7 @@ export function CadastrarDespesa() {
         category_id: categoryIdAtual,
         category_name: categoryNameAtual,
         budget_id: budgetIdAtual,
+        accrual_date: getValues("accrual_date") || null,
         type: "EXPENSE",
         amount: convertCurrencyMaskToNumber(parcelamento.valorTotal) ?? undefined,
         installment_total: parcelamento.installmentTotal,
@@ -273,7 +275,7 @@ export function CadastrarDespesa() {
         card_id: despesaCartao.cardId,
         description: descricaoAtual,
         amount: despesaCartao.valorTotal,
-        purchase_date: despesaCartao.purchaseDate,
+        accrual_date: despesaCartao.purchaseDate,
         installment_total: despesaCartao.installmentTotal,
         category_id: categoryIdAtual,
         category_name: categoryNameAtual,
@@ -399,6 +401,14 @@ export function CadastrarDespesa() {
                     </label>
                   </div>
                 </div>
+              )}
+
+              {!isCartaoMode && (
+                <CampoDataCompetencia
+                  registro={register("accrual_date")}
+                  rotulo="Data da compra"
+                  mensagemErro={errors.accrual_date?.message}
+                />
               )}
 
               {isCartaoMode && (

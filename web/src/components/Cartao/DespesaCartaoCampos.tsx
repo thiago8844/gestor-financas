@@ -57,12 +57,12 @@ export function DespesaCartaoCampos({ despesaCartao, cartao }: Props) {
       </div>
 
       <div className="mb-3">
-        <label htmlFor="purchase_date" className="form-label">
+        <label htmlFor="accrual_date" className="form-label">
           Data da compra
         </label>
         <input
           type="date"
-          id="purchase_date"
+          id="accrual_date"
           className="form-control"
           value={purchaseDate}
           onChange={(e) => setPurchaseDate(e.target.value)}

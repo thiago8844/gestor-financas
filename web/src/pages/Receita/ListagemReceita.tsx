@@ -286,7 +286,6 @@ export function ListagemReceita() {
               <div className="px-3 py-2">
                 <label className="form-label small">Filtrar pela data de:</label>
                 <CampoDataSelect
-                  incluirCompra={false}
                   incluirVencimento={false}
                   value={filtrosModificados.campo_data}
                   onChange={(campo_data) =>
@@ -398,7 +397,6 @@ export function ListagemReceita() {
               <div className="mb-2">
                 <label className="form-label small mb-1">Data usada:</label>
                 <CampoDataSelect
-                  incluirCompra={false}
                   incluirVencimento={false}
                   value={filtros.campo_data}
                   onChange={(campo_data) => {
@@ -572,7 +570,6 @@ export function ListagemReceita() {
                     transacao={receita}
                     campoAtivo={filtros.campo_data || "date"}
                     mostrarVencimento={false}
-                  mostrarCompra={false}
                   />
                   <div className="d-flex gap-2">
                     <Link
@@ -639,7 +636,6 @@ export function ListagemReceita() {
                   transacao={receita}
                   campoAtivo={filtros.campo_data || "date"}
                   mostrarVencimento={false}
-                  mostrarCompra={false}
                 />
               </td>
               <td>{receita.conta?.name || "-"}</td>

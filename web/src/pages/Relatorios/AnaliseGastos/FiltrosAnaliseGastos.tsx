@@ -142,7 +142,7 @@ export function FiltrosAnaliseGastos({ gerado, resumoTexto, onGerar }: Props) {
           <div className="col-6 col-md-5">
             <label className="form-label small">Contar cada gasto pela data…</label>
             <select className="form-select" value={baseData} onChange={(e) => setBaseData(e.target.value as BaseDataGastos)}>
-              <option value="GASTO">Do gasto (dia da compra)</option>
+              <option value="GASTO">Do gasto (dia da compra, valor total mesmo se parcelado)</option>
               <option value="PAGAMENTO">Do pagamento (quando o dinheiro sai)</option>
             </select>
           </div>

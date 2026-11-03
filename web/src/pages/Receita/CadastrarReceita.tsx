@@ -17,6 +17,7 @@ import { ReceitaFormSchema, type ReceitaForm } from "../../schemas/receita";
 import { convertCurrencyMaskToNumber } from "../../utils";
 import { ParcelamentoFormSchema } from "../../schemas/parcelamento";
 import { useParcelamento } from "../../hooks/useParcelamento";
+import { CampoDataCompetencia } from "../../components/Listagens/CampoDataCompetencia";
 import { ParcelamentoCampos } from "../../components/Parcelamento/ParcelamentoCampos";
 import { toast } from "../../utils/toast";
 
@@ -170,6 +171,7 @@ export function CadastrarReceita() {
         category_id: categoryIdAtual,
         category_name: categoryNameAtual,
         type: "INCOME",
+        accrual_date: getValues("accrual_date") || null,
         amount: convertCurrencyMaskToNumber(parcelamento.valorTotal) ?? undefined,
         installment_total: parcelamento.installmentTotal,
         parcelas: parcelamento.parcelas,
@@ -274,6 +276,12 @@ export function CadastrarReceita() {
                   </label>
                 </div>
               </div>
+
+              <CampoDataCompetencia
+                registro={register("accrual_date")}
+                rotulo="Data do recebimento"
+                mensagemErro={errors.accrual_date?.message}
+              />
 
               {!isParcelado && (
                 <>

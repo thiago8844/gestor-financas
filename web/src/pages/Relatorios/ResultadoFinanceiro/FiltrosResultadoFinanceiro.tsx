@@ -134,7 +134,7 @@ export function FiltrosResultadoFinanceiro({ gerado, resumoTexto, onGerar }: Pro
               onChange={(e) => setRegime(e.target.value as "CAIXA" | "COMPETENCIA")}
             >
               <option value="CAIXA">Pago/Recebido</option>
-              <option value="COMPETENCIA">Competência</option>
+              <option value="COMPETENCIA">Competência (data da compra, pago ou não)</option>
             </select>
           </div>
 

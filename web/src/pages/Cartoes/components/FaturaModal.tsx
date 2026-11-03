@@ -104,7 +104,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLa
       ...parcelas.map((p) => ({
         descricao: p.description,
         categoria: p.categoria?.name ?? "-",
-        compra: p.purchase_date_fmt ?? "-",
+        compra: p.accrual_date_fmt ?? "-",
         parcela: p.installment_total && p.installment_total > 1 ? `${p.installment_number}/${p.installment_total}` : "Única",
         status: p.status === "PAID" ? "Paga" : "Pendente",
         valor: valorNaFatura(p),
@@ -152,7 +152,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLa
               <MarcadoresParcela p={p} />
             </td>
             <td>{p.categoria?.name ?? "-"}</td>
-            <td className="text-nowrap">{p.purchase_date_fmt ?? "-"}</td>
+            <td className="text-nowrap">{p.accrual_date_fmt ?? "-"}</td>
             <td>
               <ParcelaTexto p={p} />
             </td>
@@ -376,7 +376,7 @@ export function FaturaModal({ fatura, cartao, onClose, onPagar, onReverter, onLa
                     </div>
                   </div>
                   <div className="d-flex flex-wrap gap-1 mt-1 align-items-center small text-muted">
-                    <span>{p.purchase_date_fmt ?? "-"}</span>
+                    <span>{p.accrual_date_fmt ?? "-"}</span>
                     <span>·</span>
                     <span>
                       <ParcelaTexto p={p} />

@@ -9,7 +9,7 @@ export const DespesaCartaoFormSchema = z.object({
     .min(1, "Valor é obrigatório")
     .refine((val) => (convertCurrencyMaskToNumber(val) ?? 0) > 0, "Valor deve ser maior que zero")
     .transform((val) => convertCurrencyMaskToNumber(val) as number),
-  purchase_date: z.string().min(1, "Data da compra é obrigatória"),
+  accrual_date: z.string().min(1, "Data da compra é obrigatória"),
   installment_total: z.coerce
     .number()
     .min(1, "Deve ser pelo menos 1")

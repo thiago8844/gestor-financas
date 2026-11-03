@@ -14,6 +14,7 @@ export const ReceitaFormSchema = z.object({
     }, "Valor deve ser maior que zero")
     .transform((val) => convertCurrencyMaskToNumber(val)),
   date: z.string().min(1, "Data é obrigatória"),
+  accrual_date: z.string().nullable().optional(),
   category_id: z.string().nullable().optional(),
   category_name: z.string().optional(),
   type: z.literal("INCOME").default("INCOME"),

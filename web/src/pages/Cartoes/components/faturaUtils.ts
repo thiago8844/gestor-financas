@@ -130,7 +130,7 @@ export function filtrarParcelas(parcelas: Transacao[], f: FiltrosFatura) {
   const max = f.valorMax !== "" ? Number(f.valorMax) : null;
 
   const lista = parcelas.filter((p) => {
-    const compra = p.purchase_date?.slice(0, 10) ?? "";
+    const compra = p.accrual_date?.slice(0, 10) ?? "";
     const valor = p.amount ?? 0;
 
     if (busca && !p.description.toLowerCase().includes(busca)) return false;
@@ -146,7 +146,7 @@ export function filtrarParcelas(parcelas: Transacao[], f: FiltrosFatura) {
     return true;
   });
 
-  const porCompra = (p: Transacao) => p.purchase_date?.slice(0, 10) ?? "";
+  const porCompra = (p: Transacao) => p.accrual_date?.slice(0, 10) ?? "";
 
   return lista.sort((a, b) => {
     switch (f.ordem) {

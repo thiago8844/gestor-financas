@@ -19,8 +19,8 @@ type Props = {
 type Aba = "adicionar" | "vinculados";
 
 /** Data do lançamento em dd/mm/aaaa. Compra de cartão usa a data da compra, não a do vencimento da fatura. */
-function dataDoLancamento(l: { purchase_date: string | null; date_raw: string | null; due_date_raw: string | null }) {
-  const iso = (l.purchase_date ?? l.date_raw ?? l.due_date_raw ?? "").slice(0, 10);
+function dataDoLancamento(l: { accrual_date: string | null; date_raw: string | null; due_date_raw: string | null }) {
+  const iso = (l.accrual_date ?? l.date_raw ?? l.due_date_raw ?? "").slice(0, 10);
   if (!iso) return "-";
   const [a, m, d] = iso.split("-");
   return `${d}/${m}/${a}`;
