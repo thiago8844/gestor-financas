@@ -25,6 +25,7 @@ export async function getTransacoes(filtros: {
   campo_data?: string;
   origem?: string;
   status?: string;
+  valor?: string;
   apenas_parceladas?: boolean;
   installment_group?: string;
   page?: number;

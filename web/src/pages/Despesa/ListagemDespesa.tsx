@@ -10,7 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useConfirmModalStore } from "../../stores/confirmModal";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { Paginator } from "../../components/Listagens/Paginator";
-import { useState } from "react";
+import { useFiltrosPersistidos } from "../../hooks/useFiltrosPersistidos";
 
 import { getCategorias } from "../../api/categoria";
 import { getContas } from "../../api/conta";
@@ -38,6 +38,7 @@ const filtrosOriginais = {
   order_by: "date_desc",
   campo_data: "",
   status: "",
+  valor: "",
   origem: "" as "" | "conta" | "cartao",
   conta_id: undefined as number | undefined,
   cartao_id: undefined as number | undefined,
@@ -51,9 +52,8 @@ export function ListagemDespesa() {
   const { invalidateFaturas } = useCacheUtils();
 
   //Filtros despesa
-  const [filtros, setFiltros] = useState(filtrosOriginais);
-  const [filtrosModificados, setFiltrosModificados] =
-    useState(filtrosOriginais);
+  const { filtros, setFiltros, filtrosModificados, setFiltrosModificados, limpar } =
+    useFiltrosPersistidos("filtros-despesas", filtrosOriginais);
 
   //Query despesaS
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
@@ -133,10 +133,7 @@ export function ListagemDespesa() {
     setFiltros((prev) => ({ ...prev, page }));
   };
 
-  const resetarFiltros = () => {
-    setFiltros(filtrosOriginais);
-    setFiltrosModificados(filtrosOriginais);
-  };
+  const resetarFiltros = limpar;
 
   // A busca é aplicada direto (sem o botão Aplicar do dropdown) e mantém o rascunho dos filtros em dia
   const buscarDescricao = (descricao: string) => {
@@ -163,6 +160,7 @@ export function ListagemDespesa() {
     filtros.periodo,
     filtros.campo_data,
     filtros.status,
+    filtros.valor,
     filtros.apenas_parceladas,
   ].filter(Boolean).length;
 
@@ -218,6 +216,11 @@ export function ListagemDespesa() {
             <Listagem.LimiteSelector
               value={filtros.limit}
               onChange={(limit) => setFiltros((prev) => ({ ...prev, limit }))}
+            />
+
+            <Listagem.LimparFiltros
+              visivel={filtrosAtivos > 0 || filtros.descricao !== ""}
+              onLimpar={resetarFiltros}
             />
 
             <Listagem.FiltrosDropdown
@@ -301,6 +304,23 @@ export function ListagemDespesa() {
                 </select>
               </div>
               )}
+
+              <div className="px-3 py-2">
+                <label className="form-label small">Valor:</label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Ex: 150,00"
+                  className="form-control form-control-sm"
+                  value={filtrosModificados.valor}
+                  onChange={(e) =>
+                    setFiltrosModificados({
+                      ...filtrosModificados,
+                      valor: e.target.value.replace(/[^\d.,]/g, ""),
+                    })
+                  }
+                />
+              </div>
 
               <div className="px-3 py-2">
                 <label className="form-label small">Situação:</label>

@@ -175,6 +175,29 @@ Listagem.FiltrosDropdown = function FiltrosDropdown({
   );
 };
 
+// ✅ BOTÃO LIMPAR FILTROS (fora do dropdown, só aparece com filtro ativo)
+interface LimparFiltrosProps {
+  visivel: boolean;
+  onLimpar: () => void;
+}
+
+Listagem.LimparFiltros = function LimparFiltros({
+  visivel,
+  onLimpar,
+}: LimparFiltrosProps) {
+  if (!visivel) return null;
+  return (
+    <button
+      type="button"
+      className="btn btn-sm btn-outline-danger text-nowrap"
+      onClick={onLimpar}
+    >
+      <i className="bi bi-x-circle me-1"></i>
+      Limpar filtros
+    </button>
+  );
+};
+
 // ✅ DROPDOWN DE ORDENAR
 interface OrdenarDropdownProps {
   children: ReactNode;

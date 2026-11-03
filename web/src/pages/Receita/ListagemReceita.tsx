@@ -10,7 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useConfirmModalStore } from "../../stores/confirmModal";
 import { convertNumberToCurrencyMask } from "../../utils";
 import { Paginator } from "../../components/Listagens/Paginator";
-import { useState } from "react";
+import { useFiltrosPersistidos } from "../../hooks/useFiltrosPersistidos";
 import { getCategorias } from "../../api/categoria";
 import { getContas } from "../../api/conta";
 import type { Conta } from "../../types";
@@ -36,6 +36,7 @@ const filtrosOriginais = {
   order_by: "date_desc",
   campo_data: "",
   status: "",
+  valor: "",
   conta_id: undefined as number | undefined,
   apenas_parceladas: false,
   installment_group: undefined as string | undefined,
@@ -46,9 +47,8 @@ export function ListagemReceita() {
   const selecao = useSelecaoEmMassa();
 
   //Filtros despesa
-  const [filtros, setFiltros] = useState(filtrosOriginais);
-  const [filtrosModificados, setFiltrosModificados] =
-    useState(filtrosOriginais);
+  const { filtros, setFiltros, filtrosModificados, setFiltrosModificados, limpar } =
+    useFiltrosPersistidos("filtros-receitas", filtrosOriginais);
 
   //Query Receitas
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
@@ -121,16 +121,23 @@ export function ListagemReceita() {
     setFiltros((prev) => ({ ...prev, page }));
   };
 
-  const resetarFiltros = () => {
-    setFiltros(filtrosOriginais);
-    setFiltrosModificados(filtrosOriginais);
-  };
+  const resetarFiltros = limpar;
 
   // A busca é aplicada direto (sem o botão Aplicar do dropdown) e mantém o rascunho dos filtros em dia
   const buscarDescricao = (descricao: string) => {
     setFiltros((prev) => ({ ...prev, descricao, page: 1 }));
     setFiltrosModificados((prev) => ({ ...prev, descricao }));
   };
+
+  const filtrosAtivos = [
+    filtros.categoria_id,
+    filtros.conta_id,
+    filtros.periodo,
+    filtros.campo_data,
+    filtros.status,
+    filtros.valor,
+    filtros.apenas_parceladas,
+  ].filter(Boolean).length;
 
   const aplicarFiltros = () => {
     setFiltros({ ...filtrosModificados, page: 1 });
@@ -189,19 +196,15 @@ export function ListagemReceita() {
             />
 
             {/* DROPDOWN DE FILTROS */}
+            <Listagem.LimparFiltros
+              visivel={filtrosAtivos > 0 || filtros.descricao !== ""}
+              onLimpar={resetarFiltros}
+            />
+
             <Listagem.FiltrosDropdown
               onAplicar={aplicarFiltros}
               onLimpar={resetarFiltros}
-              ativos={
-                [
-                  filtros.categoria_id,
-                  filtros.conta_id,
-                  filtros.periodo,
-                  filtros.campo_data,
-                  filtros.status,
-                  filtros.apenas_parceladas,
-                ].filter(Boolean).length
-              }
+              ativos={filtrosAtivos}
             >
               {/* ✅ SEUS FILTROS CUSTOMIZADOS */}
               <div className="px-3 py-2">
@@ -250,6 +253,23 @@ export function ListagemReceita() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="px-3 py-2">
+                <label className="form-label small">Valor:</label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Ex: 150,00"
+                  className="form-control form-control-sm"
+                  value={filtrosModificados.valor}
+                  onChange={(e) =>
+                    setFiltrosModificados({
+                      ...filtrosModificados,
+                      valor: e.target.value.replace(/[^\d.,]/g, ""),
+                    })
+                  }
+                />
               </div>
 
               <div className="px-3 py-2">
