@@ -26,7 +26,7 @@ class VincularLancamentosRecorrencia
             ->whereNull('transfer_id')
             ->where('is_initial_balance', false)
             ->where(fn ($q) => $q->whereNull('installment_total')->orWhere('installment_total', '<=', 1))
-            ->whereRaw('DATE(COALESCE(purchase_date, date, due_date)) <= ?', [now()->toDateString()]);
+            ->whereRaw('DATE(COALESCE(accrual_date, date, due_date)) <= ?', [now()->toDateString()]);
 
         // Recorrência no cartão só recebe compras daquele cartão; as de conta, lançamentos fora de cartão.
         return $recorrencia->card_id
@@ -66,7 +66,7 @@ class VincularLancamentosRecorrencia
     private static function avancarProximaGeracao(RecorrenciaTransacao $recorrencia): void
     {
         $ultimo = Transacao::where('recurring_transaction_id', $recorrencia->id)
-            ->selectRaw('MAX(DATE(COALESCE(purchase_date, date, due_date))) AS ultimo')
+            ->selectRaw('MAX(DATE(COALESCE(accrual_date, date, due_date))) AS ultimo')
             ->value('ultimo');
 
         if (!$ultimo || !$recorrencia->next_run_date) {

@@ -106,7 +106,7 @@ class RecorrenciaCartaoTest extends TestCase
             Fatura::where('card_id', $cartao->id)->orderBy('due_date')->get()->map(fn ($f) => $f->due_date->toDateString())->all()
         );
 
-        $compras = Transacao::where('card_id', $cartao->id)->orderBy('purchase_date')->get();
+        $compras = Transacao::where('card_id', $cartao->id)->orderBy('accrual_date')->get();
         $this->assertCount(2, $compras);
 
         $recorrencia = RecorrenciaTransacao::first();
@@ -118,7 +118,7 @@ class RecorrenciaCartaoTest extends TestCase
             $this->assertEquals(55.90, $compra->amount);
             $this->assertNotNull($compra->invoice_id);
         }
-        $this->assertSame('2026-08-15', $compras[0]->purchase_date->toDateString());
+        $this->assertSame('2026-08-15', $compras[0]->accrual_date->toDateString());
         $this->assertSame('2026-09-20', $compras[0]->due_date->toDateString());
         $this->assertSame('2026-10-20', $compras[1]->due_date->toDateString());
     }

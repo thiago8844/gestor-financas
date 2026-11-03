@@ -168,7 +168,7 @@ class CltSeeder extends Seeder
                 $criarDespesaCartaoCLT([
                     'description' => ['Mercado Extra', 'Supermercado Zona Sul', 'Atacadão', 'Carrefour'][rand(0, 3)],
                     'amount' => $valor,
-                    'purchase_date' => $mesAtual->copy()->day(rand(1, 28))->toDateString(),
+                    'accrual_date' => $mesAtual->copy()->day(rand(1, 28))->toDateString(),
                     'category_id' => $categoriaSupermercado,
                 ]);
             }
@@ -178,14 +178,14 @@ class CltSeeder extends Seeder
             $criarDespesaCartaoCLT([
                 'description' => ['Cinema', 'Lanchonete', 'Pizza', 'Bar'][rand(0, 3)],
                 'amount' => rand(50, 150),
-                'purchase_date' => $mesAtual->copy()->day(rand(5, 25))->toDateString(),
+                'accrual_date' => $mesAtual->copy()->day(rand(5, 25))->toDateString(),
                 'category_id' => $categoriaLazer,
             ]);
             if (rand(1, 100) <= 50) {
                 $criarDespesaCartaoCLT([
                     'description' => 'Delivery',
                     'amount' => rand(30, 80),
-                    'purchase_date' => $mesAtual->copy()->day(rand(10, 28))->toDateString(),
+                    'accrual_date' => $mesAtual->copy()->day(rand(10, 28))->toDateString(),
                     'category_id' => $categoriaLazer,
                 ]);
             }
@@ -195,7 +195,7 @@ class CltSeeder extends Seeder
                 $criarDespesaCartaoCLT([
                     'description' => 'Remédios',
                     'amount' => rand(30, 120),
-                    'purchase_date' => $mesAtual->copy()->day(rand(1, 28))->toDateString(),
+                    'accrual_date' => $mesAtual->copy()->day(rand(1, 28))->toDateString(),
                     'category_id' => Categoria::where('name', 'FARMÁCIA')->where('user_id', $clt->id)->first()->id,
                 ]);
             }
@@ -205,7 +205,7 @@ class CltSeeder extends Seeder
                 $criarDespesaCartaoCLT([
                     'description' => ['Roupa', 'Tênis', 'Calça'][rand(0, 2)],
                     'amount' => rand(80, 200),
-                    'purchase_date' => $mesAtual->copy()->day(rand(1, 28))->toDateString(),
+                    'accrual_date' => $mesAtual->copy()->day(rand(1, 28))->toDateString(),
                     'installment_total' => [1, 1, 2, 3][rand(0, 3)],
                     'category_id' => Categoria::where('name', 'VESTUÁRIO')->where('user_id', $clt->id)->first()->id,
                 ]);

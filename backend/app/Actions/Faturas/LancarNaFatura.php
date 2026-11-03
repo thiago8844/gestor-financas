@@ -28,7 +28,7 @@ class LancarNaFatura
      * `data_pagamento` escolhe em qual baixa o ajuste entra, quando a fatura foi paga em mais de uma vez.
      *
      * @param array{type: string, amount: float|string, description: string, category_id?: ?int,
-     *              budget_id?: ?int, purchase_date?: ?string, data_pagamento?: ?string,
+     *              budget_id?: ?int, accrual_date?: ?string, data_pagamento?: ?string,
      *              destino?: 'auto'|'pagamento'} $dados
      */
     public static function executar(Fatura $fatura, array $dados): Transacao
@@ -40,8 +40,8 @@ class LancarNaFatura
         $jaPaga = $resumo['paga'] && $dataPagamento !== null;
 
         $contaId = $fatura->parcelas->first()?->account_id ?? $fatura->cartao->account_id;
-        $dataCompra = !empty($dados['purchase_date'])
-            ? Carbon::parse($dados['purchase_date'])->toDateString()
+        $dataCompra = !empty($dados['accrual_date'])
+            ? Carbon::parse($dados['accrual_date'])->toDateString()
             : ($dataPagamento ?? now()->toDateString());
 
         $tipo = TransactionType::from($dados['type']);
@@ -59,7 +59,7 @@ class LancarNaFatura
                 'type' => $tipo,
                 'description' => $dados['description'],
                 'amount' => $valor,
-                'purchase_date' => $dataCompra,
+                'accrual_date' => $dataCompra,
                 'due_date' => $fatura->due_date,
                 'status' => $jaPaga ? TransactionStatus::PAID : TransactionStatus::PENDING,
                 'date' => $jaPaga ? $dataPagamento : null,

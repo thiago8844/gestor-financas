@@ -30,6 +30,8 @@ class TransacaoParceladaRequest extends FormRequest
             'category_name' => 'nullable|string|max:100',
             'budget_id' => 'nullable|integer|exists:budgets,id',
             'description' => 'required|string|max:255',
+            // Dia da compra: o valor total do parcelamento entra na competência desta data.
+            'accrual_date' => 'nullable|date',
 
             // Valor total da compra. Opcional, mas quando informado a soma das parcelas precisa bater com ele.
             'amount' => 'nullable|numeric|min:0.01|max:999999999.99',

@@ -38,7 +38,7 @@ class ParcelasCartaoTest extends TestCase
             'card_id' => $this->cartao->id,
             'description' => 'Compra',
             'amount' => 1000,
-            'purchase_date' => '2026-09-10',
+            'accrual_date' => '2026-09-10',
             'installment_total' => 3,
         ], $extra));
     }
@@ -113,11 +113,11 @@ class ParcelasCartaoTest extends TestCase
     #[Test]
     public function compra_no_dia_do_fechamento_entra_na_fatura_que_fecha_e_a_do_dia_seguinte_vai_para_a_proxima(): void
     {
-        $this->comprar(['purchase_date' => '2026-09-23', 'installment_total' => 1])->assertCreated();
-        $this->comprar(['purchase_date' => '2026-09-24', 'installment_total' => 1])->assertCreated();
-        $this->comprar(['purchase_date' => '2026-09-25', 'installment_total' => 1])->assertCreated();
+        $this->comprar(['accrual_date' => '2026-09-23', 'installment_total' => 1])->assertCreated();
+        $this->comprar(['accrual_date' => '2026-09-24', 'installment_total' => 1])->assertCreated();
+        $this->comprar(['accrual_date' => '2026-09-25', 'installment_total' => 1])->assertCreated();
 
-        $fechaEm = fn (string $data) => Transacao::whereDate('purchase_date', $data)->first()->fatura->closing_date->toDateString();
+        $fechaEm = fn (string $data) => Transacao::whereDate('accrual_date', $data)->first()->fatura->closing_date->toDateString();
 
         $this->assertSame('2026-09-24', $fechaEm('2026-09-23'));
         $this->assertSame('2026-09-24', $fechaEm('2026-09-24'));
@@ -130,7 +130,7 @@ class ParcelasCartaoTest extends TestCase
     {
         $this->cartao->update(['closing_day' => 31, 'due_day' => 10]);
 
-        $this->comprar(['purchase_date' => '2027-02-28', 'installment_total' => 1])->assertCreated();
+        $this->comprar(['accrual_date' => '2027-02-28', 'installment_total' => 1])->assertCreated();
 
         $fatura = Transacao::first()->fatura;
         $this->assertSame('2027-02-28', $fatura->closing_date->toDateString());
@@ -140,7 +140,7 @@ class ParcelasCartaoTest extends TestCase
     #[Test]
     public function parcelas_atravessam_a_virada_do_ano_uma_por_fatura(): void
     {
-        $grupo = $this->comprar(['purchase_date' => '2026-11-30', 'installment_total' => 3])->assertCreated()->json('installment_group');
+        $grupo = $this->comprar(['accrual_date' => '2026-11-30', 'installment_total' => 3])->assertCreated()->json('installment_group');
 
         $vencimentos = Transacao::where('installment_group', $grupo)->orderBy('installment_number')
             ->get()->map(fn ($t) => $t->fatura->due_date->toDateString())->all();
@@ -151,7 +151,7 @@ class ParcelasCartaoTest extends TestCase
     #[Test]
     public function fatura_so_aparece_como_fechada_depois_do_dia_do_fechamento(): void
     {
-        $this->comprar(['purchase_date' => '2026-09-10', 'installment_total' => 1])->assertCreated();
+        $this->comprar(['accrual_date' => '2026-09-10', 'installment_total' => 1])->assertCreated();
 
         $status = function (string $hoje) {
             \Carbon\Carbon::setTestNow($hoje);

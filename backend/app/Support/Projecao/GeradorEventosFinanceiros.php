@@ -212,7 +212,7 @@ class GeradorEventosFinanceiros
                     'categoria' => $transacao->categoria?->name,
                     'categoria_id' => $transacao->category_id,
                     'recorrencia_id' => $transacao->recurring_transaction_id,
-                    'data_compra' => $transacao->purchase_date?->toDateString(),
+                    'data_compra' => $transacao->accrual_date?->toDateString(),
                     'parcela' => $this->rotuloParcela($transacao),
                     'recorrente' => $transacao->recurring_transaction_id !== null,
                     'projetado' => false,
@@ -437,7 +437,7 @@ class GeradorEventosFinanceiros
             ->where('user_id', $this->filtros->userId)
             ->whereIn('recurring_transaction_id', $recorrenciaIds)
             ->whereNotNull('amount')
-            ->orderByRaw('COALESCE(date, due_date, purchase_date, created_at) DESC')
+            ->orderByRaw('COALESCE(date, due_date, accrual_date, created_at) DESC')
             ->get(['recurring_transaction_id', 'amount'])
             ->groupBy('recurring_transaction_id');
 

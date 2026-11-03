@@ -32,13 +32,11 @@ class SerieMensalResultadoFinanceiroQuery
                 $filtros->dataInicial->toDateString(),
                 $filtros->dataFinal->toDateString(),
             ])
-            ->selectRaw("type, amount, date, due_date, created_at")
+            ->selectRaw("type, amount, {$colunaData} AS data_referencia")
             ->get();
 
         $porMes = $linhas->groupBy(function ($linha) {
-            $data = Carbon::parse($linha->date ?? $linha->due_date ?? $linha->created_at);
-
-            return $data->copy()->startOfMonth()->toDateString();
+            return Carbon::parse($linha->data_referencia)->startOfMonth()->toDateString();
         });
 
         return $porMes

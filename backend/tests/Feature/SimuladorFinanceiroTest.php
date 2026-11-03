@@ -226,7 +226,7 @@ class SimuladorFinanceiroTest extends TestCase
         foreach (range(1, 6) as $atras) {
             $data = Carbon::parse('2026-09-01')->subMonthsNoOverflow($atras - 1)->day(15)->toDateString();
             CriarDespesaCartao::executar($conta->user_id, $cartao, [
-                'description' => 'Mercado cartão', 'amount' => 200, 'purchase_date' => $data, 'category_id' => $mercado->id,
+                'description' => 'Mercado cartão', 'amount' => 200, 'accrual_date' => $data, 'category_id' => $mercado->id,
             ]);
         }
         Transacao::where('card_id', $cartao->id)->update(['status' => 'PAID']);
@@ -593,13 +593,13 @@ class SimuladorFinanceiroTest extends TestCase
         foreach (range(1, 6) as $i) {
             $data = Carbon::parse('2026-10-15')->subMonthsNoOverflow($i);
             CriarDespesaCartao::executar($conta->user_id, $cartao, [
-                'description' => 'Mercado', 'amount' => 500, 'purchase_date' => $data->toDateString(), 'category_id' => $mercado->id,
+                'description' => 'Mercado', 'amount' => 500, 'accrual_date' => $data->toDateString(), 'category_id' => $mercado->id,
             ]);
         }
         Transacao::where('card_id', $cartao->id)->update(['status' => 'PAID']);
         // Compra real já na fatura de novembro.
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Farmácia', 'amount' => 80, 'purchase_date' => '2026-10-11',
+            'description' => 'Farmácia', 'amount' => 80, 'accrual_date' => '2026-10-11',
         ]);
 
         $resposta = $this->simular(['data_final' => '2027-01-31'])->assertOk();
@@ -641,7 +641,7 @@ class SimuladorFinanceiroTest extends TestCase
         $eletronicos = $this->categoria($conta, 'Eletrônicos');
 
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Notebook', 'amount' => 1200, 'purchase_date' => '2026-10-05', 'installment_total' => 4, 'category_id' => $eletronicos->id,
+            'description' => 'Notebook', 'amount' => 1200, 'accrual_date' => '2026-10-05', 'installment_total' => 4, 'category_id' => $eletronicos->id,
         ]);
 
         $resposta = $this->simular()->assertOk();
@@ -884,7 +884,7 @@ class SimuladorFinanceiroTest extends TestCase
         $cartao = $this->cartao($conta);
         $this->historico($conta, $this->categoria($conta, 'Supermercado'), [651.37, 702.19, 688.45, 710.03, 699.99, 741.11]);
         $this->historico($conta, $this->categoria($conta, 'Salário extra'), [1200.5, 1180.25, 1210.75, 1190.1, 1205.33, 1199.99], 25, 'INCOME');
-        CriarDespesaCartao::executar($conta->user_id, $cartao, ['description' => 'TV', 'amount' => 2999.99, 'purchase_date' => '2026-10-02', 'installment_total' => 7]);
+        CriarDespesaCartao::executar($conta->user_id, $cartao, ['description' => 'TV', 'amount' => 2999.99, 'accrual_date' => '2026-10-02', 'installment_total' => 7]);
         $this->transacao($conta, ['amount' => 333.33, 'due_date' => '2026-11-11']);
 
         $resposta = $this->simular(['cenario' => ['eventos' => [

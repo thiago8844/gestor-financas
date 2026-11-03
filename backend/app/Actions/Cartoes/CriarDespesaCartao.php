@@ -26,7 +26,7 @@ class CriarDespesaCartao
      */
     public static function executar(int $userId, Cartao $cartao, array $dados): array
     {
-        $dataCompra = Carbon::parse($dados['purchase_date'])->startOfDay();
+        $dataCompra = Carbon::parse($dados['accrual_date'])->startOfDay();
         $tipo = TransactionType::tryFrom($dados['type'] ?? '') ?? TransactionType::EXPENSE;
         $installmentTotal = $tipo === TransactionType::INCOME ? 1 : max(1, (int) ($dados['installment_total'] ?? 1));
         $valores = static::valoresDasParcelas($dados, $tipo, $installmentTotal);
@@ -52,7 +52,7 @@ class CriarDespesaCartao
                     'type' => $tipo,
                     'description' => $dados['description'],
                     'amount' => $valores[$i],
-                    'purchase_date' => $dataCompra->toDateString(),
+                    'accrual_date' => $dataCompra->toDateString(),
                     'due_date' => $fatura->due_date,
                     'date' => null,
                     'status' => TransactionStatus::PENDING,

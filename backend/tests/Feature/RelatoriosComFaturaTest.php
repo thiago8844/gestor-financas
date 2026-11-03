@@ -63,7 +63,7 @@ class RelatoriosComFaturaTest extends TestCase
     private function comprar(float $valor, string $data, array $extra = []): void
     {
         $this->postJson('/api/transacoes/cartao', array_merge([
-            'card_id' => $this->cartao->id, 'description' => 'Compra', 'amount' => $valor, 'purchase_date' => $data,
+            'card_id' => $this->cartao->id, 'description' => 'Compra', 'amount' => $valor, 'accrual_date' => $data,
         ], $extra))->assertStatus(201);
     }
 

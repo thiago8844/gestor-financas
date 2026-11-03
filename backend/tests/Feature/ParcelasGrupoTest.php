@@ -36,7 +36,7 @@ class ParcelasGrupoTest extends TestCase
     {
         return $this->postJson('/api/transacoes/cartao', [
             'card_id' => $this->cartao->id, 'description' => 'Notebook', 'amount' => 1000,
-            'purchase_date' => '2026-09-05', 'installment_total' => 3,
+            'accrual_date' => '2026-09-05', 'installment_total' => 3,
         ])->assertCreated()->json('installment_group');
     }
 

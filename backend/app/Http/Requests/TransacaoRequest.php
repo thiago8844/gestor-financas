@@ -28,6 +28,8 @@ class TransacaoRequest extends FormRequest
             'type' => 'required|in:INCOME,EXPENSE',
             'date' => 'required_if:status,PAID|date|nullable',
             'due_date' => 'nullable',
+            // Competência: dia em que a compra/ganho aconteceu. Vazio = usa a data da transação.
+            'accrual_date' => 'nullable|date',
             'category_id' => 'nullable|integer|exists:categories,id',
             'category_name' => 'nullable|string|max:100',
             'description' => 'nullable|string|max:255',

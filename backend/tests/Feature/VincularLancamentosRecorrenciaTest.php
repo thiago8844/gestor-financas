@@ -158,8 +158,8 @@ class VincularLancamentosRecorrenciaTest extends TestCase
             'type' => 'EXPENSE', 'description' => 'Netflix', 'amount' => 55.9, 'card_id' => $cartao->id,
         ]);
 
-        $doCartao = $this->lancamento($conta, ['type' => 'EXPENSE', 'card_id' => $cartao->id, 'amount' => 55.9, 'status' => 'PENDING', 'date' => null, 'due_date' => '2026-09-20', 'purchase_date' => '2026-09-12']);
-        $deOutro = $this->lancamento($conta, ['type' => 'EXPENSE', 'card_id' => $outroCartao->id, 'amount' => 55.9, 'status' => 'PENDING', 'date' => null, 'due_date' => '2026-09-20', 'purchase_date' => '2026-09-12']);
+        $doCartao = $this->lancamento($conta, ['type' => 'EXPENSE', 'card_id' => $cartao->id, 'amount' => 55.9, 'status' => 'PENDING', 'date' => null, 'due_date' => '2026-09-20', 'accrual_date' => '2026-09-12']);
+        $deOutro = $this->lancamento($conta, ['type' => 'EXPENSE', 'card_id' => $outroCartao->id, 'amount' => 55.9, 'status' => 'PENDING', 'date' => null, 'due_date' => '2026-09-20', 'accrual_date' => '2026-09-12']);
 
         $ids = collect($this->getJson("/api/recorrencias/{$recorrencia->id}/lancamentos-candidatos")->json('data'))->pluck('id');
 

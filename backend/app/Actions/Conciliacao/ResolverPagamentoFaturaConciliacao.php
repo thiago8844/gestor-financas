@@ -103,7 +103,7 @@ class ResolverPagamentoFaturaConciliacao
                 'amount' => $ajuste,
                 'description' => self::descricaoAjuste($opcoes, 'faltava na fatura do app'),
                 'category_id' => $opcoes['category_id'] ?? null,
-                'purchase_date' => $dataBanco->toDateString(),
+                'accrual_date' => $dataBanco->toDateString(),
             ]);
 
             $levado = PagarFatura::executar($fatura->fresh(), $dataBanco);
@@ -147,7 +147,7 @@ class ResolverPagamentoFaturaConciliacao
                 'amount' => abs($diferenca),
                 'description' => self::descricaoAjuste($opcoes, $diferenca > 0 ? 'faltava na fatura do app' : 'sobrava na fatura do app'),
                 'category_id' => $opcoes['category_id'] ?? null,
-                'purchase_date' => $dataBanco->toDateString(),
+                'accrual_date' => $dataBanco->toDateString(),
                 'data_pagamento' => $dataPagamento,
                 // Aqui quem difere é o débito do banco: o ajuste tem que entrar na baixa, não no saldo levado.
                 'destino' => 'pagamento',

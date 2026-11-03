@@ -33,12 +33,19 @@ final class FiltrosResultadoFinanceiro
         );
     }
 
-    /** Nome da coluna/expressão de data a considerar, conforme o regime. */
+    /**
+     * Nome da coluna/expressão de data a considerar, conforme o regime.
+     *
+     * Caixa: o dia em que o dinheiro se mexeu (só lançamentos pagos).
+     * Competência: o dia da compra/ganho (accrual_date), ignorando pagamento, vencimento e
+     * parcelas — todas as parcelas de uma compra carregam a mesma data, então o valor total
+     * entra no mês em que a compra foi feita. Os demais campos só cobrem lançamentos sem ela.
+     */
     public function colunaData(): string
     {
         return $this->regime === RegimeRelatorio::CAIXA
             ? 'date'
-            : 'COALESCE(date, due_date, created_at)';
+            : 'COALESCE(accrual_date, date, due_date, created_at)';
     }
 
     /** Status a considerar, conforme o regime. */

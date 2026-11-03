@@ -44,11 +44,11 @@ class DashboardDespesasFuturasTest extends TestCase
 
         // R$ 1.200 em 4x: faturas de 20/10, 20/11, 20/12 e 20/01 (a última fica fora do horizonte).
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Notebook', 'amount' => 1200, 'purchase_date' => '2026-10-05', 'installment_total' => 4,
+            'description' => 'Notebook', 'amount' => 1200, 'accrual_date' => '2026-10-05', 'installment_total' => 4,
         ]);
         // Compra à vista no cartão.
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Mercado', 'amount' => 200, 'purchase_date' => '2026-10-06',
+            'description' => 'Mercado', 'amount' => 200, 'accrual_date' => '2026-10-06',
         ]);
         // Avulsa pendente.
         Transacao::create([
@@ -141,7 +141,7 @@ class DashboardDespesasFuturasTest extends TestCase
         ]);
 
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Mercado', 'amount' => 200, 'purchase_date' => '2026-10-06',
+            'description' => 'Mercado', 'amount' => 200, 'accrual_date' => '2026-10-06',
         ]);
 
         $faturaId = Transacao::where('description', 'Mercado')->value('invoice_id');

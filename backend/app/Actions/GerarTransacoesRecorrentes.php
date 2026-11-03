@@ -34,7 +34,7 @@ class GerarTransacoesRecorrentes
         CriarDespesaCartao::executar($recorrencia->user_id, $recorrencia->cartao, [
             'description' => $recorrencia->description,
             'amount' => $recorrencia->amount,
-            'purchase_date' => $dataOcorrencia->toDateString(),
+            'accrual_date' => $dataOcorrencia->toDateString(),
             'category_id' => $recorrencia->category_id,
             'recurring_transaction_id' => $recorrencia->id,
         ]);

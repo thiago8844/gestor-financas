@@ -53,7 +53,7 @@ class FaturaPagamentoTest extends TestCase
             'card_id' => $this->cartao->id,
             'description' => 'Compra',
             'amount' => $valor,
-            'purchase_date' => $data,
+            'accrual_date' => $data,
         ], $extra))->assertStatus(201);
     }
 
@@ -140,7 +140,7 @@ class FaturaPagamentoTest extends TestCase
     {
         $this->postJson('/api/transacoes/cartao', [
             'card_id' => $this->cartao->id, 'description' => 'Estorno', 'amount' => 30,
-            'purchase_date' => '2026-09-05', 'type' => 'INCOME', 'installment_total' => 3,
+            'accrual_date' => '2026-09-05', 'type' => 'INCOME', 'installment_total' => 3,
         ])->assertStatus(422)->assertJsonValidationErrors('installment_total');
     }
 

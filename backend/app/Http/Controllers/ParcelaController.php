@@ -73,7 +73,7 @@ class ParcelaController extends Controller
             'category_id' => $primeira->category_id,
             'account_id' => $primeira->account_id,
             'card_id' => $primeira->card_id,
-            'purchase_date' => $primeira->purchase_date?->toDateString(),
+            'accrual_date' => $primeira->accrual_date?->toDateString(),
             'total' => round((float) $parcelas->sum('amount'), 2),
             'pagas' => $parcelas->filter(fn (Transacao $p) => $p->isPaga())->count(),
             'pendentes' => $parcelas->reject(fn (Transacao $p) => $p->isPaga())->count(),

@@ -65,7 +65,7 @@ class GerarRelatorioAnaliseGastos
         return [
             'periodo' => ['data_inicial' => $inicio->toDateString(), 'data_final' => $fim->toDateString(), 'dias' => $inicio->diffInDays($fim) + 1],
             'filtros' => ['base_data' => $base, 'origem' => $origem, 'estimar_variaveis' => $estimar, 'comparar' => $anterior !== null],
-            'resumo' => self::resumo($comValor, $lancamentos, $total, $meses, $anterior, self::receitas($userId, $inicio, $fim, $contaIds), $inicio, $fim),
+            'resumo' => self::resumo($comValor, $lancamentos, $total, $meses, $anterior, self::receitas($userId, $inicio, $fim, $contaIds, $base), $inicio, $fim),
             'por_natureza' => self::porNatureza($comValor, $anterior, $meses),
             'por_categoria' => self::porCategoria($comValor, $anterior, $total),
             'por_mes' => self::porMes($comValor, $inicio, $fim),
@@ -98,7 +98,7 @@ class GerarRelatorioAnaliseGastos
         $dataRef = $base === 'PAGAMENTO'
             ? "CASE WHEN t.status = 'PAID' THEN COALESCE(t.date, i.due_date, t.due_date, t.created_at)
                     ELSE COALESCE(i.due_date, t.due_date, t.date, t.created_at) END"
-            : 'COALESCE(t.purchase_date, t.date, t.due_date, t.created_at)';
+            : 'COALESCE(t.accrual_date, t.date, t.due_date, t.created_at)';
 
         return DB::table('transactions as t')
             ->leftJoin('categories as c', 'c.id', '=', 't.category_id')
@@ -119,11 +119,11 @@ class GerarRelatorioAnaliseGastos
                 't.account_id', 'a.name as conta', 't.card_id', 'k.name as cartao',
                 't.installment_number', 't.installment_total', 't.installment_group',
                 't.recurring_transaction_id', 'r.amount as recorrencia_valor', 'r.description as recorrencia',
-                't.purchase_date', 't.date', 't.due_date', 't.created_at', 'i.due_date as fatura_vencimento',
+                't.accrual_date', 't.date', 't.due_date', 't.created_at', 'i.due_date as fatura_vencimento',
             ])
             ->map(function ($l) use ($base) {
                 $pago = $l->status === 'PAID';
-                $dataGasto = substr((string) ($l->purchase_date ?? $l->date ?? $l->due_date ?? $l->created_at), 0, 10);
+                $dataGasto = substr((string) ($l->accrual_date ?? $l->date ?? $l->due_date ?? $l->created_at), 0, 10);
                 $dataPagamento = substr((string) ($pago
                     ? ($l->date ?? $l->fatura_vencimento ?? $l->due_date ?? $l->created_at)
                     : ($l->fatura_vencimento ?? $l->due_date ?? $l->date ?? $l->created_at)), 0, 10);
@@ -244,9 +244,12 @@ class GerarRelatorioAnaliseGastos
         ];
     }
 
-    private static function receitas(int $userId, Carbon $inicio, Carbon $fim, array $contaIds): float
+    private static function receitas(int $userId, Carbon $inicio, Carbon $fim, array $contaIds, string $base): float
     {
-        $dataRef = 'COALESCE(date, due_date, created_at)';
+        // Mesma base das despesas: na de gasto, a receita conta no dia em que foi ganha (competência).
+        $dataRef = $base === 'PAGAMENTO'
+            ? 'COALESCE(date, due_date, created_at)'
+            : 'COALESCE(accrual_date, date, due_date, created_at)';
 
         return round((float) DB::table('transactions')
             ->where('user_id', $userId)

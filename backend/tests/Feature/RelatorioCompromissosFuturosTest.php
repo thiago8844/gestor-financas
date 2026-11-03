@@ -133,7 +133,7 @@ class RelatorioCompromissosFuturosTest extends TestCase
         $cartao = $this->cartao($conta);
 
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Notebook', 'amount' => 1200, 'purchase_date' => '2026-10-05', 'installment_total' => 4,
+            'description' => 'Notebook', 'amount' => 1200, 'accrual_date' => '2026-10-05', 'installment_total' => 4,
         ]);
         $this->transacao($conta, ['amount' => 800, 'due_date' => '2026-10-20']);
         $this->recorrencia($conta, ['day_of_month' => 9, 'start_date' => '2026-10-09']);
@@ -162,10 +162,10 @@ class RelatorioCompromissosFuturosTest extends TestCase
 
         // R$ 1.200 em 4x: faturas de 20/10, 20/11, 20/12 e 20/01.
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Notebook', 'amount' => 1200, 'purchase_date' => '2026-10-05', 'installment_total' => 4,
+            'description' => 'Notebook', 'amount' => 1200, 'accrual_date' => '2026-10-05', 'installment_total' => 4,
         ]);
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Mercado', 'amount' => 200, 'purchase_date' => '2026-10-06',
+            'description' => 'Mercado', 'amount' => 200, 'accrual_date' => '2026-10-06',
         ]);
 
         $resposta = $this->relatorio()->assertOk();
@@ -192,7 +192,7 @@ class RelatorioCompromissosFuturosTest extends TestCase
         $cartao = $this->cartao($conta);
 
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Mercado', 'amount' => 200, 'purchase_date' => '2026-10-24', // fecha dia 10 → fatura de 20/11
+            'description' => 'Mercado', 'amount' => 200, 'accrual_date' => '2026-10-24', // fecha dia 10 → fatura de 20/11
         ]);
 
         // Netflix todo dia 12: 12/10 (já fechou → fatura 20/11), 12/11 (→ 20/12).

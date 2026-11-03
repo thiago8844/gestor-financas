@@ -198,7 +198,7 @@ class JonilsonSeeder extends Seeder
                 $criarDespesaCartaoJonilson([
                     'description' => ['Novo implemento', 'Peças trator', 'Equipamento ordenha'][rand(0, 2)],
                     'amount' => rand(5000, 15000),
-                    'purchase_date' => $mesAtual->copy()->day(rand(5, 25))->toDateString(),
+                    'accrual_date' => $mesAtual->copy()->day(rand(5, 25))->toDateString(),
                     'installment_total' => [1, 3, 6][rand(0, 2)],
                     'category_id' => Categoria::where('name', 'EQUIPAMENTOS')->where('user_id', $jonilson->id)->first()->id,
                 ]);
@@ -208,7 +208,7 @@ class JonilsonSeeder extends Seeder
             $criarDespesaCartaoJonilson([
                 'description' => 'Churrasco/Festa',
                 'amount' => rand(500, 2000),
-                'purchase_date' => $mesAtual->copy()->day(rand(20, 28))->toDateString(),
+                'accrual_date' => $mesAtual->copy()->day(rand(20, 28))->toDateString(),
                 'category_id' => Categoria::where('name', 'LAZER')->where('user_id', $jonilson->id)->first()->id,
             ]);
 

@@ -32,7 +32,7 @@ class FaturaController extends Controller
         $faturas = Fatura::where('card_id', $cartao->id)
             ->with([
                 'parcelas' => function ($query) {
-                    $query->with('categoria')->orderBy('purchase_date')->orderBy('id');
+                    $query->with('categoria')->orderBy('accrual_date')->orderBy('id');
                 },
                 'auditorias',
             ])
@@ -134,7 +134,7 @@ class FaturaController extends Controller
             'type' => ['required', Rule::in(['EXPENSE', 'INCOME'])],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:999999999.99'],
             'description' => ['required', 'string', 'max:255'],
-            'purchase_date' => ['nullable', 'date'],
+            'accrual_date' => ['nullable', 'date'],
             'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('user_id', Auth::id())],
             'category_name' => ['nullable', 'string', 'max:100'],
             'budget_id' => ['nullable', 'integer', Rule::exists('budgets', 'id')->where('user_id', Auth::id())],
@@ -221,7 +221,7 @@ class FaturaController extends Controller
     private function carregar(Fatura $fatura): Fatura
     {
         return $fatura->load([
-            'parcelas' => fn ($query) => $query->with('categoria')->orderBy('purchase_date')->orderBy('id'),
+            'parcelas' => fn ($query) => $query->with('categoria')->orderBy('accrual_date')->orderBy('id'),
             'auditorias',
         ]);
     }

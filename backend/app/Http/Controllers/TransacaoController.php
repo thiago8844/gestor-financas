@@ -79,7 +79,8 @@ class TransacaoController extends Controller
         // Sem escolha, mantém o comportamento antigo (data > vencimento > cadastro).
         $campoData = match ($request->input('campo_data')) {
             'date' => 'date',
-            'purchase_date' => 'purchase_date',
+            // 'purchase_date' é o nome antigo, ainda guardado nos filtros salvos no navegador.
+            'accrual_date', 'purchase_date' => 'accrual_date',
             'due_date' => 'due_date',
             'created_at' => 'created_at',
             default => 'COALESCE(date, due_date, created_at)',

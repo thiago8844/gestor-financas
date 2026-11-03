@@ -88,7 +88,7 @@ final class AnaliseHistorica
     private function buscarLancamentos(array $contaIds): array
     {
         $inicioMaximo = $this->filtros->mesAtual()->subMonthsNoOverflow(FiltrosSimulador::MAX_MESES_HISTORICO);
-        $dataConsumo = 'COALESCE(t.purchase_date, t.date, t.due_date, t.created_at)';
+        $dataConsumo = 'COALESCE(t.accrual_date, t.date, t.due_date, t.created_at)';
 
         return DB::table('transactions as t')
             ->leftJoin('categories as c', 'c.id', '=', 't.category_id')
@@ -105,11 +105,11 @@ final class AnaliseHistorica
             ->whereRaw("{$dataConsumo} <= ?", [$this->filtros->dataFinal->toDateString() . ' 23:59:59'])
             ->get([
                 't.type', 't.amount', 't.category_id', 'c.name as categoria', 't.account_id', 't.card_id',
-                't.recurring_transaction_id', 't.installment_total', 't.transfer_id', 't.purchase_date', 't.date', 't.due_date', 't.created_at',
+                't.recurring_transaction_id', 't.installment_total', 't.transfer_id', 't.accrual_date', 't.date', 't.due_date', 't.created_at',
                 't.description',
             ])
             ->map(function ($linha) {
-                $data = substr((string) ($linha->purchase_date ?? $linha->date ?? $linha->due_date ?? $linha->created_at), 0, 10);
+                $data = substr((string) ($linha->accrual_date ?? $linha->date ?? $linha->due_date ?? $linha->created_at), 0, 10);
 
                 return [
                     'tipo' => $linha->type,

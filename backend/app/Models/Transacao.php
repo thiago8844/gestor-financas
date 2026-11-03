@@ -21,8 +21,22 @@ class Transacao extends Model
         "status" => TransactionStatus::class,
         "date" => 'datetime',
         "due_date" => 'datetime',
-        "purchase_date" => 'date',
+        "accrual_date" => 'date',
     ];
+
+    /**
+     * Todo lançamento tem data de competência (accrual_date). Quem cria sem informar
+     * (importação de extrato, recorrência, empréstimo...) herda a data da transação, ou o
+     * vencimento enquanto não houver, ou o dia do cadastro.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Transacao $transacao) {
+            if ($transacao->accrual_date === null) {
+                $transacao->accrual_date = ($transacao->date ?? $transacao->due_date ?? now())->toDateString();
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {

@@ -130,7 +130,7 @@ class RecorrenciaTransacaoController extends Controller
 
         $query = VincularLancamentosRecorrencia::elegiveis($recorrencia)
             ->with(['categoria:id,name', 'conta:id,name', 'cartao:id,name'])
-            ->orderByRaw('DATE(COALESCE(purchase_date, date, due_date)) DESC')
+            ->orderByRaw('DATE(COALESCE(accrual_date, date, due_date)) DESC')
             ->orderBy('id', 'desc');
 
         if ($request->filled('busca')) {
@@ -151,7 +151,7 @@ class RecorrenciaTransacaoController extends Controller
 
         $transacoes = Transacao::where('recurring_transaction_id', $recorrencia->id)
             ->with(['categoria:id,name', 'conta:id,name', 'cartao:id,name'])
-            ->orderByRaw('DATE(COALESCE(purchase_date, date, due_date)) DESC')
+            ->orderByRaw('DATE(COALESCE(accrual_date, date, due_date)) DESC')
             ->get();
 
         return TransacaoResource::collection($transacoes);

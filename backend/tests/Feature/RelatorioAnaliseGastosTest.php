@@ -64,11 +64,11 @@ class RelatorioAnaliseGastosTest extends TestCase
         $this->gasto($conta, ['amount' => 80, 'status' => 'PENDING', 'date' => null, 'due_date' => '2026-10-25', 'description' => 'Dentista']);
         // Variável no cartão (compra de 05/10).
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Mercado cartão', 'amount' => 200, 'purchase_date' => '2026-10-05', 'category_id' => $mercado->id,
+            'description' => 'Mercado cartão', 'amount' => 200, 'accrual_date' => '2026-10-05', 'category_id' => $mercado->id,
         ]);
         // Parcelada: 1.200 em 4x, 05/10 → parcelas de 300 (3 delas até dezembro).
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Notebook', 'amount' => 1200, 'purchase_date' => '2026-10-05', 'installment_total' => 4,
+            'description' => 'Notebook', 'amount' => 1200, 'accrual_date' => '2026-10-05', 'installment_total' => 4,
         ]);
         // Fixa: aluguel 1.000 em 15/10, 15/11, 15/12 (ainda não lançados = previstos).
         CriarRecorrenciaTransacao::executar($conta->user_id, [
@@ -164,7 +164,7 @@ class RelatorioAnaliseGastosTest extends TestCase
         ]);
         // Compra em setembro, fatura vence 20/10.
         CriarDespesaCartao::executar($conta->user_id, $cartao, [
-            'description' => 'Compra', 'amount' => 400, 'purchase_date' => '2026-09-25',
+            'description' => 'Compra', 'amount' => 400, 'accrual_date' => '2026-09-25',
         ]);
 
         $this->relatorio(['data_inicial' => '2026-10-01', 'data_final' => '2026-10-31', 'base_data' => 'GASTO'])

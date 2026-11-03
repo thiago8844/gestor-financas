@@ -102,7 +102,7 @@ class ConciliacaoTest extends TestCase
     {
         $this->postJson('/api/transacoes/cartao', [
             'card_id' => $cartao->id, 'description' => $tipo === 'INCOME' ? 'Estorno' : 'Compra',
-            'amount' => $valor, 'purchase_date' => '2026-08-05', 'type' => $tipo,
+            'amount' => $valor, 'accrual_date' => '2026-08-05', 'type' => $tipo,
         ])->assertStatus(201);
     }
 

@@ -36,7 +36,7 @@ class FechamentoFaturaTest extends TestCase
     private function comprar(string $data, array $extra = []): Transacao
     {
         $id = $this->postJson('/api/transacoes/cartao', array_merge([
-            'card_id' => $this->cartao->id, 'description' => 'Compra', 'amount' => 100, 'purchase_date' => $data,
+            'card_id' => $this->cartao->id, 'description' => 'Compra', 'amount' => 100, 'accrual_date' => $data,
         ], $extra))->assertCreated()->json('data.0.id') ?? Transacao::latest('id')->value('id');
 
         return Transacao::with('fatura')->findOrFail($id);

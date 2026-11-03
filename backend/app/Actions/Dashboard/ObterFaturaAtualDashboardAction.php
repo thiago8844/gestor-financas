@@ -43,7 +43,7 @@ class ObterFaturaAtualDashboardAction
 
         $fatura = Fatura::where('card_id', $cartao->id)
             ->whereDate('reference_month', $referenceMonth->toDateString())
-            ->with(['parcelas' => fn ($query) => $query->with('categoria')->orderBy('purchase_date')->orderBy('id')])
+            ->with(['parcelas' => fn ($query) => $query->with('categoria')->orderBy('accrual_date')->orderBy('id')])
             ->first();
 
         $dadosCartao = [

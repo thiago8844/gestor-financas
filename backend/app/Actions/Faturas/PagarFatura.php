@@ -114,7 +114,7 @@ class PagarFatura
             'card_id' => $cartao->id,
             'transfer_id' => $rolagem->id,
             'amount' => $valor,
-            'purchase_date' => $data->toDateString(),
+            'accrual_date' => $data->toDateString(),
         ];
 
         Transacao::create([

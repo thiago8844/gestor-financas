@@ -35,7 +35,7 @@ class RealocarDespesasCartao
                 ->whereNull('transfer_id')
                 ->whereNull('reconciliation_item_id')
                 ->whereNotNull('invoice_id')
-                ->whereNotNull('purchase_date')
+                ->whereNotNull('accrual_date')
                 ->orderBy('id')
                 ->chunkById(500, function (Collection $transacoes) use ($cartao, $fixos, $pagas, $faturas, &$movidas) {
                     foreach ($transacoes as $transacao) {
@@ -43,7 +43,7 @@ class RealocarDespesasCartao
                             continue;
                         }
 
-                        $referencia = ResolverFaturaCompra::referenciaFaturaParaCompra($cartao, $transacao->purchase_date, $fixos)
+                        $referencia = ResolverFaturaCompra::referenciaFaturaParaCompra($cartao, $transacao->accrual_date, $fixos)
                             ->addMonthsNoOverflow(max(1, (int) $transacao->installment_number) - 1);
 
                         $fatura = $faturas->get($referencia->toDateString())
