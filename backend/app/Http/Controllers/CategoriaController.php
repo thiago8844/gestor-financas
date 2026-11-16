@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class CategoriaController extends Controller
 {
@@ -16,7 +17,12 @@ class CategoriaController extends Controller
         ]);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')->where('user_id', Auth::id()),
+            ],
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -31,7 +37,7 @@ class CategoriaController extends Controller
     public function destroy($id)
     {
 
-        $categoria = Categoria::find($id);
+        $categoria = Categoria::where('user_id', Auth::id())->findOrFail($id);
 
         $categoria->delete();
 
@@ -56,10 +62,23 @@ class CategoriaController extends Controller
 
     public function update($id)
     {
-        Categoria::find($id)->update([
-            'name' => trim(mb_strtoupper(request()->name)),
+        $categoria = Categoria::where('user_id', Auth::id())->findOrFail($id);
+
+        $name = trim(mb_strtoupper(request()->name));
+
+        request()->merge(['name' => $name])->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')
+                    ->where('user_id', Auth::id())
+                    ->ignore($categoria->id),
+            ],
         ]);
 
-        return response()->json(['categoria' => Categoria::find($id), 'success' => true]);
+        $categoria->update(['name' => $name]);
+
+        return response()->json(['categoria' => $categoria->fresh(), 'success' => true]);
     }
 }
