@@ -11,6 +11,9 @@ const TITULOS_DIGEST: Record<string, string> = {
   despesa_vencida: "Despesas vencidas",
   fatura_quitada_automaticamente: "Faturas quitadas automaticamente",
   fatura_vencida: "Faturas vencidas",
+  recorrencia_lancada: "Recorrências lançadas",
+  receita_atrasada: "Receitas atrasadas",
+  fatura_fechada: "Faturas fechadas",
 };
 
 /**

@@ -178,6 +178,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/notificacoes/marcar-todas-lidas', [\App\Http\Controllers\NotificacaoController::class, 'marcarTodasComoLidas']);
     Route::patch('/notificacoes/{id}/marcar-lida', [\App\Http\Controllers\NotificacaoController::class, 'marcarComoLida']);
 
+    //PUSH (Web Push do PWA)
+    Route::get('/push/chave-publica', [\App\Http\Controllers\PushSubscriptionController::class, 'chavePublica']);
+    Route::post('/push/inscricoes', [\App\Http\Controllers\PushSubscriptionController::class, 'store']);
+    Route::delete('/push/inscricoes', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy']);
+
     //CONFIGURACOES
     Route::get('/configuracoes', [\App\Http\Controllers\ConfiguracaoController::class, 'show']);
     Route::put('/configuracoes', [\App\Http\Controllers\ConfiguracaoController::class, 'update']);

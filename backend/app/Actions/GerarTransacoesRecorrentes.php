@@ -4,6 +4,8 @@ namespace App\Actions;
 
 use App\Actions\Cartoes\CriarDespesaCartao;
 use App\Enums\TransactionStatus;
+use App\Enums\TransactionType;
+use App\Models\Notificacao;
 use App\Models\RecorrenciaTransacao;
 use App\Models\Transacao;
 use Carbon\Carbon;
@@ -43,8 +45,10 @@ class GerarTransacoesRecorrentes
     private function processarRecorrencia(int $recorrenciaId, Carbon $hoje): int
     {
         $gerados = 0;
+        $primeiraData = null;
+        $ultimaData = null;
 
-        DB::transaction(function () use ($recorrenciaId, $hoje, &$gerados) {
+        DB::transaction(function () use ($recorrenciaId, $hoje, &$gerados, &$primeiraData, &$ultimaData) {
             $recorrencia = RecorrenciaTransacao::whereKey($recorrenciaId)->lockForUpdate()->first();
 
             if (!$recorrencia || !$recorrencia->active) {
@@ -72,6 +76,8 @@ class GerarTransacoesRecorrentes
                 }
 
                 $gerados++;
+                $primeiraData ??= $dataOcorrencia->copy();
+                $ultimaData = $dataOcorrencia->copy();
 
                 $proxima = $recorrencia->proximaOcorrenciaAPartirDe($dataOcorrencia);
 
@@ -86,8 +92,55 @@ class GerarTransacoesRecorrentes
 
             $recorrencia->last_generated_at = now();
             $recorrencia->save();
+
+            if ($gerados > 0) {
+                $this->notificar($recorrencia, $gerados, $primeiraData, $ultimaData);
+            }
         });
 
         return $gerados;
+    }
+
+    /**
+     * Deixa rastro: o lançamento aconteceu sem o usuário fazer nada. Uma notificação por recorrência
+     * e por execução (ocorrências atrasadas entram juntas, não uma notificação para cada).
+     */
+    private function notificar(RecorrenciaTransacao $recorrencia, int $gerados, Carbon $primeira, Carbon $ultima): void
+    {
+        $ehDespesa = $recorrencia->type === TransactionType::EXPENSE;
+        $noCartao = (bool) $recorrencia->card_id;
+        $pendente = !$noCartao && $recorrencia->default_status === TransactionStatus::PENDING;
+        $valor = 'R$ ' . number_format((float) $recorrencia->amount, 2, ',', '.');
+        $tipo = $ehDespesa ? 'despesa' : 'receita';
+
+        if ($gerados === 1) {
+            $mensagem = "A recorrência \"{$recorrencia->description}\" lançou 1 {$tipo} de {$valor}"
+                . ($noCartao ? ' na fatura do cartão' : ($pendente ? ' pendente' : ' já paga/recebida'))
+                . " ({$ultima->format('d/m/Y')}).";
+        } else {
+            $mensagem = "A recorrência \"{$recorrencia->description}\" lançou {$gerados} {$tipo}s de {$valor} cada, "
+                . "de {$primeira->format('d/m/Y')} a {$ultima->format('d/m/Y')}.";
+        }
+
+        if (!$recorrencia->active) {
+            $mensagem .= ' Era a última ocorrência: a recorrência foi encerrada.';
+        }
+
+        Notificacao::firstOrCreate(
+            ['user_id' => $recorrencia->user_id, 'dedupe_key' => "recorrencia_lancada:{$recorrencia->id}:{$ultima->toDateString()}"],
+            [
+                'type' => 'recorrencia_lancada',
+                'title' => $ehDespesa ? 'Despesa recorrente lançada' : 'Receita recorrente lançada',
+                'message' => $mensagem,
+                'severity' => 'info',
+                'data' => [
+                    'recurring_transaction_id' => $recorrencia->id,
+                    'quantidade' => $gerados,
+                    'amount' => (float) $recorrencia->amount,
+                    'encerrada' => !$recorrencia->active,
+                ],
+                'action_url' => "/recorrencias/editar/{$recorrencia->id}",
+            ]
+        );
     }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Notificacao;
 use App\Models\User;
+use App\Observers\NotificacaoObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -25,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
         ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
             return config('app.frontend_url') . "/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
         });
+
+        Notificacao::observe(NotificacaoObserver::class);
 
         Gate::define('use-ai-chatbot', function (User $user) {
             return (bool) $user->can_use_ai;

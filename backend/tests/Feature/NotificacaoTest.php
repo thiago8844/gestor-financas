@@ -90,9 +90,10 @@ class NotificacaoTest extends TestCase
             'due_date' => now()->addDays(30),
         ]);
 
-        $criadas = (new GerarNotificacoes())->executar();
+        (new GerarNotificacoes())->executar();
 
-        $this->assertEquals(0, $criadas);
+        // Saldo negativo é outro aviso (a conta de teste não tem saldo): aqui só importam os de vencimento.
+        $this->assertEquals(0, Notificacao::where('type', '!=', 'saldo_negativo')->count());
     }
 
     #[Test]

@@ -171,7 +171,9 @@ class NotificacaoConfiguracaoTest extends TestCase
         $fatura = $this->faturaComCompra($conta, -1);
         Transacao::where('invoice_id', $fatura->id)->update(['status' => TransactionStatus::PAID, 'date' => now()->toDateString()]);
 
-        $this->assertSame(0, (new GerarNotificacoes())->executar());
+        (new GerarNotificacoes())->executar();
+
+        $this->assertSame(0, \App\Models\Notificacao::whereNotIn('type', ['saldo_negativo', 'fatura_fechada'])->count());
     }
 
     #[Test]
