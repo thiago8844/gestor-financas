@@ -35,6 +35,8 @@ class EmprestimoResource extends JsonResource
             'status' => $this->status,
             'notes' => $this->notes,
             'created_at' => $this->created_at,
+            'contrato_editavel' => $this->when(!is_null($this->resource->getAttribute('contrato_editavel')), fn () => $this->resource->getAttribute('contrato_editavel')),
+            'principal_movimentado' => $this->when(!is_null($this->resource->getAttribute('principal_movimentado')), fn () => $this->resource->getAttribute('principal_movimentado')),
             'conta' => $this->whenLoaded('conta'),
             'categoria' => $this->whenLoaded('categoria'),
         ];

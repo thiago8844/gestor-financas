@@ -60,18 +60,7 @@ class CriarEmprestimo
                 'notes' => $dados['notes'] ?? null,
             ]);
 
-            $agora = now();
-            EmprestimoParcela::insert(array_map(fn (array $p) => [
-                'loan_id' => $emprestimo->id,
-                'number' => $p['numero'],
-                'due_date' => $p['vencimento']->toDateString(),
-                'principal_amount' => $p['valor_principal'],
-                'interest_amount' => $p['valor_juros'],
-                'expected_amount' => $p['valor_previsto'],
-                'status' => StatusParcelaEmprestimo::PREVISTA->value,
-                'created_at' => $agora,
-                'updated_at' => $agora,
-            ], $parcelas));
+            self::inserirParcelas($emprestimo, $parcelas);
 
             EmprestimoEvento::registrar($emprestimo, 'criado', 'Empréstimo criado');
 
@@ -83,10 +72,28 @@ class CriarEmprestimo
         });
     }
 
+    /** @param array<int, array<string, mixed>> $parcelas cronograma gerado pelo GeradorCronograma */
+    public static function inserirParcelas(Emprestimo $emprestimo, array $parcelas): void
+    {
+        $agora = now();
+
+        EmprestimoParcela::insert(array_map(fn (array $p) => [
+            'loan_id' => $emprestimo->id,
+            'number' => $p['numero'],
+            'due_date' => $p['vencimento']->toDateString(),
+            'principal_amount' => $p['valor_principal'],
+            'interest_amount' => $p['valor_juros'],
+            'expected_amount' => $p['valor_previsto'],
+            'status' => StatusParcelaEmprestimo::PREVISTA->value,
+            'created_at' => $agora,
+            'updated_at' => $agora,
+        ], $parcelas));
+    }
+
     /**
      * Lança o principal na conta: entra para quem tomou, sai para quem emprestou.
      */
-    private static function lancarPrincipal(Emprestimo $emprestimo): void
+    public static function lancarPrincipal(Emprestimo $emprestimo): void
     {
         if (!$emprestimo->account_id) {
             throw new InvalidArgumentException('Informe a conta para movimentar o valor do empréstimo.');
@@ -113,7 +120,7 @@ class CriarEmprestimo
     }
 
     /** No modo livre o usuário monta o cronograma; o principal precisa fechar com o valor emprestado. */
-    private static function validarParcelasLivres(ContratoEmprestimo $contrato, array $parcelas): void
+    public static function validarParcelasLivres(ContratoEmprestimo $contrato, array $parcelas): void
     {
         if ($contrato->modalidade !== ModalidadeEmprestimo::LIVRE) {
             return;
