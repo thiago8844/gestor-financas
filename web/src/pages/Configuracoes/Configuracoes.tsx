@@ -7,6 +7,7 @@ import { atualizarConfiguracoes, getConfiguracoes } from "../../api/configuracao
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { CONFIGURACAO_DIAS_MAXIMO, type Configuracao } from "../../types/configuracao";
 import { toast } from "../../utils/toast";
+import { CardNotificacoesPush } from "../../components/Notificacoes/CardNotificacoesPush";
 
 const OPCOES_DIAS = Array.from({ length: CONFIGURACAO_DIAS_MAXIMO + 1 }, (_, i) => i);
 
@@ -113,6 +114,8 @@ function ConfiguracoesForm({ configuracao }: { configuracao: Configuracao }) {
           <FieldError>{errors.notify_overdue_days?.message}</FieldError>
         </div>
       </div>
+
+      <CardNotificacoesPush />
 
       <h5 className="fw-bold mb-3">
         <i className="bi bi-credit-card me-2 text-primary"></i>
