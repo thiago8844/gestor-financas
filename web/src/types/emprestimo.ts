@@ -46,6 +46,9 @@ export type Emprestimo = {
   status: StatusEmprestimo;
   notes: string | null;
   created_at: string;
+  /** Só no detalhe: as condições podem ser refeitas (sem baixas nem ajustes). */
+  contrato_editavel?: boolean;
+  principal_movimentado?: boolean;
   conta?: { id: number; name: string } | null;
   categoria?: { id: number; name: string } | null;
   // Presentes quando as parcelas vêm carregadas (listagem e detalhe).

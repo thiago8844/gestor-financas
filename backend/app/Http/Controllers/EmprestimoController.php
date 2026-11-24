@@ -8,6 +8,7 @@ use App\Actions\Emprestimos\CancelarEmprestimo;
 use App\Actions\Emprestimos\CriarEmprestimo;
 use App\Actions\Emprestimos\EncerrarEmprestimo;
 use App\Actions\Emprestimos\ExcluirEmprestimo;
+use App\Actions\Emprestimos\RefazerContratoEmprestimo;
 use App\Actions\Emprestimos\ReverterBaixa;
 use App\Http\Requests\Emprestimos\AjusteEmprestimoRequest;
 use App\Http\Requests\Emprestimos\BaixarParcelaRequest;
@@ -108,12 +109,16 @@ class EmprestimoController extends Controller
             return $negado;
         }
 
-        return EmprestimoResource::make($emprestimo->load(['parcelas', 'conta:id,name', 'categoria:id,name']));
+        $emprestimo->load(['parcelas', 'conta:id,name', 'categoria:id,name']);
+        $emprestimo->setAttribute('contrato_editavel', $emprestimo->contratoEditavel());
+        $emprestimo->setAttribute('principal_movimentado', $emprestimo->principalMovimentado());
+
+        return EmprestimoResource::make($emprestimo);
     }
 
     /**
      * Só dados de identificação e padrões de lançamento. O cronograma não é editável: para mudar
-     * valor, taxa ou prazo, exclua e crie de novo (ou use a renegociação, quando existir).
+     * valor, taxa ou prazo use `refazer` (só sem baixas/ajustes) ou exclua e crie de novo.
      */
     public function update(Request $request, Emprestimo $emprestimo)
     {
@@ -133,6 +138,23 @@ class EmprestimoController extends Controller
 
         return EmprestimoResource::make($emprestimo->load(['parcelas', 'conta:id,name', 'categoria:id,name']))
             ->additional(['message' => 'Empréstimo atualizado com sucesso']);
+    }
+
+    /** Refaz as condições do contrato (valor, taxa, prazo, vencimentos); só sem baixas nem ajustes. */
+    public function refazer(EmprestimoRequest $request, Emprestimo $emprestimo)
+    {
+        if ($negado = $this->negarSeNaoForDono($emprestimo)) {
+            return $negado;
+        }
+
+        try {
+            $emprestimo = RefazerContratoEmprestimo::executar($emprestimo, $request->validated());
+        } catch (DomainException|InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return EmprestimoResource::make($emprestimo->load(['conta:id,name', 'categoria:id,name']))
+            ->additional(['message' => 'Condições do empréstimo atualizadas com sucesso']);
     }
 
     public function destroy(Emprestimo $emprestimo)

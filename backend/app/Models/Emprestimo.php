@@ -87,4 +87,23 @@ class Emprestimo extends Model
 
         return round($this->parcelas->sum(fn (EmprestimoParcela $p) => $p->principalRestante()), 2);
     }
+
+    /**
+     * As condições (valor, taxa, prazo, vencimentos) só podem ser refeitas enquanto nada aconteceu no
+     * contrato: ativo, sem baixa em nenhuma parcela e sem amortização/aumento. Depois disso, mexer
+     * nelas bagunçaria o que já foi lançado nas contas.
+     */
+    public function contratoEditavel(): bool
+    {
+        return $this->status === StatusEmprestimo::ATIVO
+            && !$this->ajustes()->exists()
+            && !$this->parcelas()->reorder()->where('status', '!=', 'PREVISTA')->exists()
+            && !$this->transacoes()->whereNotNull('loan_installment_id')->exists();
+    }
+
+    /** Principal lançado na conta no cadastro (movimentar_conta). */
+    public function principalMovimentado(): bool
+    {
+        return $this->transacoes()->whereNull('loan_installment_id')->exists();
+    }
 }
