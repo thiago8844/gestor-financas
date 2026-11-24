@@ -13,7 +13,8 @@
         "ext-bcmath": "*",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.10.1"
+        "laravel/tinker": "^2.10.1",
+        "minishlink/web-push": "^11.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

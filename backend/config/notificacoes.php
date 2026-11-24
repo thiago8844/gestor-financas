@@ -6,6 +6,12 @@ use App\Notificacoes\Regras\EmprestimoAtrasadoRegra;
 use App\Notificacoes\Regras\EmprestimoAVencerRegra;
 use App\Notificacoes\Regras\FechamentoMensalRegra;
 use App\Notificacoes\Regras\PagamentoAVencerRegra;
+use App\Notificacoes\Regras\RecorrenciaEncerrandoRegra;
+use App\Notificacoes\Regras\OrcamentoRegra;
+use App\Notificacoes\Regras\FaturaFechadaRegra;
+use App\Notificacoes\Regras\SaldoNegativoRegra;
+use App\Notificacoes\Regras\ReceitaAtrasadaRegra;
+use App\Notificacoes\Regras\ImportacaoOfxPendenteRegra;
 
 return [
     /*
@@ -21,5 +27,11 @@ return [
         FechamentoMensalRegra::class,
         EmprestimoAVencerRegra::class,
         EmprestimoAtrasadoRegra::class,
+        RecorrenciaEncerrandoRegra::class,
+        OrcamentoRegra::class,
+        FaturaFechadaRegra::class,
+        SaldoNegativoRegra::class,
+        ReceitaAtrasadaRegra::class,
+        ImportacaoOfxPendenteRegra::class,
     ],
 ];
