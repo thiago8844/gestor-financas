@@ -36,6 +36,7 @@ import Page403 from "./pages/Page403";
 import { EmprestimosRoute } from "./pages/Emprestimos/EmprestimosRoute";
 import { ListagemEmprestimos } from "./pages/Emprestimos/ListagemEmprestimos";
 import { CadastrarEmprestimo } from "./pages/Emprestimos/CadastrarEmprestimo";
+import { EditarEmprestimo } from "./pages/Emprestimos/EditarEmprestimo";
 import { DetalheEmprestimo } from "./pages/Emprestimos/DetalheEmprestimo";
 import { RecorrenciaRoute } from "./pages/Recorrencia/RecorrenciaRoute";
 import { ListagemRecorrencia } from "./pages/Recorrencia/ListagemRecorrencia";
@@ -148,6 +149,7 @@ export const router = createBrowserRouter([
           { path: "", element: <ListagemEmprestimos /> },
           { path: "cadastrar", element: <CadastrarEmprestimo /> },
           { path: ":id", element: <DetalheEmprestimo /> },
+          { path: ":id/editar", element: <EditarEmprestimo /> },
         ],
       },
       {

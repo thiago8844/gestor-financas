@@ -10,6 +10,7 @@ import {
   parseDecimal,
   rotuloTaxa,
   situacaoDaParcela,
+  valoresDoEmprestimo,
 } from "./emprestimo";
 import { validarPasso, valoresIniciaisEmprestimo, type EmprestimoFormValues } from "../schemas/emprestimo";
 
@@ -198,5 +199,42 @@ describe("ajustes do contrato", () => {
     expect(frasesDeJuros(480)).toContain("economiza R$ 480,00");
     expect(frasesDeJuros(-120)).toContain("aumentam R$ 120,00");
     expect(frasesDeJuros(0)).toBe("Os juros restantes não mudam.");
+  });
+});
+
+describe("valoresDoEmprestimo", () => {
+  it("devolve o formulário que gera o mesmo payload do contrato original", () => {
+    const form = valoresDoEmprestimo({
+      id: 1,
+      direction: "CONCEDIDO",
+      counterparty: "Fulano",
+      description: null,
+      principal: 5000,
+      contract_date: "2026-10-20",
+      rate: 2,
+      rate_period: "MES",
+      interest_type: "SIMPLES",
+      modality: "JUROS_PERIODICOS",
+      frequency: "MENSAL",
+      due_day: 26,
+      due_day_adjustment: "ULTIMO_DIA_MES",
+      first_due_date: "2026-11-26",
+      installments: 12,
+      grace_installments: 0,
+      open_term: false,
+      account_id: 3,
+      category_id: null,
+      status: "ATIVO",
+      notes: null,
+      created_at: "2026-10-20",
+      principal_movimentado: true,
+    });
+
+    const payload = montarPayload(form);
+
+    expect(form.principal).toBe("5.000,00");
+    expect(form.movimentar_conta).toBe(true);
+    expect(payload).toMatchObject({ principal: 5000, rate: 2, installments: 12, due_day: 26, account_id: 3, movimentar_conta: true });
+    expect(Object.keys(validarPasso(form, 0)).length + Object.keys(validarPasso(form, 1)).length + Object.keys(validarPasso(form, 2)).length).toBe(0);
   });
 });

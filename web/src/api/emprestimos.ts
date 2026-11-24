@@ -60,6 +60,11 @@ export async function atualizarEmprestimo(
   return response.data.data;
 }
 
+export async function refazerEmprestimo(id: number, payload: EmprestimoPayload) {
+  const response = await api.put<{ data: Emprestimo; message?: string }>(`/emprestimos/${id}/contrato`, payload);
+  return response.data;
+}
+
 export async function deletarEmprestimo(id: number) {
   const response = await api.delete(`/emprestimos/deletar/${id}`);
   return response.status;

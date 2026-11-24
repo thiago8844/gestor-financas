@@ -113,6 +113,12 @@ export function DetalheEmprestimo() {
           </p>
           {emprestimo.description && <p className="text-muted mb-0">{emprestimo.description}</p>}
         </div>
+        {emprestimo.contrato_editavel && (
+          <button type="button" className="btn btn-outline-primary" onClick={() => navigate(`/emprestimos/${emprestimo.id}/editar`)}>
+            <i className="bi bi-pencil me-2"></i>
+            Editar condições
+          </button>
+        )}
       </div>
 
       {emprestimo.status === "CANCELADO" && (
@@ -278,7 +284,9 @@ function Ajustes({ emprestimo, onExcluir, onCancelar }: { emprestimo: Emprestimo
       <div className="col-12 col-lg-7">
         <h6 className="fw-bold">Dados do empréstimo</h6>
         <p className="text-muted small">
-          Valor, taxa e prazo não podem ser editados depois de criados, para não bagunçar os lançamentos. Para mudar, exclua e registre de novo.
+          {emprestimo.contrato_editavel
+            ? "Aqui você edita só os dados de identificação. Para mudar valor, taxa, prazo ou vencimentos, use \"Editar condições\" no topo da página."
+            : "Valor, taxa e prazo só podem ser editados enquanto não há pagamentos nem ajustes. Para mudar agora, desfaça as baixas, use Amortizar / Aumentar ou exclua e registre de novo."}
         </p>
         <div className="mb-3">
           <label className="form-label" htmlFor="ajCounterparty">{emprestimo.direction === "TOMADO" ? "Quem emprestou" : "Quem recebeu"}</label>

@@ -128,6 +128,40 @@ export function situacaoDaParcela(
   return { texto: "Prevista", variante: "secondary" };
 }
 
+/** Preenche o formulário com um empréstimo existente (edição das condições). */
+export function valoresDoEmprestimo(e: Emprestimo): EmprestimoFormValues {
+  const parcelas = e.parcelas ?? [];
+
+  return {
+    direction: e.direction,
+    counterparty: e.counterparty,
+    description: e.description ?? "",
+    principal: convertNumberToCurrencyMask(e.principal),
+    contract_date: e.contract_date,
+    movimentar_conta: e.principal_movimentado ?? false,
+    account_id: e.account_id ? String(e.account_id) : "",
+    modality: e.modality,
+    interest_type: e.interest_type,
+    rate: e.interest_type === "SEM_JUROS" ? "" : String(e.rate),
+    rate_period: e.rate_period,
+    frequency: e.frequency,
+    first_due_date: e.first_due_date,
+    due_day_adjustment: e.due_day_adjustment,
+    installments: e.installments ? String(e.installments) : "",
+    prazo_aberto: e.open_term,
+    grace_installments: String(e.grace_installments ?? 0),
+    custom_installments:
+      e.modality === "LIVRE"
+        ? parcelas.map((p) => ({
+            due_date: p.due_date,
+            principal_amount: convertNumberToCurrencyMask(p.principal_amount),
+            interest_amount: convertNumberToCurrencyMask(p.interest_amount),
+          }))
+        : [],
+    notes: e.notes ?? "",
+  };
+}
+
 /** Converte o formulário (tudo texto) no payload que a API espera. */
 export function montarPayload(f: EmprestimoFormValues): EmprestimoPayload {
   const semJuros = f.interest_type === "SEM_JUROS";

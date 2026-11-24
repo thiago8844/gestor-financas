@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import type { AxiosError } from "axios";
 import PageLayout from "../../layouts/PageLayout";
-import { criarEmprestimo, previaEmprestimo } from "../../api/emprestimos";
+import { criarEmprestimo, previaEmprestimo, refazerEmprestimo } from "../../api/emprestimos";
 import { getContas } from "../../api/conta";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useInvalidarEmprestimos } from "../../hooks/useInvalidarEmprestimos";
@@ -16,18 +16,19 @@ import {
 } from "../../schemas/emprestimo";
 import { defaultFormErrorHandler } from "../../utils/formErrorHandlers";
 import { mensagemErroApi } from "../../utils";
-import { hojeISO, montarPayload } from "../../utils/emprestimo";
+import { hojeISO, montarPayload, valoresDoEmprestimo } from "../../utils/emprestimo";
 import { toast } from "../../utils/toast";
-import type { EmprestimoPayload } from "../../types/emprestimo";
+import type { Emprestimo, EmprestimoPayload } from "../../types/emprestimo";
 import { PassoCondicoes, PassoPessoa, PassoVencimentos } from "./PassosEmprestimo";
 import { PreviaCronograma } from "./components/PreviaCronograma";
 
-export function CadastrarEmprestimo() {
+/** Sem `emprestimo`: cadastro. Com `emprestimo`: edição das condições do contrato (mesmo formulário). */
+export function CadastrarEmprestimo({ emprestimo }: { emprestimo?: Emprestimo } = {}) {
   const navigate = useNavigate();
   const invalidar = useInvalidarEmprestimos();
   const [passo, setPasso] = useState(0);
 
-  const form = useForm<EmprestimoFormValues>({ defaultValues: valoresIniciaisEmprestimo(hojeISO()) });
+  const form = useForm<EmprestimoFormValues>({ defaultValues: emprestimo ? valoresDoEmprestimo(emprestimo) : valoresIniciaisEmprestimo(hojeISO()) });
   const { handleSubmit, getValues, setError, clearErrors, watch } = form;
 
   const { data: contas, isLoading: carregandoContas } = useQuery({
@@ -51,10 +52,12 @@ export function CadastrarEmprestimo() {
   });
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (v: EmprestimoFormValues) => criarEmprestimo(montarPayload(v)),
+    mutationFn: (v: EmprestimoFormValues) =>
+      emprestimo ? refazerEmprestimo(emprestimo.id, montarPayload(v)) : criarEmprestimo(montarPayload(v)),
     onSuccess: (resposta) => {
       invalidar();
-      toast.success("Empréstimo registrado", { message: "O cronograma de parcelas já está disponível." });
+      if (emprestimo) toast.success("Condições atualizadas", { message: "O cronograma de parcelas foi refeito." });
+      else toast.success("Empréstimo registrado", { message: "O cronograma de parcelas já está disponível." });
       navigate(`/emprestimos/${resposta.data.id}`);
     },
     onError: (error: AxiosError) => defaultFormErrorHandler(error, setError),
@@ -87,7 +90,7 @@ export function CadastrarEmprestimo() {
   const ultimo = passo === PASSOS_EMPRESTIMO.length - 1;
 
   return (
-    <PageLayout title="Novo empréstimo" backTo="/emprestimos" loading={carregandoContas}>
+    <PageLayout title={emprestimo ? "Editar condições" : "Novo empréstimo"} backTo={emprestimo ? `/emprestimos/${emprestimo.id}` : "/emprestimos"} loading={carregandoContas}>
       <div className="container-fluid">
         <div className="container" style={{ maxWidth: 820 }}>
           <ol className="list-unstyled d-flex gap-2 mb-4" aria-label="Etapas do cadastro">
@@ -133,7 +136,7 @@ export function CadastrarEmprestimo() {
               <button
                 type="button"
                 className="btn btn-secondary text-white"
-                onClick={() => (passo === 0 ? navigate("/emprestimos") : setPasso(passo - 1))}
+                onClick={() => (passo === 0 ? navigate(emprestimo ? `/emprestimos/${emprestimo.id}` : "/emprestimos") : setPasso(passo - 1))}
                 disabled={isPending}
               >
                 <i className="bi bi-arrow-left me-2"></i>
@@ -149,7 +152,7 @@ export function CadastrarEmprestimo() {
                 ) : ultimo ? (
                   <>
                     <i className="bi bi-check-circle me-2"></i>
-                    Salvar empréstimo
+                    {emprestimo ? "Salvar alterações" : "Salvar empréstimo"}
                   </>
                 ) : (
                   <>
